@@ -1,6 +1,6 @@
 package com.jerezsur.inmobiliaria.models;
 
-import com.jerezsur.inmobiliaria.models.enums.Operacion;
+import com.jerezsur.inmobiliaria.models.enums.TipoContrato;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -20,10 +20,12 @@ import java.util.List;
 @AllArgsConstructor
 public class Contrato {
 
+    // --- IDENTIFICADOR ---
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // --- ATRIBUTOS ---
     @NotNull
     private LocalDate fechaFirma;
 
@@ -32,13 +34,13 @@ public class Contrato {
     private BigDecimal precioFinal;
 
     @Enumerated(EnumType.STRING)
-    private Operacion tipo; // VENTA, ALQUILER, etc.
-
-    // Para guardar la ruta del contrato firmado (PDF)
-    private String urlDocumentoPdf;
+    private TipoContrato tipo; // VENTA, ALQUILER.
 
     @Column(columnDefinition = "TEXT")
     private String clausulasEspeciales;
+
+    // --- PDF CONTRATO FIRMADO ---
+    private String urlDocumentoPdf; // Para guardar la ruta del contrato firmado (PDF)
 
     // --- RELACIONES ---
 
@@ -56,6 +58,11 @@ public class Contrato {
     @OneToMany(mappedBy = "contrato", cascade = CascadeType.ALL)
     private List<Contrato_Comprador> compradoresFirmantes;
 
+    // Relación con los vendedores que firman (pueden ser varios)
+    @OneToMany(mappedBy = "contrato", cascade = CascadeType.ALL)
+    private List<Contrato_Vendedor> vendedoresFirmantes;
+
+    // --- AUDITORÍA DE SISTEMA ---
     @CreationTimestamp
     @Column(updatable = false)
     private LocalDateTime fechaRegistroSistema;

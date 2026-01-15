@@ -51,6 +51,9 @@ public class Vendedor {
     @OneToMany(mappedBy = "vendedor")
     private List<Inmueble_Vendedor> propiedades;
 
+    @OneToMany(mappedBy = "vendedor")
+    private List<Contrato_Vendedor> contratosFirmados;
+
     // --- AUDITORÍA DE SISTEMA ---
     @CreationTimestamp
     @Column(updatable = false)
