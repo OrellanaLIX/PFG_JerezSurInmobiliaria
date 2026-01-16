@@ -144,8 +144,8 @@ public class Inmueble {
     // --- AUDITORÍA ---
     @CreationTimestamp
     @Column(updatable = false)
-    private LocalDateTime fechaPublicacion;
+    private LocalDateTime fechaRegistro;
 
     @UpdateTimestamp
-    private LocalDateTime fechaUltimaModificacion;
+    private LocalDateTime fechaUltimaActualizacion;
 }
