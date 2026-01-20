@@ -1,5 +1,6 @@
 package com.jerezsur.inmobiliaria.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -7,9 +8,16 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
+import org.springframework.security.oauth2.core.user.OAuth2User;
+
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
+    @Autowired
+    private OAuth2UserService<OAuth2UserRequest, OAuth2User> customOAuth2UserService;
 
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
@@ -43,8 +51,11 @@ public class SecurityConfig {
             // 4. Configurar OAuth2 (Google/GitHub)
             .oauth2Login(oauth2 -> oauth2
                 .loginPage("/login")
-                .defaultSuccessUrl("/home", true)
+                .userInfoEndpoint(userInfo -> userInfo
+                .userService(customOAuth2UserService)
             )
+    .defaultSuccessUrl("/home", true)
+)
 
             // 5. Configurar Logout
             .logout(logout -> logout

@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diseño Técnico - JerezSur Inmobiliaria</title>
+    <!-- Google Font: Montserrat -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ============================================
+           PALETA DE COLORES - JEREZSUR INMOBILIARIA
+           ============================================ */
+
+        :root {
+            /* Colores Corporativos (Extraídos del Logo) */
+            --color-primary-blue: #043b89;
+            --color-primary-blue-hover: #0652b8;
+            --color-accent-green: #6cbf4a;
+            --color-accent-green-hover: #5a9e3c;
+            
+            /* Colores de Estado y Texto */
+            --color-danger: #dc3545;
+            --color-info: #0dcaf0;
+            --color-text-primary: #212529;
+            --color-text-secondary: #6c757d;
+            --color-text-light: #ffffff;
+            
+            /* Fondos y Bordes */
+            --color-bg-body: #f8f9fa;
+            --color-bg-card: #ffffff;
+            --color-bg-code: #f1f3f5;
+            --color-border: #212529;
+            
+            /* Sombras y Radios */
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --border-radius-xl: 16px;
+        }
+
+        /* ============================================
+           ESTILOS GLOBALES
+           ============================================ */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: var(--color-primary-blue);
+            color: var(--color-text-primary);
+            line-height: 1.6;
+        }
+        
+        /* ============================================
+           ESTRUCTURA Y COMPONENTES
+           ============================================ */
+        .container {
+            width: 100%;
+            max-width: 1400px; /* Ancho ampliado para mejor visualización */
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .card {
+            background-color: var(--color-bg-card);
+            border-radius: var(--border-radius-xl);
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--color-border);
+            margin-bottom: 3rem;
+            overflow: hidden; /* Para contener los bordes redondeados */
+        }
+        
+        .card-header {
+             padding: 1.5rem 2rem;
+             background-color: var(--color-accent-green);
+             color: var(--color-text-light);
+             font-size: 1.5rem;
+             font-weight: 600;
+        }
+        
+        .card-body {
+            padding: 2rem;
+        }
+
+        /* Contenedor del canvas para mantener el escalado */
+        .canvas-container {
+            overflow: hidden !important; 
+            height: 810px; /* Altura fija para el contenedor */
+            background-color: var(--color-bg-card);
+            border-radius: var(--border-radius-xl);
+        }
+
+        #erCanvas {
+            transform: scale(0.68); 
+            transform-origin: top left;
+            pointer-events: none; 
+            user-select: none;
+        }
+
+        /* ============================================
+           ESTILOS DEL BLOQUE DE CÓDIGO SQL
+           ============================================ */
+        .code-block-wrapper {
+            max-height: 80vh;
+            overflow: auto;
+            background-color: var(--color-bg-code);
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+        }
+
+        pre {
+            padding: 1.5rem;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.875rem;
+            white-space: pre; /* Mantenemos el preformateado */
+        }
+        
+        /* Estilos para el resaltado de sintaxis */
+        .sql-keyword { color: var(--color-primary-blue); font-weight: bold; }
+        .sql-comment { color: var(--color-accent-green); font-style: italic; }
+        .sql-string { color: var(--color-danger); }
+        .sql-type { color: var(--color-text-secondary); }
+        .sql-number { color: var(--color-info); }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="card-header">Diagrama Entidad/Relación</div>
+            <div class="card-body">
+                 <div class="canvas-container">
+                    <canvas id="erCanvas" width="2200" height="1500"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">Código SQL de Creación</div>
+            <div class="card-body">
+                <div class="code-block-wrapper">
+                    <pre><code id="sql-code">-- =====================================================
+-- BORRAR Y RECREAR BASE DE DATOS CON IDs SIMPLIFICADOS
+-- =====================================================
+
+SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
+SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
+SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
+
+-- =====================================================
+-- BORRAR BASE DE DATOS EXISTENTE
+-- =====================================================
+DROP DATABASE IF EXISTS `PFG`;
+
+-- =====================================================
+-- CREAR BASE DE DATOS
+-- =====================================================
+CREATE DATABASE IF NOT EXISTS `PFG` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE `PFG`;
+
+-- =====================================================
+-- TABLA: Inmuebles
+-- =====================================================
+CREATE TABLE `Inmuebles` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `Direccion` VARCHAR(45) NOT NULL,
+  `Tipo_Operacion` TINYINT NOT NULL COMMENT '0=Venta, 1=Alquiler',
+  `Precio` DOUBLE NOT NULL,
+  `Num_Hab` INT NOT NULL,
+  `Num_Baños` INT NOT NULL,
+  `Metros_Cuadrados` DOUBLE NOT NULL,
+  `Estado` VARCHAR(45) NOT NULL,
+  `Compartido` BIT NOT NULL,
+  `Anotaciones` VARCHAR(255) NULL,
+  `Comunidad` VARCHAR(45) NOT NULL,
+  `Certificado_Energia` VARCHAR(45) NOT NULL,
+  `IBI` VARCHAR(45) NOT NULL,
+  `Nota_Simple` VARCHAR(45) NOT NULL,
+  `Valido` TINYINT NOT NULL DEFAULT 1,
+  `Tipo_Vivienda` VARCHAR(45) NOT NULL,
+  PRIMARY KEY (`id`),
+  INDEX `idx_valido` (`Valido`),
+  INDEX `idx_tipo_operacion` (`Tipo_Operacion`)
+) ENGINE = InnoDB;
+
+-- =====================================================
+-- TABLA: Trabajadores
+-- =====================================================
+CREATE TABLE `Trabajadores` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `Nombre` VARCHAR(45) NOT NULL,
+  `Apellido` VARCHAR(45) NOT NULL,
+  `NIF` VARCHAR(10) NOT NULL UNIQUE,
+  `Contacto` VARCHAR(45) NULL,
+  `Puesto` VARCHAR(45) NULL,
+  PRIMARY KEY (`id`),
+  INDEX `idx_nif` (`NIF`)
+) ENGINE = InnoDB;
+
+-- =====================================================
+-- TABLA: Vendedores
+-- =====================================================
+CREATE TABLE `Vendedores` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `Nombre` VARCHAR(45) NOT NULL,
+  `Apellido` VARCHAR(45) NOT NULL,
+  `Contacto` VARCHAR(45) NOT NULL,
+  `Demanda` VARCHAR(255) NULL,
+  `Direccion` VARCHAR(100) NOT NULL,
+  `CP` VARCHAR(10) NOT NULL,
+  `NIF` VARCHAR(10) NOT NULL UNIQUE,
+  PRIMARY KEY (`id`),
+  INDEX `idx_nif` (`NIF`)
+) ENGINE = InnoDB;
+
+-- =====================================================
+-- TABLA: Interesados
+-- =====================================================
+CREATE TABLE `Interesados` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `Nombre` VARCHAR(45) NOT NULL,
+  `Apellidos` VARCHAR(45) NOT NULL,
+  `Contacto` VARCHAR(45) NOT NULL,
+  `Demanda` VARCHAR(255) NULL,
+  `Direccion` VARCHAR(100) NULL,
+  `CP` VARCHAR(10) NULL,
+  `NIF` VARCHAR(10) NULL UNIQUE,
+  PRIMARY KEY (`id`),
+  INDEX `idx_nif` (`NIF`)
+) ENGINE = InnoDB;
+
+-- =====================================================
+-- TABLA: Citas
+-- =====================================================
+CREATE TABLE `Citas` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `Fecha` DATE NOT NULL,
+  `Hora` TIME NOT NULL,
+  `Anotaciones` VARCHAR(255) NULL,
+  `Inmueble_id` INT NOT NULL,
+  `Trabajador_id` INT NOT NULL,
+  `Interesado_id` INT NOT NULL,
+  PRIMARY KEY (`id`),
+  INDEX `fk_citas_inmueble_idx` (`Inmueble_id` ASC),
+  INDEX `fk_citas_trabajador_idx` (`Trabajador_id` ASC),
+  INDEX `fk_citas_interesado_idx` (`Interesado_id` ASC),
+  INDEX `idx_fecha` (`Fecha`),
+  CONSTRAINT `fk_citas_inmueble`
+    FOREIGN KEY (`Inmueble_id`)
+    REFERENCES `Inmuebles` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+  CONSTRAINT `fk_citas_trabajador`
+    FOREIGN KEY (`Trabajador_id`)
+    REFERENCES `Trabajadores` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+  CONSTRAINT `fk_citas_interesado`
+    FOREIGN KEY (`Interesado_id`)
+    REFERENCES `Interesados` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+) ENGINE = InnoDB;
+
+-- =====================================================
+-- TABLA: Operacion
+-- =====================================================
+CREATE TABLE `Operacion` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `Fecha` DATE NOT NULL,
+  `Monto` DOUBLE NOT NULL,
+  `Inmueble_id` INT NOT NULL,
+  PRIMARY KEY (`id`),
+  INDEX `fk_operacion_inmueble_idx` (`Inmueble_id` ASC),
+  INDEX `idx_fecha` (`Fecha`),
+  CONSTRAINT `fk_operacion_inmueble`
+    FOREIGN KEY (`Inmueble_id`)
+    REFERENCES `Inmuebles` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+) ENGINE = InnoDB;
+
+-- =====================================================
+-- TABLA: Reseñas
+-- =====================================================
+CREATE TABLE `Reseñas` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `Fecha` DATE NOT NULL,
+  `Calificacion` INT NOT NULL,
+  `Comentario` VARCHAR(255) NULL,
+  `Operacion_id` INT NOT NULL,
+  PRIMARY KEY (`id`),
+  INDEX `fk_resenas_operacion_idx` (`Operacion_id` ASC),
+  INDEX `idx_calificacion` (`Calificacion`),
+  CONSTRAINT `fk_resenas_operacion`
+    FOREIGN KEY (`Operacion_id`)
+    REFERENCES `Operacion` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+  CONSTRAINT `chk_calificacion` CHECK (`Calificacion` BETWEEN 1 AND 5)
+) ENGINE = InnoDB;
+
+-- =====================================================
+-- TABLA: Contrato
+-- =====================================================
+CREATE TABLE `Contrato` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `Fecha_Firma` DATE NOT NULL,
+  `Tipo_Contrato` VARCHAR(45) NOT NULL,
+  `Terminos` VARCHAR(255) NOT NULL,
+  `Operacion_id` INT NOT NULL,
+  `Trabajador_id` INT NOT NULL,
+  PRIMARY KEY (`id`),
+  INDEX `fk_contrato_operacion_idx` (`Operacion_id` ASC),
+  INDEX `fk_contrato_trabajador_idx` (`Trabajador_id` ASC),
+  CONSTRAINT `fk_contrato_operacion`
+    FOREIGN KEY (`Operacion_id`)
+    REFERENCES `Operacion` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+  CONSTRAINT `fk_contrato_trabajador`
+    FOREIGN KEY (`Trabajador_id`)
+    REFERENCES `Trabajadores` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+) ENGINE = InnoDB;
+
+-- =====================================================
+-- TABLA: Propiedad_Adicional
+-- =====================================================
+CREATE TABLE `Propiedad_Adicional` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `Tipo` VARCHAR(45) NOT NULL,
+  `Derrama` DOUBLE NOT NULL,
+  `IBI` VARCHAR(45) NOT NULL,
+  `Inmueble_id` INT NOT NULL,
+  PRIMARY KEY (`id`),
+  INDEX `fk_propiedad_adicional_inmueble_idx` (`Inmueble_id` ASC),
+  INDEX `idx_tipo` (`Tipo`),
+  CONSTRAINT `fk_propiedad_adicional_inmueble`
+    FOREIGN KEY (`Inmueble_id`)
+    REFERENCES `Inmuebles` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+) ENGINE = InnoDB;
+
+-- =====================================================
+-- TABLA: Inmuebles_has_Interesados (Relación N:M)
+-- =====================================================
+CREATE TABLE `Inmuebles_has_Interesados` (
+  `Inmueble_id` INT NOT NULL,
+  `Interesado_id` INT NOT NULL,
+  PRIMARY KEY (`Inmueble_id`, `Interesado_id`),
+  INDEX `fk_inmuebles_interesados_interesado_idx` (`Interesado_id` ASC),
+  INDEX `fk_inmuebles_interesados_inmueble_idx` (`Inmueble_id` ASC),
+  CONSTRAINT `fk_inmuebles_interesados_inmueble`
+    FOREIGN KEY (`Inmueble_id`)
+    REFERENCES `Inmuebles` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+  CONSTRAINT `fk_inmuebles_interesados_interesado`
+    FOREIGN KEY (`Interesado_id`)
+    REFERENCES `Interesados` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+) ENGINE = InnoDB;
+
+-- =====================================================
+-- TABLA: Vendedores_has_Inmuebles (Relación N:M)
+-- =====================================================
+CREATE TABLE `Vendedores_has_Inmuebles` (
+  `Vendedor_id` INT NOT NULL,
+  `Inmueble_id` INT NOT NULL,
+  `Representante` VARCHAR(100) NOT NULL,
+  PRIMARY KEY (`Vendedor_id`, `Inmueble_id`),
+  INDEX `fk_vendedores_inmuebles_inmueble_idx` (`Inmueble_id` ASC),
+  INDEX `fk_vendedores_inmuebles_vendedor_idx` (`Vendedor_id` ASC),
+  CONSTRAINT `fk_vendedores_inmuebles_vendedor`
+    FOREIGN KEY (`Vendedor_id`)
+    REFERENCES `Vendedores` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+  CONSTRAINT `fk_vendedores_inmuebles_inmueble`
+    FOREIGN KEY (`Inmueble_id`)
+    REFERENCES `Inmuebles` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+) ENGINE = InnoDB;
+
+-- =====================================================
+-- TABLA: Interesados_has_Operacion (Relación N:M)
+-- =====================================================
+CREATE TABLE `Interesados_has_Operacion` (
+  `Interesado_id` INT NOT NULL,
+  `Operacion_id` INT NOT NULL,
+  `Representante` VARCHAR(100) NOT NULL,
+  PRIMARY KEY (`Interesado_id`, `Operacion_id`),
+  INDEX `fk_interesados_operacion_operacion_idx` (`Operacion_id` ASC),
+  INDEX `fk_interesados_operacion_interesado_idx` (`Interesado_id` ASC),
+  CONSTRAINT `fk_interesados_operacion_interesado`
+    FOREIGN KEY (`Interesado_id`)
+    REFERENCES `Interesados` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+  CONSTRAINT `fk_interesados_operacion_operacion`
+    FOREIGN KEY (`Operacion_id`)
+    REFERENCES `Operacion` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+) ENGINE = InnoDB;
+
+-- =====================================================
+-- TABLA: property (Web pública)
+-- =====================================================
+CREATE TABLE `property` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(200) NOT NULL COMMENT 'Título descriptivo del inmueble',
+  `location` VARCHAR(150) NOT NULL COMMENT 'Ubicación',
+  `bedrooms` INT NOT NULL DEFAULT 0,
+  `bathrooms` INT NULL DEFAULT 0,
+  `price` DECIMAL(12,2) NOT NULL,
+  `operation` VARCHAR(20) NOT NULL COMMENT 'venta o alquiler',
+  `type` VARCHAR(30) NOT NULL COMMENT 'piso, chalet, atico, casa, vpo',
+  `zone` VARCHAR(50) NOT NULL COMMENT 'jerez, el-puerto, cadiz',
+  `image_url` VARCHAR(500) NULL,
+  `surface` DOUBLE NULL,
+  `description` TEXT NULL,
+  `featured` BOOLEAN DEFAULT FALSE,
+  `active` BOOLEAN DEFAULT TRUE,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  INDEX `idx_operation` (`operation`),
+  INDEX `idx_type` (`type`),
+  INDEX `idx_zone` (`zone`),
+  INDEX `idx_active` (`active`),
+  INDEX `idx_featured` (`featured`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =====================================================
+-- DATOS DE EJEMPLO: property
+-- =====================================================
+INSERT INTO `property` 
+  (`name`, `location`, `bedrooms`, `bathrooms`, `price`, `operation`, `type`, `zone`, `image_url`, `surface`, `description`, `featured`, `active`) 
+VALUES
+  ('Piso exclusivo en el centro de Jerez', 'Calle Larga, Jerez de la Frontera', 3, 2, 215000.00, 'venta', 'piso', 'jerez', 
+   'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800', 120, 
+   'Magnífico piso en pleno centro histórico, completamente reformado con materiales de primera calidad.', 
+   TRUE, TRUE),
+  
+  ('Chalet con piscina en zona residencial', 'Urbanización La Marquesa, Jerez', 4, 3, 385000.00, 'venta', 'chalet', 'jerez', 
+   'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800', 250, 
+   'Espectacular chalet independiente con jardín privado y piscina.', 
+   TRUE, TRUE),
+  
+  ('Ático con terraza y vistas panorámicas', 'Avenida Alcalde Álvaro Domecq, Jerez', 2, 2, 295000.00, 'venta', 'atico', 'jerez', 
+   'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800', 95, 
+   'Precioso ático con terraza de 40m², vistas espectaculares.', 
+   TRUE, TRUE),
+  
+  ('Piso céntrico para estudiantes', 'Calle Porvera, Jerez', 2, 1, 550.00, 'alquiler', 'piso', 'jerez', 
+   'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800', 70, 
+   'Piso amueblado ideal para estudiantes o pareja joven.', 
+   FALSE, TRUE),
+  
+  ('Casa tradicional en el centro de Cádiz', 'Calle San José, Cádiz', 3, 2, 325000.00, 'venta', 'casa', 'cadiz', 
+   'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=800', 140, 
+   'Casa típica gaditana en pleno casco histórico.', 
+   TRUE, TRUE),
+  
+  ('Apartamento moderno en El Puerto', 'Paseo Marítimo, El Puerto de Santa María', 2, 1, 850.00, 'alquiler', 'piso', 'el-puerto', 
+   'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800', 85, 
+   'Apartamento de nueva construcción con vistas al mar.', 
+   FALSE, TRUE),
+  
+  ('VPO nueva construcción en Jerez', 'Barrio de la Granja, Jerez', 3, 2, 125000.00, 'venta', 'vpo', 'jerez', 
+   'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800', 90, 
+   'Vivienda de protección oficial en fase de construcción.', 
+   FALSE, TRUE),
+  
+  ('Piso reformado cerca de la Universidad', 'Avenida de la Universidad, Jerez', 3, 1, 650.00, 'alquiler', 'piso', 'jerez', 
+   'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=800', 90, 
+   'Piso recién reformado, perfecto para estudiantes.', 
+   FALSE, TRUE);
+
+-- =====================================================
+-- RESTAURAR CONFIGURACIÓN
+-- =====================================================
+SET SQL_MODE=@OLD_SQL_MODE;
+SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
+SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
+                    </code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // ===============================================
+        // CONEXIÓN DE JAVASCRIPT CON VARIABLES CSS
+        // ===============================================
+        function getCssVar(name) {
+            return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+        }
+
+        // --- CONSTANTES DE DIBUJO ---
+        const ENTITY_WIDTH = 280;
+        const HEADER_HEIGHT = 40;
+        const ATTR_HEIGHT = 25;
+        const PADDING = 15;
+        const FONT_FAMILY = 'Montserrat, sans-serif';
+
+        // --- COLORES (LEÍDOS DESDE CSS) ---
+        const BG_COLOR = getCssVar('--color-bg-card');
+        const ENTITY_BG = getCssVar('--color-bg-card');
+        const HEADER_BG = getCssVar('--color-accent-green');
+        const HEADER_TEXT_COLOR = getCssVar('--color-text-light');
+        const ATTR_NAME_COLOR = getCssVar('--color-text-primary');
+        const ATTR_TYPE_COLOR = getCssVar('--color-text-secondary');
+        const KEY_PK_COLOR = getCssVar('--color-danger');
+        const KEY_FK_COLOR = getCssVar('--color-text-secondary');
+        const LINE_COLOR = '#9ca3af';
+
+        // --- DEFINICIÓN DEL MODELO DE DATOS ---
+        const entities = [
+            {
+                name: 'Vendedores', x: 50, y: 50,
+                attrs: [
+                    { name: 'id', type: 'INT', key: 'PK' },
+                    { name: 'Nombre', type: 'VARCHAR(45)' },
+                    { name: 'Apellido', type: 'VARCHAR(45)' },
+                    { name: 'Contacto', type: 'VARCHAR(45)' },
+                    { name: 'Demanda', type: 'VARCHAR(255)' },
+                ]
+            },
+            {
+                name: 'Vendedores_has_Inmuebles', x: 400, y: 150,
+                attrs: [
+                    { name: 'Vendedor_id', type: 'INT', key: 'FK' },
+                    { name: 'Inmueble_id', type: 'INT', key: 'FK' },
+                ]
+            },
+            {
+                name: 'Inmuebles', x: 750, y: 50,
+                attrs: [
+                    { name: 'id', type: 'INT', key: 'PK' },
+                    { name: 'Direccion', type: 'VARCHAR(45)' },
+                    { name: 'Tipo_Operacion', type: 'TINYINT' },
+                    { name: 'Precio', type: 'DOUBLE' },
+                    { name: 'Num_Hab', type: 'INT' },
+                    { name: 'Num_Baños', type: 'INT' },
+                    { name: 'Metros_Cuadrados', type: 'DOUBLE' },
+                    { name: 'Estado', type: 'VARCHAR(45)' },
+                    { name: 'Compartido', type: 'BIT' },
+                    { name: 'Anotaciones', type: 'VARCHAR(255)' },
+                    { name: 'Comunidad', type: 'VARCHAR(45)' },
+                    { name: 'Certificado_Energia', type: 'VARCHAR(45)' },
+                    { name: 'IBI', type: 'VARCHAR(45)' },
+                    { name: 'Nota_Simple', type: 'VARCHAR(45)' },
+                    { name: 'Valido', type: 'TINYINT' },
+                ]
+            },
+            {
+                name: 'Propiedad_Adicional', x: 1150, y: 150,
+                attrs: [
+                    { name: 'id', type: 'INT', key: 'PK' },
+                    { name: 'Tipo', type: 'VARCHAR(45)' },
+                    { name: 'Derrama', type: 'DOUBLE' },
+                    { name: 'IBI', type: 'VARCHAR(45)' },
+                    { name: 'Inmueble_id', type: 'INT', key: 'FK' },
+                ]
+            },
+            {
+                name: 'Reseñas', x: 1550, y: 150,
+                attrs: [
+                    { name: 'id', type: 'INT', key: 'PK' },
+                    { name: 'Fecha', type: 'DATE' },
+                    { name: 'Calificacion', type: 'INT' },
+                    { name: 'Comentario', type: 'VARCHAR(255)' },
+                    { name: 'Operacion_id', type: 'INT', key: 'FK' },
+                ]
+            },
+            {
+                name: 'Citas', x: 50, y: 400,
+                attrs: [
+                    { name: 'id', type: 'INT', key: 'PK' },
+                    { name: 'Fecha', type: 'DATE' },
+                    { name: 'Hora', type: 'TIME' },
+                    { name: 'Anotaciones', type: 'VARCHAR(255)' },
+                    { name: 'Inmueble_id', type: 'INT', key: 'FK' },
+                    { name: 'Trabajador_id', type: 'INT', key: 'FK' },
+                    { name: 'Interesado_id', type: 'INT', key: 'FK' },
+                ]
+            },
+            {
+                name: 'Inmuebles_has_Interesados', x: 750, y: 700,
+                attrs: [
+                    { name: 'Inmueble_id', type: 'INT', key: 'FK' },
+                    { name: 'Interesado_id', type: 'INT', key: 'FK' },
+                ]
+            },
+            {
+                name: 'Operacion', x: 1550, y: 450,
+                attrs: [
+                    { name: 'id', type: 'INT', key: 'PK' },
+                    { name: 'Fecha', type: 'DATE' },
+                    { name: 'Monto', type: 'DOUBLE' },
+                    { name: 'Inmueble_id', type: 'INT', key: 'FK' },
+                ]
+            },
+            {
+                name: 'Trabajadores', x: 50, y: 800,
+                attrs: [
+                    { name: 'id', type: 'INT', key: 'PK' },
+                    { name: 'Nombre', type: 'VARCHAR(45)' },
+                    { name: 'Apellido', type: 'VARCHAR(45)' },
+                    { name: 'Puesto', type: 'VARCHAR(45)' },
+                    { name: 'NIF', type: 'VARCHAR(10)' },
+                ]
+            },
+            {
+                name: 'Interesados', x: 400, y: 800,
+                attrs: [
+                    { name: 'id', type: 'INT', key: 'PK' },
+                    { name: 'Nombre', type: 'VARCHAR(45)' },
+                    { name: 'Apellidos', type: 'VARCHAR(45)' },
+                    { name: 'Contacto', type: 'VARCHAR(45)' },
+                    { name: 'Demanda', type: 'VARCHAR(255)' },
+                ]
+            },
+            {
+                name: 'Interesados_has_Operacion', x: 1150, y: 900,
+                attrs: [
+                    { name: 'Interesado_id', type: 'INT', key: 'FK' },
+                    { name: 'Operacion_id', type: 'INT', key: 'FK' },
+                ]
+            },
+            {
+                name: 'Contrato', x: 1550, y: 900,
+                attrs: [
+                    { name: 'id', type: 'INT', key: 'PK' },
+                    { name: 'Fecha_Firma', type: 'DATE' },
+                    { name: 'Tipo_Contrato', type: 'VARCHAR(45)' },
+                    { name: 'Terminos', type: 'VARCHAR(255)' },
+                    { name: 'Operacion_id', type: 'INT', key: 'FK' },
+                    { name: 'Trabajador_id', type: 'INT', key: 'FK' },
+                ]
+            },
+        ];
+
+        // --- DEFINICIÓN DE RELACIONES ---
+        const relations = [
+            { from: { entity: 'Vendedores', side: 'right' }, to: { entity: 'Vendedores_has_Inmuebles', side: 'left' }, fromType: 'one', toType: 'many' },
+            { from: { entity: 'Inmuebles', side: 'left' }, to: { entity: 'Vendedores_has_Inmuebles', side: 'right' }, fromType: 'one', toType: 'many' },
+            { from: { entity: 'Citas', side: 'right' }, to: { entity: 'Inmuebles', side: 'left' }, fromType: 'many', toType: 'one' },
+            { from: { entity: 'Citas', side: 'bottom' }, to: { entity: 'Trabajadores', side: 'top' }, fromType: 'many', toType: 'one' },
+            { from: { entity: 'Citas', side: 'right' }, to: { entity: 'Interesados', side: 'left' }, fromType: 'many', toType: 'one' },
+            { from: { entity: 'Inmuebles', side: 'bottom' }, to: { entity: 'Inmuebles_has_Interesados', side: 'top' }, fromType: 'one', toType: 'many' },
+            { from: { entity: 'Interesados', side: 'right' }, to: { entity: 'Inmuebles_has_Interesados', side: 'left' }, fromType: 'one', toType: 'many' },
+            { from: { entity: 'Inmuebles', side: 'right' }, to: { entity: 'Propiedad_Adicional', side: 'left' }, fromType: 'one', toType: 'one' },
+            { from: { entity: 'Inmuebles', side: 'right' }, to: { entity: 'Operacion', side: 'left' }, fromType: 'one', toType: 'many' },
+            { from: { entity: 'Operacion', side: 'top' }, to: { entity: 'Reseñas', side: 'bottom' }, fromType: 'one', toType: 'many' },
+            { from: { entity: 'Operacion', side: 'bottom' }, to: { entity: 'Interesados_has_Operacion', side: 'right' }, fromType: 'one', toType: 'many' },
+            { from: { entity: 'Interesados', side: 'right' }, to: { entity: 'Interesados_has_Operacion', side: 'left' }, fromType: 'one', toType: 'many' },
+            { from: { entity: 'Operacion', side: 'bottom' }, to: { entity: 'Contrato', side: 'top' }, fromType: 'one', toType: 'one' },
+            { from: { entity: 'Contrato', side: 'left' }, to: { entity: 'Trabajadores', side: 'bottom' }, fromType: 'many', toType: 'one' },
+        ];
+
+
+        // --- FUNCIONES DE DIBUJO ---
+        function drawEntity(ctx, entity) {
+            const entityHeight = HEADER_HEIGHT + (entity.attrs.length * ATTR_HEIGHT) + PADDING;
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.1)';
+            ctx.shadowBlur = 15;
+            ctx.shadowOffsetY = 5;
+            ctx.fillStyle = ENTITY_BG;
+            ctx.fillRect(entity.x, entity.y, ENTITY_WIDTH, entityHeight);
+            ctx.strokeStyle = getCssVar('--color-border');
+            ctx.strokeRect(entity.x, entity.y, ENTITY_WIDTH, entityHeight);
+            ctx.fillStyle = HEADER_BG;
+            ctx.fillRect(entity.x, entity.y, ENTITY_WIDTH, HEADER_HEIGHT);
+            ctx.fillStyle = HEADER_TEXT_COLOR;
+            ctx.font = `bold 16px ${FONT_FAMILY}`;
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(entity.name, entity.x + PADDING, entity.y + HEADER_HEIGHT / 2);
+            ctx.shadowColor = 'transparent';
+            entity.attrs.forEach((attr, index) => {
+                const yPos = entity.y + HEADER_HEIGHT + (index * ATTR_HEIGHT) + (ATTR_HEIGHT / 2) + (PADDING / 2);
+                if (attr.key) {
+                    ctx.font = `bold 12px ${FONT_FAMILY}`;
+                    ctx.fillStyle = attr.key === 'PK' ? KEY_PK_COLOR : KEY_FK_COLOR;
+                    ctx.fillText(attr.key, entity.x + PADDING, yPos);
+                }
+                ctx.font = `14px ${FONT_FAMILY}`;
+                ctx.fillStyle = ATTR_NAME_COLOR;
+                ctx.fillText(attr.name, entity.x + PADDING + 35, yPos);
+                ctx.font = `12px ${FONT_FAMILY}`;
+                ctx.fillStyle = ATTR_TYPE_COLOR;
+                const nameWidth = ctx.measureText(attr.name).width;
+                ctx.fillText(attr.type, entity.x + PADDING + 35 + nameWidth + 10, yPos);
+            });
+        }
+        
+        function drawRelationship(ctx, startX, startY, endX, endY, fromType, toType) {
+            ctx.strokeStyle = LINE_COLOR;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(startX, startY);
+            ctx.lineTo(endX, endY);
+            ctx.stroke();
+            drawCardinality(ctx, startX, startY, endX - startX, endY - startY, fromType);
+            drawCardinality(ctx, endX, endY, startX - endX, startY - endY, toType);
+        }
+
+        function drawCardinality(ctx, x, y, dx, dy, type) {
+            const angle = Math.atan2(dy, dx);
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(angle);
+            ctx.beginPath();
+            if (type === 'one') {
+                ctx.moveTo(0, -6);
+                ctx.lineTo(0, 6);
+                ctx.moveTo(-4, -6);
+                ctx.lineTo(-4, 6);
+            } else if (type === 'many') {
+                ctx.moveTo(0, 0);
+                ctx.lineTo(-10, -7);
+                ctx.moveTo(0, 0);
+                ctx.lineTo(-10, 7);
+                ctx.moveTo(0, 0);
+                ctx.arc(0, 0, 4, 0, 2 * Math.PI);
+            }
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        function getConnectorPoint(entityName, side) {
+            const entity = entities.find(e => e.name === entityName);
+            if (!entity) return { x: 0, y: 0 };
+            const entityHeight = HEADER_HEIGHT + (entity.attrs.length * ATTR_HEIGHT) + PADDING;
+            switch (side) {
+                case 'left': return { x: entity.x, y: entity.y + entityHeight / 2 };
+                case 'right': return { x: entity.x + ENTITY_WIDTH, y: entity.y + entityHeight / 2 };
+                case 'top': return { x: entity.x + ENTITY_WIDTH / 2, y: entity.y };
+                case 'bottom': return { x: entity.x + ENTITY_WIDTH / 2, y: entity.y + entityHeight };
+                default: return { x: entity.x, y: entity.y };
+            }
+        }
+
+        function getCustomConnectorPoint(entityName, side, offsetFactor = 0.5) {
+            const entity = entities.find(e => e.name === entityName);
+            if (!entity) return { x: 0, y: 0 };
+            const entityHeight = HEADER_HEIGHT + (entity.attrs.length * ATTR_HEIGHT) + PADDING;
+            switch (side) {
+                case 'left': return { x: entity.x, y: entity.y + entityHeight * offsetFactor };
+                case 'right': return { x: entity.x + ENTITY_WIDTH, y: entity.y + entityHeight * offsetFactor };
+                case 'top': return { x: entity.x + ENTITY_WIDTH * offsetFactor, y: entity.y };
+                case 'bottom': return { x: entity.x + ENTITY_WIDTH * offsetFactor, y: entity.y + entityHeight };
+                default: return { x: entity.x, y: entity.y };
+            }
+        }
+
+        function drawDiagram() {
+            const canvas = document.getElementById('erCanvas');
+            if (!canvas.getContext) return;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = BG_COLOR;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            relations.forEach(rel => {
+                let startPoint, endPoint;
+                if (rel.from.entity === 'Citas' && rel.to.entity === 'Inmuebles') {
+                    startPoint = getCustomConnectorPoint(rel.from.entity, rel.from.side, 0.3);
+                    endPoint = getCustomConnectorPoint(rel.to.entity, rel.to.side, 0.2);
+                } else if (rel.from.entity === 'Citas' && rel.to.entity === 'Interesados') {
+                    startPoint = getCustomConnectorPoint(rel.from.entity, rel.from.side, 0.7);
+                    endPoint = getCustomConnectorPoint(rel.to.entity, rel.to.side, 0.2);
+                } else if (rel.from.entity === 'Inmuebles' && rel.to.entity === 'Operacion') {
+                    startPoint = getCustomConnectorPoint(rel.from.entity, rel.from.side, 0.7);
+                    endPoint = getCustomConnectorPoint(rel.to.entity, rel.to.side, 0.5);
+                } else if (rel.from.entity === 'Interesados' && rel.to.entity === 'Interesados_has_Operacion') {
+                    startPoint = getCustomConnectorPoint(rel.from.entity, rel.from.side, 0.8);
+                    endPoint = getCustomConnectorPoint(rel.to.entity, rel.to.side, 0.3);
+                } else if (rel.from.entity === 'Contrato' && rel.to.entity === 'Trabajadores') {
+                    startPoint = getCustomConnectorPoint(rel.from.entity, rel.from.side, 0.8);
+                    endPoint = getCustomConnectorPoint(rel.to.entity, rel.to.side, 0.8);
+                }
+                else {
+                    startPoint = getConnectorPoint(rel.from.entity, rel.from.side);
+                    endPoint = getConnectorPoint(rel.to.entity, rel.to.side);
+                }
+                drawRelationship(ctx, startPoint.x, startPoint.y, endPoint.x, endPoint.y, rel.fromType, rel.toType);
+            });
+            entities.forEach(entity => {
+                drawEntity(ctx, entity);
+            });
+        }
+
+        function highlightSqlCode() {
+            const codeElement = document.getElementById('sql-code');
+            let html = codeElement.innerHTML;
+            html = html.replace(/(-- .*)/g, '<span class="sql-comment">$1</span>');
+            const keywords = ['CREATE', 'TABLE', 'DATABASE', 'USE', 'SET', 'DROP', 'IF', 'EXISTS', 'NOT', 'NULL', 'AUTO_INCREMENT', 'PRIMARY', 'KEY', 'FOREIGN', 'REFERENCES', 'ON', 'DELETE', 'UPDATE', 'CASCADE', 'INDEX', 'ENGINE', 'InnoDB', 'DEFAULT', 'CHARACTER', 'COLLATE', 'COMMENT', 'VALUES', 'INSERT', 'INTO', 'CONSTRAINT', 'CHECK', 'BETWEEN', 'AND', 'ASC'];
+            const keywordRegex = new RegExp(`\\b(${keywords.join('|')})\\b`, 'gi');
+            html = html.replace(keywordRegex, '<span class="sql-keyword">$1</span>');
+            const types = ['INT', 'VARCHAR', 'TINYINT', 'DOUBLE', 'BIT', 'DATE', 'TIME', 'TEXT', 'BOOLEAN', 'TIMESTAMP', 'DECIMAL', 'BIGINT'];
+            const typeRegex = new RegExp(`\\b(${types.join('|')})\\b`, 'gi');
+            html = html.replace(typeRegex, '<span class="sql-type">$1</span>');
+            html = html.replace(/('[\w\s\/\.:\?=-]*')/g, '<span class="sql-string">$1</span>');
+            codeElement.innerHTML = html;
+        }
+
+        window.onload = () => {
+            drawDiagram();
+            highlightSqlCode();
+        };
+
+    </script>
+</body>
+</html>

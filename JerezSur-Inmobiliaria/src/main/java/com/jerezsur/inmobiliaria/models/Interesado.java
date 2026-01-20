@@ -35,7 +35,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Comprador {
+public class Interesado {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -92,7 +92,7 @@ public class Comprador {
     private List<Cita> citas;
 
     @OneToMany(mappedBy = "comprador")
-    private List<Contrato_Comprador> contratosFirmados;
+    private List<Contrato_Interesado> contratosFirmados;
 
     @OneToOne
     @JoinColumn(name = "usuario_id")

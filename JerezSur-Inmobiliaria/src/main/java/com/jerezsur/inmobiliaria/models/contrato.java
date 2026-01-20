@@ -74,7 +74,7 @@ public class Contrato {
 
     // Relación con los compradores que firman (pueden ser varios)
     @OneToMany(mappedBy = "contrato", cascade = CascadeType.ALL)
-    private List<Contrato_Comprador> compradoresFirmantes;
+    private List<Contrato_Interesado> compradoresFirmantes;
 
     // Relación con los vendedores que firman (pueden ser varios)
     @OneToMany(mappedBy = "contrato", cascade = CascadeType.ALL)
