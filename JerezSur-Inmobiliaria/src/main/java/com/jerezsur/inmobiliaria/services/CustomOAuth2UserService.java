@@ -1,16 +1,17 @@
 package com.jerezsur.inmobiliaria.services;
 
-import com.jerezsur.inmobiliaria.models.Usuario;
-import com.jerezsur.inmobiliaria.models.enums.AuthProvider;
-import com.jerezsur.inmobiliaria.models.enums.Role;
-import com.jerezsur.inmobiliaria.repositories.UsuarioRepository;
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
+import com.jerezsur.inmobiliaria.models.Usuario;
+import com.jerezsur.inmobiliaria.models.enums.AuthProvider;
+import com.jerezsur.inmobiliaria.models.enums.Role;
+import com.jerezsur.inmobiliaria.repositories.UsuarioRepository;
 
 @Service
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
@@ -22,7 +23,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     public OAuth2User loadUser(OAuth2UserRequest userRequest) {
         OAuth2User oAuth2User = super.loadUser(userRequest);
         
-        // Identificar si es Google, Facebook, etc.
+        // Identificar si es Google, Apple o Facebook.
         String registrationId = userRequest.getClientRegistration().getRegistrationId();
         AuthProvider provider = AuthProvider.valueOf(registrationId.toUpperCase());
         
@@ -51,7 +52,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                     .build();
             usuarioRepository.save(usuario);
         } else {
-            // Si existe, actualizamos sus datos de perfil por si han cambiado en Google
+            // Si existe, actualizamos sus datos de perfil por si han cambiado en el provider
             usuario = usuarioOpt.get();
             usuario.setImagenPerfilUrl(imageUrl);
             usuario.setProvider(provider);

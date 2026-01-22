@@ -7,8 +7,10 @@ import org.springframework.stereotype.Repository;
 
 import com.jerezsur.inmobiliaria.models.Interesado;
 
+// Al hacer extends tenemos save, findById, deleteById, etc... por defecto
 @Repository
 public interface InteresadoRepository extends JpaRepository<Interesado, Long> {
     
+    //Econtramos al cendedor por DNI
     Optional<Interesado> findByDni(String dni);
 }
