@@ -21,7 +21,7 @@ public class AuthController {
 
     @GetMapping("/me")
     public Optional<Usuario> getCurrentUser(@AuthenticationPrincipal UserDetails userDetails) {
-        // Retorna los datos del usuario logueado mediante su email [cite: 24]
-        return usuarioRepository.findByEmail(userDetails.getUsername());
+        // Retorna los datos del usuario logueado mediante su email
+        return usuarioRepository.findByEmailOrTelefono(userDetails.getUsername(), null);
     }
 }

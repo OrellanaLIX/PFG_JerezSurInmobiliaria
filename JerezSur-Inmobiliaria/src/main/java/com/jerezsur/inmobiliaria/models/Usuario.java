@@ -24,7 +24,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-
 @Entity
 @Table(name = "usuarios")
 @Data
@@ -36,15 +35,18 @@ public class Usuario {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true)
-    private String email; // Será el username para el login
+    @Column(unique = true, nullable = true)
+    private String email;
+
+    @Column(unique = true, nullable = true)
+    private String telefono;
 
     @NotBlank(message = "El nombre es obligatorio")
     private String nombre;
 
     private String password;
     private String imagenPerfilUrl;
-    
+
     // Para OAuth2
     @Enumerated(EnumType.STRING)
     private AuthProvider provider; // "LOCAL", "GOOGLE", "FACEBOOK"
@@ -65,7 +67,7 @@ public class Usuario {
     @OneToOne(mappedBy = "usuario")
     private Vendedor vendedor;
 
-        // --- AUDITORÍA ---
+    // --- AUDITORÍA ---
     @CreationTimestamp
     @Column(updatable = false)
     private LocalDateTime fechaRegistro;

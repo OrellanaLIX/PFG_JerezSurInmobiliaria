@@ -10,6 +10,9 @@ import com.jerezsur.inmobiliaria.models.Usuario;
 // Al hacer extends tenemos save, findById, deleteById, etc... por defecto
 @Repository
 public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
-    //Econtramos al cendedor por email
-    Optional<Usuario> findByEmail(String email);
+    //Econtramos al Vendedor por email o telefono
+    Optional<Usuario> findByEmailOrTelefono(String email, String telefono);
+
+    // Verificamos si el email o el telefono ya existe para evitar duplicados
+    boolean existsByEmailOrTelefono(String email, String telefono);
 }
