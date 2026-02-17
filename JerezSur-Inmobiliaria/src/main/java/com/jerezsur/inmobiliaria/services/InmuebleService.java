@@ -5,6 +5,8 @@ import com.jerezsur.inmobiliaria.exceptions.ResourceNotFoundException;
 import com.jerezsur.inmobiliaria.models.Inmueble;
 import com.jerezsur.inmobiliaria.models.Inmueble_Vendedor;
 import com.jerezsur.inmobiliaria.models.Vendedor;
+import com.jerezsur.inmobiliaria.models.enums.EstadoInmueble;
+import com.jerezsur.inmobiliaria.models.enums.Operacion;
 import com.jerezsur.inmobiliaria.repositories.InmuebleRepository;
 import com.jerezsur.inmobiliaria.repositories.Inmueble_VendedorRepository;
 
@@ -12,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -28,11 +31,18 @@ public class InmuebleService {
     // CRUD BASICO
     // ------------------------------------------------------------------
 
-    // LISTAR TODOS
+    // LISTAR TODOS CON FILTRADO
     @Transactional(readOnly = true)
-    public List<Inmueble> listarTodos() {
-        // Devuelve lista llena o []
-        return inmuebleRepository.findAll();
+    public List<Inmueble> buscarConFiltros(String ref, String tit, String desc, Operacion op, EstadoInmueble est,
+            BigDecimal pMin, BigDecimal pMax, Integer hab,
+            Integer ban, Double sMin, String ciu, String cp) {
+
+        // Validación básica de coherencia de precios
+        if (pMin != null && pMax != null && pMin.compareTo(pMax) > 0) {
+            throw new BusinessValidationException("El precio mínimo no puede ser superior al máximo.");
+        }
+
+        return inmuebleRepository.busquedaFiltrada(ref, tit, desc, op, est, pMin, pMax, hab, ban, sMin, ciu, cp);
     }
 
     // BUSCAR INDIVIDUAL
