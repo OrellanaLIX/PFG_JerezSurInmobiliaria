@@ -11,6 +11,7 @@ import com.jerezsur.inmobiliaria.exceptions.ResourceNotFoundException;
 import com.jerezsur.inmobiliaria.models.Interesado;
 import com.jerezsur.inmobiliaria.models.Usuario;
 import com.jerezsur.inmobiliaria.models.enums.EstadoComprador;
+import com.jerezsur.inmobiliaria.models.enums.Role;
 import com.jerezsur.inmobiliaria.repositories.InteresadoRepository;
 
 @Service
@@ -19,6 +20,9 @@ public class InteresadoService {
     // INYECCION DE DEPENDENCIAS
     @Autowired
     private InteresadoRepository interesadoRepository;
+
+    @Autowired
+    private UsuarioService usuarioService;
 
     // ------------------------------------------------------------------
     // CRUD BASICO
@@ -40,8 +44,28 @@ public class InteresadoService {
     // GUARDAR
     @Transactional
     public Interesado guardar(Interesado interesado) {
-        sincronizarDatosContacto(interesado);
+        // 1. Validar primero lo básico (Nombre, etc.)
         validarInteresado(interesado);
+
+        // 2. Gestionar el Usuario si no existe
+        if (interesado.getUsuario() == null) {
+            Usuario nuevoUsuario = Usuario.builder()
+                    .email(interesado.getEmail())
+                    .telefono(interesado.getTelefono())
+                    .nombre(interesado.getNombre())
+                    .role(Role.ROLE_INTERESADO)
+                    .password(interesado.getPassword()) // Campo @Transient
+                    .build();
+
+            // Guardamos el usuario y lo vinculamos
+            Usuario usuarioPersistido = usuarioService.registrarUsuario(nuevoUsuario);
+            interesado.setUsuario(usuarioPersistido);
+        }
+
+        // 3. Ahora que el usuario existe sí o sí, sincronizamos datos
+        sincronizarDatosContacto(interesado);
+
+        // 4. Persistir el interesado
         return interesadoRepository.save(interesado);
     }
 

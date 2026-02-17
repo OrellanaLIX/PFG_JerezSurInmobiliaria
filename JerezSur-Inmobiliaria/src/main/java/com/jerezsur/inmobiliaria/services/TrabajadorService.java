@@ -4,6 +4,7 @@ import com.jerezsur.inmobiliaria.exceptions.BusinessValidationException;
 import com.jerezsur.inmobiliaria.exceptions.ResourceNotFoundException;
 import com.jerezsur.inmobiliaria.models.Trabajador;
 import com.jerezsur.inmobiliaria.models.Usuario;
+import com.jerezsur.inmobiliaria.models.enums.Role;
 import com.jerezsur.inmobiliaria.repositories.TrabajadorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,9 @@ public class TrabajadorService {
     // INYECCION DE DEPENDENCIAS
     @Autowired
     private TrabajadorRepository trabajadorRepository;
+
+    @Autowired
+    private UsuarioService usuarioService;
 
     // ------------------------------------------------------------------
     // CRUD BASICO
@@ -39,7 +43,26 @@ public class TrabajadorService {
     @Transactional
     public Trabajador guardar(Trabajador trabajador) {
         validarTrabajador(trabajador);
+
+        // 1. GESTIÓN DEL USUARIO: Si es un trabajador nuevo y no tiene usuario, lo
+        // creamos
+        if (trabajador.getUsuario() == null) {
+            Usuario nuevoUsuario = Usuario.builder()
+                    .email(trabajador.getEmail())
+                    .telefono(trabajador.getTelefono())
+                    .nombre(trabajador.getNombre())
+                    .role(Role.ROLE_TRABAJADOR)
+                    .password(trabajador.getPassword())
+                    .build();
+
+            // Usamos el método que ya valida y cifra la contraseña
+            Usuario usuarioPersistido = usuarioService.registrarUsuario(nuevoUsuario);
+            trabajador.setUsuario(usuarioPersistido);
+        }
+
+        // 2. SINCRONIZACIÓN: Aseguramos que email/tel coincidan en ambas tablas
         sincronizarDatosContacto(trabajador);
+
         return trabajadorRepository.save(trabajador);
     }
 
@@ -105,7 +128,8 @@ public class TrabajadorService {
 
         // Al menos uno de los dos debe existir tras la sincronización
         if (isEmpty(trabajador.getEmail()) && isEmpty(trabajador.getTelefono())) {
-            throw new BusinessValidationException("El cliente debe tener al menos un Email o un Teléfono de contacto.");
+            throw new BusinessValidationException(
+                    "El trabajador debe tener al menos un Email o un Teléfono de contacto.");
         }
     }
 }

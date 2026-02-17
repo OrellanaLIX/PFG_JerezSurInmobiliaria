@@ -21,13 +21,14 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;  
+import lombok.NoArgsConstructor;
+import lombok.Builder.Default;
 
 @Entity
 @Table(name = "compradores")
@@ -48,7 +49,7 @@ public class Interesado {
     @NotBlank(message = "Los apellidos son obligatorios")
     private String apellidos;
 
-    @NotBlank(message = "El teléfono es vital para la captación")
+    @Column(unique = true)
     private String telefono;
 
     @Email
@@ -57,7 +58,7 @@ public class Interesado {
 
     // --- ESTADO ---
     @Enumerated(EnumType.STRING)
-    @Builder.Default
+    @Default
     private EstadoComprador estado = EstadoComprador.INTERESADO;
 
     // --- DATOS LEGALES ---
@@ -66,15 +67,14 @@ public class Interesado {
 
     private String direccionPostal;
 
-    @NotBlank
-    @Size(min = 8)
-    private String password; 
+    @Transient // No se guarda en la tabla 'compradores'
+    private String password;
 
     // --- LÓGICA DE FINANCIACIÓN (HIPOTECA) ---
-    @Builder.Default
+    @Default
     private Boolean requiereHipoteca = false;
 
-    private String detallesHipoteca; 
+    private String detallesHipoteca;
 
     // --- INTERESES DE BÚSQUEDA ---
     private BigDecimal presupuestoMaximo;

@@ -37,6 +37,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.Builder.Default;
 
 @Entity
 @Table(name = "inmuebles")
@@ -80,7 +81,7 @@ public class Inmueble {
                     joinColumns = @JoinColumn(name = "inmueble_id"))
     @MapKeyColumn(name = "clave") // "Muebles", "Orientación", etc.
     @Column(name = "valor")      // "Sí", "Norte", etc.
-    @Builder.Default
+    @Default
     private Map<String, String> caracteristicasExtra = new HashMap<>();
 
     // --- CARACTERÍSTICAS TÉCNICAS ---
@@ -109,7 +110,7 @@ public class Inmueble {
     @DecimalMin("0.0")
     private BigDecimal comunidad;
 
-    @Builder.Default
+    @Default
     private Boolean tieneDerrama = false;
 
     @DecimalMin("0.0")
@@ -132,7 +133,7 @@ public class Inmueble {
     // --- RELACIONES ---
 
     @OneToMany(mappedBy = "inmueble", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
+    @Default
     private List<Imagen> imagenes = new ArrayList<>();
 
     @OneToMany(mappedBy = "inmueble")

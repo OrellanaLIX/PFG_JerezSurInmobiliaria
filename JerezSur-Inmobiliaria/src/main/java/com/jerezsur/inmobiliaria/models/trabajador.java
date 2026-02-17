@@ -16,14 +16,15 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.Builder.Default;
 
 @Entity
 @Table(name = "trabajadores")
@@ -54,10 +55,10 @@ public class Trabajador {
     @Column(unique = true)
     private String email;
 
+    @Column(unique = true)
     private String telefono;
 
-    @NotBlank
-    @Size(min = 8)
+    @Transient
     private String password; 
 
     private String cargo; // Ej: "Agente Comercial", "Administrativo"
@@ -69,7 +70,7 @@ public class Trabajador {
 
     private LocalDate fechaFinContrato; // Solo se rellena si el contrato es temporal o deja la empresa
 
-    @Builder.Default
+    @Default
     private Boolean activo = true; // Define si está trabajando actualmente
 
     @Column(columnDefinition = "TEXT")

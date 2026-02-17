@@ -38,14 +38,45 @@ public class UsuarioService {
                 .orElseThrow(() -> new ResourceNotFoundException("El usuario con ID " + id + " no existe."));
     }
 
-    // GUARDAR (Con cifrado de contraseña)
+    /**
+     * MÉTODO PRINCIPAL PARA REGISTRO DE CLIENTES (INTERESADOS)
+     * Maneja los 3 escenarios:
+     * 1. Registro web (trae password) -> Cifra y guarda.
+     * 2. Formulario contacto (sin password) -> Guarda null y activa flag.
+     * 3. Alta por trabajador (sin password) -> Guarda null y activa flag.
+     */
+    @Transactional
+    public Usuario registrarUsuario(Usuario usuario) {
+        validarDatos(usuario);
+
+        // Lógica de Contraseña
+        if (usuario.getPassword() != null && !usuario.getPassword().trim().isEmpty()) {
+            // Escenario 1: El usuario puso una contraseña
+            String passCifrada = passwordEncoder.encode(usuario.getPassword());
+            usuario.setPassword(passCifrada);
+            usuario.setCambiarPasswd(false);
+        } else {
+            // Escenarios 2 y 3: No hay contraseña todavía
+            usuario.setPassword(null);
+            usuario.setCambiarPasswd(true); // Obligatorio cambiarla al entrar
+        }
+
+        return usuarioRepository.save(usuario);
+    }
+
+    /**
+     * MÉTODO PARA ACTUALIZACIONES O CAMBIOS DE CONTRASEÑA MANUALES
+     */
     @Transactional
     public Usuario guardar(Usuario usuario) {
-        validarUsuario(usuario);
+        // Validamos contacto y password obligatoria (si no es un update parcial)
+        validarDatos(usuario);
 
-        // Ciframos la contraseña antes de persistir
-        String passwordCifrada = passwordEncoder.encode(usuario.getPassword());
-        usuario.setPassword(passwordCifrada);
+        // Si estamos creando un admin o trabajador manualmente y ponemos pass, la
+        // ciframos
+        if (usuario.getId() == null && usuario.getPassword() != null) {
+            usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
+        }
 
         return usuarioRepository.save(usuario);
     }
@@ -63,25 +94,38 @@ public class UsuarioService {
     // METODOS DE APOYO PARA VALIDACIONES DE NEGOCIO
     // ------------------------------------------------------------------
 
-    private void validarUsuario(Usuario usuario) {
-        // REGLA DE ORO: Debe tener al menos uno de los dos
-        boolean tieneEmail = usuario.getEmail() != null && !usuario.getEmail().trim().isEmpty();
-        boolean tieneTelefono = usuario.getTelefono() != null && !usuario.getTelefono().trim().isEmpty();
+    private void validarDatos(Usuario usuario) {
+        // 1. REGLA DE ORO: Debe tener al menos Email O Teléfono
+        boolean tieneEmail = !isEmpty(usuario.getEmail());
+        boolean tieneTelefono = !isEmpty(usuario.getTelefono());
 
         if (!tieneEmail && !tieneTelefono) {
             throw new BusinessValidationException("Es obligatorio registrar un email o un número de teléfono.");
         }
 
-        // Validación de duplicados para Usuarios nuevos (ID nulo) o si se está actualizando el email/telefono
-        if (tieneEmail && usuario.getId() == null) {
-            if (usuarioRepository.existsByEmailOrTelefono(usuario.getEmail(), usuario.getTelefono())) {
-                throw new BusinessValidationException("Este email o teléfono ya está en uso.");
+        // 2. Validación de duplicados (Solo para nuevos usuarios)
+        if (usuario.getId() == null) {
+            if (tieneEmail && usuarioRepository.existsByEmailOrTelefono(usuario.getEmail(), usuario.getTelefono())) {
+                throw new BusinessValidationException("El email " + usuario.getEmail() + "o el telefono"
+                        + usuario.getTelefono() + " ya está registrado.");
             }
         }
 
-        // Password mínima
-        if (usuario.getPassword() == null || usuario.getPassword().length() < 4) {
-            throw new BusinessValidationException("La contraseña debe tener al menos 4 caracteres.");
+        // 3. Validación de Password (SOLO SI SE PROPORCIONA)
+        // Si es null, no pasa nada (escenarios 2 y 3). Pero si escribe algo, que sea
+        // seguro.
+        if (usuario.getPassword() != null && !usuario.getPassword().isEmpty()) {
+            // Definimos el patrón de seguridad
+            String regex = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$";
+
+            if (!usuario.getPassword().matches(regex)) {
+                throw new BusinessValidationException(
+                        "La contraseña es demasiado débil. Debe tener al menos 8 caracteres, incluyendo una mayúscula, una minúscula, un número y un carácter especial (@$!%*?&).");
+            }
         }
+    }
+
+    private boolean isEmpty(String str) {
+        return str == null || str.trim().isEmpty();
     }
 }

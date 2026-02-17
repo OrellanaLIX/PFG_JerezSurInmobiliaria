@@ -19,6 +19,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.Builder.Default;
 
 @Entity
 @Table(name = "imagenes")
@@ -40,7 +41,7 @@ public class Imagen {
 
     private String nombreArchivo; // Nombre del archivo en el servidor
 
-    @Builder.Default
+    @Default
     private Boolean esPortada = false; // Es esta imagen la portada del inmueble
 
     //--- RELACIONES ---

@@ -19,10 +19,12 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.Builder.Default;
 
 @Entity
 @Table(name = "usuarios")
@@ -44,7 +46,12 @@ public class Usuario {
     @NotBlank(message = "El nombre es obligatorio")
     private String nombre;
 
+    @Size(min = 8)
     private String password;
+
+    @Default
+    private Boolean cambiarPasswd = true;
+
     private String imagenPerfilUrl;
 
     // Para OAuth2
@@ -55,7 +62,8 @@ public class Usuario {
 
     @Enumerated(EnumType.STRING)
     @NotNull
-    private Role role; // ROLE_TRABAJADOR, ROLE_COMPRADOR, ROLE_ADMIN
+    @Default
+    private Role role = Role.ROLE_INTERESADO; // ROLE_TRABAJADOR, ROLE_COMPRADOR, ROLE_ADMIN, ROLE_INTERESADO
 
     // RELACIONES Opcionales (1:1)
     @OneToOne(mappedBy = "usuario")

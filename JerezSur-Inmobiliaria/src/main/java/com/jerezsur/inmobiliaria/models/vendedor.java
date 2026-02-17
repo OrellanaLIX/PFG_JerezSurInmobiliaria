@@ -15,9 +15,9 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -48,6 +48,7 @@ public class Vendedor {
     @Column(unique = true)
     private String email;
 
+    @Column(unique = true)
     private String telefono;
 
     private String direccion;
@@ -57,9 +58,8 @@ public class Vendedor {
     @Column(unique = true)
     private String dni;
 
-    @NotBlank
-    @Size(min = 8)
-    private String password; 
+    @Transient // No se guarda en la tabla 'compradores'
+    private String password;
 
     // --- OTROS DATOS ---
     @Column(columnDefinition = "TEXT")
