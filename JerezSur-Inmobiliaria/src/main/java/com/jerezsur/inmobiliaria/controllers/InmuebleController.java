@@ -1,9 +1,10 @@
 package com.jerezsur.inmobiliaria.controllers;
 
 import java.math.BigDecimal;
-import java.util.List;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,6 +20,9 @@ import com.jerezsur.inmobiliaria.models.enums.EstadoInmueble;
 import com.jerezsur.inmobiliaria.models.enums.Operacion;
 import com.jerezsur.inmobiliaria.services.InmuebleService;
 
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+
 @RestController
 @RequestMapping("/api/inmuebles")
 @CrossOrigin(origins = "http://localhost:3000") // Para conectar con tu futuro React
@@ -28,7 +32,7 @@ public class InmuebleController {
     private InmuebleService inmuebleService;
 
     @GetMapping("/buscar")
-    public ResponseEntity<List<Inmueble>> filtrar(
+    public ResponseEntity<Page<Inmueble>> filtrar(
             @RequestParam(required = false) String ref,
             @RequestParam(required = false) String tit,
             @RequestParam(required = false) String desc,
@@ -40,10 +44,30 @@ public class InmuebleController {
             @RequestParam(required = false) Integer banos,
             @RequestParam(required = false) Double superficieMin,
             @RequestParam(required = false) String ciudad,
-            @RequestParam(required = false) String cp) {
-        return ResponseEntity
-                .ok(inmuebleService.buscarConFiltros(ref, tit, desc, operacion, estado, precioMin, precioMax,
-                        habitaciones, banos, superficieMin, ciudad, cp));
+            @RequestParam(required = false) String cp,
+            @RequestParam(required = false, defaultValue = "0") @Min(0) int page,
+            @RequestParam(required = false, defaultValue = "10") @Min(1) @Max(100) int size,
+            @RequestParam(required = false, defaultValue = "id") String sortBy,
+            @RequestParam(required = false, defaultValue = "asc") String sortDir) {
+
+        // Validación básica de ordenación
+        if (!sortDir.equalsIgnoreCase("asc") && !sortDir.equalsIgnoreCase("desc")) {
+            sortDir = "asc";
+        }
+
+        // Lista blanca de campos permitidos para ordenar (evita inyección / errores)
+        Set<String> allowedSortFields = Set.of("id", "referencia", "operacion", "precio", "superficieUtil",
+                "habitaciones",
+                "banos");
+        if (!allowedSortFields.contains(sortBy)) {
+            sortBy = "id";
+        }
+
+        Page<Inmueble> result = inmuebleService.buscarConFiltros(ref, tit, desc, operacion, estado, precioMin,
+                precioMax,
+                habitaciones, banos, superficieMin, ciudad, cp, page, size, sortBy, sortDir);
+
+        return ResponseEntity.ok(result);
     }
 
     // Obtener un inmueble por ID (Público)
@@ -55,7 +79,6 @@ public class InmuebleController {
     // Crear inmueble (Solo personal autorizado)
     @PostMapping
     public Inmueble createInmueble(@RequestBody Inmueble inmueble) {
-        // Aquí podrías usar el Map<String, String> para extras definido en tu modelo
         return inmuebleService.guardar(inmueble);
     }
 }

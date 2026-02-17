@@ -1,14 +1,14 @@
 package com.jerezsur.inmobiliaria.repositories;
 
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import com.jerezsur.inmobiliaria.models.Inmueble;
 import com.jerezsur.inmobiliaria.models.enums.EstadoInmueble;
 import com.jerezsur.inmobiliaria.models.enums.Operacion;
@@ -33,7 +33,7 @@ public interface InmuebleRepository extends JpaRepository<Inmueble, Long> {
             "(:supMin IS NULL OR i.superficieUtil >= :supMin) AND " +
             "(:ciudad IS NULL OR LOWER(i.ciudad) LIKE LOWER(CONCAT('%', :ciudad, '%'))) AND " +
             "(:cp IS NULL OR i.codigoPostal = :cp)")
-    List<Inmueble> busquedaFiltrada(
+    Page<Inmueble> busquedaFiltrada(
             @Param("referencia") String referencia,
             @Param("titulo") String titulo,
             @Param("desc") String desc,
@@ -45,5 +45,6 @@ public interface InmuebleRepository extends JpaRepository<Inmueble, Long> {
             @Param("banos") Integer banos,
             @Param("supMin") Double supMin,
             @Param("ciudad") String ciudad,
-            @Param("cp") String cp);
+            @Param("cp") String cp,
+            Pageable pageable);
 }

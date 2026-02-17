@@ -11,11 +11,13 @@ import com.jerezsur.inmobiliaria.repositories.InmuebleRepository;
 import com.jerezsur.inmobiliaria.repositories.Inmueble_VendedorRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.List;
 
 @Service
 public class InmuebleService {
@@ -33,16 +35,20 @@ public class InmuebleService {
 
     // LISTAR TODOS CON FILTRADO
     @Transactional(readOnly = true)
-    public List<Inmueble> buscarConFiltros(String ref, String tit, String desc, Operacion op, EstadoInmueble est,
-            BigDecimal pMin, BigDecimal pMax, Integer hab,
-            Integer ban, Double sMin, String ciu, String cp) {
+    public Page<Inmueble> buscarConFiltros(String ref, String tit, String desc, Operacion op, EstadoInmueble est,
+            BigDecimal pMin, BigDecimal pMax, Integer hab, Integer ban, Double sMin, String ciu, String cp, 
+            int page, int size, String sortBy, String sortDir) {
+
+        Sort sort = Sort.by(Sort.Direction.fromString(sortDir), sortBy);
+        PageRequest pageable = PageRequest.of(page, size, sort);
 
         // Validación básica de coherencia de precios
         if (pMin != null && pMax != null && pMin.compareTo(pMax) > 0) {
             throw new BusinessValidationException("El precio mínimo no puede ser superior al máximo.");
         }
 
-        return inmuebleRepository.busquedaFiltrada(ref, tit, desc, op, est, pMin, pMax, hab, ban, sMin, ciu, cp);
+        return inmuebleRepository.busquedaFiltrada(ref, tit, desc, op, est, pMin, pMax, hab, ban, sMin, ciu, cp,
+                pageable);
     }
 
     // BUSCAR INDIVIDUAL
