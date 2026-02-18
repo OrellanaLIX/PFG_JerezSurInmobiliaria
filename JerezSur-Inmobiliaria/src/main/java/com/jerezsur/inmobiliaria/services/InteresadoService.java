@@ -1,8 +1,9 @@
 package com.jerezsur.inmobiliaria.services;
 
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -11,6 +12,7 @@ import com.jerezsur.inmobiliaria.exceptions.ResourceNotFoundException;
 import com.jerezsur.inmobiliaria.models.Interesado;
 import com.jerezsur.inmobiliaria.models.Usuario;
 import com.jerezsur.inmobiliaria.models.enums.EstadoComprador;
+import com.jerezsur.inmobiliaria.models.enums.Operacion;
 import com.jerezsur.inmobiliaria.models.enums.Role;
 import com.jerezsur.inmobiliaria.repositories.InteresadoRepository;
 
@@ -30,8 +32,13 @@ public class InteresadoService {
 
     // LISTAR TODOS
     @Transactional(readOnly = true)
-    public List<Interesado> listarTodos() {
-        return interesadoRepository.findAll();
+    public Page<Interesado> listarTodo(boolean hipo, Double presu, String zona, int habs, int banos, Operacion tipo,
+            int page, int size, String sortBy, String sortDir) {
+
+        Sort sort = Sort.by(Sort.Direction.fromString(sortDir), sortBy);
+        PageRequest pageable = PageRequest.of(page, size, sort);
+
+        return interesadoRepository.listarFiltrado(hipo, presu, zona, habs, banos, tipo, pageable);
     }
 
     // BUSCAR INDIVIDUAL

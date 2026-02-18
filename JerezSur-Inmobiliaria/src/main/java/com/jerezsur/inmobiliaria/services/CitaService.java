@@ -4,29 +4,37 @@ import com.jerezsur.inmobiliaria.exceptions.BusinessValidationException;
 import com.jerezsur.inmobiliaria.exceptions.ResourceNotFoundException;
 import com.jerezsur.inmobiliaria.models.Cita;
 import com.jerezsur.inmobiliaria.repositories.CitaRepository;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Service
 public class CitaService {
 
-    //INYECCION DE DEPENDENCIAS
+    // INYECCION DE DEPENDENCIAS
     @Autowired
     private CitaRepository citaRepository;
 
-    //------------------------------------------------------------------
-    //CRUD BASICO
-    //------------------------------------------------------------------
+    // ------------------------------------------------------------------
+    // CRUD BASICO
+    // ------------------------------------------------------------------
 
     // LISTAR TODOS
     @Transactional(readOnly = true)
-    public List<Cita> listarTodos() {
+    public Page<Cita> listarTodos(LocalDateTime min, LocalDateTime max, int page, int size, String sortBy,
+            String sortDir) {
+
+        Sort sort = Sort.by(Sort.Direction.fromString(sortDir), sortBy);
+        PageRequest pageable = PageRequest.of(page, size, sort);
+
         // Devuelve lista llena o []
-        return citaRepository.findAll();
+        return citaRepository.findByFechaHoraBetween(min, max, pageable);
     }
 
     // BUSCAR INDIVIDUAL
@@ -37,14 +45,14 @@ public class CitaService {
                 .orElseThrow(() -> new ResourceNotFoundException("La cita con ID " + id + " no existe."));
     }
 
-    //GUARDAR
+    // GUARDAR
     @Transactional
     public Cita guardar(Cita cita) {
         validarCita(cita); // Extraemos las validaciones a un método privado para limpiar el código
         return citaRepository.save(cita);
     }
 
-    //ELIMINAR
+    // ELIMINAR
     @Transactional
     public void eliminar(Long id) {
         // Antes de borrar, comprobamos si existe para lanzar el 404 si falla
@@ -54,9 +62,9 @@ public class CitaService {
         citaRepository.deleteById(id);
     }
 
-    //------------------------------------------------------------------
+    // ------------------------------------------------------------------
     // METODOS DE APOYO PARA VALIDACIONES DE NEGOCIO
-    //------------------------------------------------------------------
+    // ------------------------------------------------------------------
 
     // Comprobar tiempo correcto e interesado existente
     private void validarCita(Cita cita) {

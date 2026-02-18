@@ -80,6 +80,7 @@ public class Interesado {
     private BigDecimal presupuestoMaximo;
     private String zonaInteres;
     private Integer habitacionesMinimas;
+    private Integer banosMinimos;
 
     @Enumerated(EnumType.STRING)
     private Operacion tipoBusqueda;

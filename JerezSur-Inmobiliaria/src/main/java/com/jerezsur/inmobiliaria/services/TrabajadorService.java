@@ -7,10 +7,11 @@ import com.jerezsur.inmobiliaria.models.Usuario;
 import com.jerezsur.inmobiliaria.models.enums.Role;
 import com.jerezsur.inmobiliaria.repositories.TrabajadorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 public class TrabajadorService {
@@ -28,8 +29,12 @@ public class TrabajadorService {
 
     // LISTAR TODOS
     @Transactional(readOnly = true)
-    public List<Trabajador> listarTodos() {
-        return trabajadorRepository.findAll();
+    public Page<Trabajador> listarTodos(int page, int size, String sortBy, String sortDir) {
+
+        Sort sort = Sort.by(Sort.Direction.fromString(sortDir), sortBy);
+        PageRequest pageable = PageRequest.of(page, size, sort);
+
+        return trabajadorRepository.findAll(pageable);
     }
 
     // BUSCAR INDIVIDUAL

@@ -7,10 +7,11 @@ import com.jerezsur.inmobiliaria.models.Usuario;
 import com.jerezsur.inmobiliaria.models.enums.Role;
 import com.jerezsur.inmobiliaria.repositories.VendedorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 public class VendedorService {
@@ -25,9 +26,14 @@ public class VendedorService {
     // CRUD BÁSICO
     // ------------------------------------------------------------------
 
+    // LISTAR TODOS
     @Transactional(readOnly = true)
-    public List<Vendedor> listarTodos() {
-        return vendedorRepository.findAll();
+    public Page<Vendedor> listarTodos(int page, int size, String sortBy, String sortDir) {
+
+        Sort sort = Sort.by(Sort.Direction.fromString(sortDir), sortBy);
+        PageRequest pageable = PageRequest.of(page, size, sort);
+
+        return vendedorRepository.findAll(pageable);
     }
 
     @Transactional(readOnly = true)

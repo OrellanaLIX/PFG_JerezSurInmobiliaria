@@ -11,9 +11,12 @@ import com.jerezsur.inmobiliaria.models.Trabajador;
 @Repository
 public interface TrabajadorRepository extends JpaRepository<Trabajador, Long> {
     
-    //Econtramos al cendedor por Email
+    //Encontramos al trabajador por Email
     Optional<Trabajador> findByEmail(String email);
     
-    //Econtramos al cendedor por DNI
+    //Encontramos al trabajador por DNI
     Boolean existsByDni(String dni);
+
+    //Encontramos al trabajador por nombre
+    Optional<Trabajador> findByNombre(String nombre);
 }
