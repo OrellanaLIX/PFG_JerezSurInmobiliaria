@@ -7,9 +7,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -25,12 +27,13 @@ import jakarta.validation.constraints.Min;
 
 @RestController
 @RequestMapping("/api/inmuebles")
-@CrossOrigin(origins = "http://localhost:3000") // Para conectar con tu futuro React
+@CrossOrigin(origins = "http://localhost:3000")
 public class InmuebleController {
 
     @Autowired
     private InmuebleService inmuebleService;
 
+    // --- BUSQUEDA CON FILTROS (Ya lo tienes, está muy bien) ---
     @GetMapping("/buscar")
     public ResponseEntity<Page<Inmueble>> filtrar(
             @RequestParam(required = false) String ref,
@@ -59,26 +62,43 @@ public class InmuebleController {
         Set<String> allowedSortFields = Set.of("id", "referencia", "operacion", "precio", "superficieUtil",
                 "habitaciones",
                 "banos");
+
         if (!allowedSortFields.contains(sortBy)) {
             sortBy = "id";
         }
-
         Page<Inmueble> result = inmuebleService.buscarConFiltros(ref, tit, desc, operacion, estado, precioMin,
-                precioMax,
-                habitaciones, banos, superficieMin, ciudad, cp, page, size, sortBy, sortDir);
-
+                precioMax, habitaciones, banos, superficieMin, ciudad, cp, page, size, sortBy, sortDir);
         return ResponseEntity.ok(result);
     }
 
-    // Obtener un inmueble por ID (Público)
+    // --- OBTENER POR ID ---
     @GetMapping("/{id}")
-    public Inmueble getInmuebleById(@PathVariable Long id) {
-        return inmuebleService.buscarPorId(id);
+    public ResponseEntity<Inmueble> getInmuebleById(@PathVariable Long id) {
+        // Al usar ResponseEntity, mantienes la consistencia de la API
+        return ResponseEntity.ok(inmuebleService.buscarPorId(id));
     }
 
-    // Crear inmueble (Solo personal autorizado)
+    // --- CREAR ---
     @PostMapping
-    public Inmueble createInmueble(@RequestBody Inmueble inmueble) {
-        return inmuebleService.guardar(inmueble);
+    public ResponseEntity<Inmueble> createInmueble(@jakarta.validation.Valid @RequestBody Inmueble inmueble) {
+        Inmueble nuevo = inmuebleService.guardar(inmueble);
+        // Devolvemos 201 Created que es lo correcto en REST al crear recursos
+        return new ResponseEntity<>(nuevo, org.springframework.http.HttpStatus.CREATED);
+    }
+
+    // --- ACTUALIZAR ---
+    @PutMapping("/{id}")
+    public ResponseEntity<Inmueble> updateInmueble(@PathVariable Long id,
+            @jakarta.validation.Valid @RequestBody Inmueble inmueble) {
+        // Aseguramos que el ID del path coincida con el objeto
+        inmueble.setId(id);
+        return ResponseEntity.ok(inmuebleService.guardar(inmueble));
+    }
+
+    // --- BORRAR ---
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteInmueble(@PathVariable Long id) {
+        inmuebleService.eliminar(id);
+        return ResponseEntity.noContent().build(); // 204 No Content
     }
 }

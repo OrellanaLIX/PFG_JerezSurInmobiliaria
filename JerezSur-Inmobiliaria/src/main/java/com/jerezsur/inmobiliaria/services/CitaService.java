@@ -27,7 +27,7 @@ public class CitaService {
 
     // LISTAR TODOS
     @Transactional(readOnly = true)
-    public Page<Cita> listarTodos(LocalDateTime min, LocalDateTime max, int page, int size, String sortBy,
+    public Page<Cita> listarTodas(LocalDateTime min, LocalDateTime max, int page, int size, String sortBy,
             String sortDir) {
 
         Sort sort = Sort.by(Sort.Direction.fromString(sortDir), sortBy);
