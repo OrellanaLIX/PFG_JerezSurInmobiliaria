@@ -9,6 +9,8 @@ import org.springframework.stereotype.Repository;
 
 import com.jerezsur.inmobiliaria.models.Cita;
 import com.jerezsur.inmobiliaria.models.Inmueble;
+import com.jerezsur.inmobiliaria.models.Trabajador;
+
 import java.time.LocalDateTime;
 
 @Repository
@@ -20,4 +22,7 @@ public interface CitaRepository extends JpaRepository<Cita, Long> {
     // Encontramos la lista de citas en unas fechas
     Page<Cita> findByFechaHoraBetween(LocalDateTime fechaHoraMin, LocalDateTime fechaHoraMax, Pageable pageable);
 
+    // Comprobacion para que no se pisen las fechas
+    Boolean existsByTrabajadorAndFechaHoraBetween(Trabajador trabajador, LocalDateTime inicioRango,
+            LocalDateTime finRango);
 }

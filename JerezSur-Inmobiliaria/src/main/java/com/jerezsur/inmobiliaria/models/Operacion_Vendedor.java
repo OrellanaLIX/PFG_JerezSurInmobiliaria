@@ -1,16 +1,17 @@
 package com.jerezsur.inmobiliaria.models;
 
+import com.jerezsur.inmobiliaria.models.enums.CalidadFirma;
+
 import jakarta.persistence.*;
 import lombok.*;
-import lombok.Builder.Default;
 
 @Entity
-@Table(name = "contrato_vendedor")
+@Table(name = "operacion_vendedor")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Contrato_Vendedor {
+public class Operacion_Vendedor {
 
     // --- IDENTIFICADOR ---
     @Id
@@ -18,18 +19,15 @@ public class Contrato_Vendedor {
     private Long id;
 
     // --- RELACIONES ---
-
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "contrato_id", nullable = false)
-    private Contrato contrato;
+    @JoinColumn(name = "operacion_id", nullable = false)
+    private Operacion operacion;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "vendedor_id", nullable = false)
     private Vendedor vendedor;
 
     // --- CAMPOS ADICIONALES ---
-    @Default
-    private Boolean firmoEnRepresentacion = false; // Por si alguien firma por otro con poderes
-
-    private String calidadFirma; // Ej: "Copropietario", "Apoderado", "Albacea"
+    @Enumerated(EnumType.STRING)
+    private CalidadFirma enCalidad; // Ej: "Copropietario", "Apoderado", "Albacea"
 }

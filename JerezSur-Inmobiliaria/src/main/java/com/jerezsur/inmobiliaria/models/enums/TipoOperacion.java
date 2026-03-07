@@ -1,6 +1,6 @@
 package com.jerezsur.inmobiliaria.models.enums;
 
-public enum TipoContrato {
+public enum TipoOperacion {
     VENTA,
     ALQUILER
 }

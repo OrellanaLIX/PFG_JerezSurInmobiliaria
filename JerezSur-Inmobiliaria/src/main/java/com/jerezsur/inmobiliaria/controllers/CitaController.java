@@ -28,7 +28,7 @@ public class CitaController {
         return new ResponseEntity<>(nuevaCita, HttpStatus.CREATED);
     }
 
-    // --- 2. LISTAR TODAS LAS CITAS (Vista General) ---
+    // --- 2. LISTAR TODAS LAS CITAS ---
     @GetMapping
     public ResponseEntity<Page<Cita>> listarTodas(@RequestParam LocalDateTime min, @RequestParam LocalDateTime max,
             @RequestParam int page, @RequestParam int size, @RequestParam String sortBy, @RequestParam String sortDir) {

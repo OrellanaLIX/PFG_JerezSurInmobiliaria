@@ -18,12 +18,12 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "compradores_contratos")
+@Table(name = "comprador_operacion")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Contrato_Interesado {
+public class Operacion_Interesado {
 
     // --- IDENTIFICADOR ---
     @Id
@@ -32,8 +32,8 @@ public class Contrato_Interesado {
 
     // --- RELACIONES ---
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "contrato_id", nullable = false)
-    private Contrato contrato; // Relación con el Comprador
+    @JoinColumn(name = "operacion_id", nullable = false)
+    private Operacion operacion; // Relación con la Operacion
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "interesado_id", nullable = false)

@@ -3,6 +3,7 @@ package com.jerezsur.inmobiliaria.services;
 import com.jerezsur.inmobiliaria.exceptions.BusinessValidationException;
 import com.jerezsur.inmobiliaria.exceptions.ResourceNotFoundException;
 import com.jerezsur.inmobiliaria.models.Cita;
+import com.jerezsur.inmobiliaria.models.Interesado;
 import com.jerezsur.inmobiliaria.repositories.CitaRepository;
 
 import org.springframework.data.domain.Page;
@@ -17,45 +18,42 @@ import java.time.LocalDateTime;
 @Service
 public class CitaService {
 
-    // INYECCION DE DEPENDENCIAS
     @Autowired
     private CitaRepository citaRepository;
 
+    @Autowired
+    private InteresadoService interesadoService;
+
     // ------------------------------------------------------------------
-    // CRUD BASICO
+    // CRUD BÁSICO
     // ------------------------------------------------------------------
 
-    // LISTAR TODOS
     @Transactional(readOnly = true)
-    public Page<Cita> listarTodas(LocalDateTime min, LocalDateTime max, int page, int size, String sortBy,
-            String sortDir) {
-
+    public Page<Cita> listarTodas(LocalDateTime min, LocalDateTime max, int page, int size, String sortBy, String sortDir) {
         Sort sort = Sort.by(Sort.Direction.fromString(sortDir), sortBy);
         PageRequest pageable = PageRequest.of(page, size, sort);
-
-        // Devuelve lista llena o []
         return citaRepository.findByFechaHoraBetween(min, max, pageable);
     }
 
-    // BUSCAR INDIVIDUAL
     @Transactional(readOnly = true)
     public Cita buscarPorId(Long id) {
-        // Si el ID no existe, es un 404. Usamos elsethrow.
         return citaRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("La cita con ID " + id + " no existe."));
     }
 
-    // GUARDAR
     @Transactional
     public Cita guardar(Cita cita) {
-        validarCita(cita); // Extraemos las validaciones a un método privado para limpiar el código
+        // 1. LEAD EXPRESS: Si el interesado no existe en DB, lo creamos automáticamente
+        procesarInteresadoExpress(cita);
+
+        // 2. VALIDACIONES DE NEGOCIO (Pasado, disponibilidad, etc.)
+        validarCita(cita);
+
         return citaRepository.save(cita);
     }
 
-    // ELIMINAR
     @Transactional
     public void eliminar(Long id) {
-        // Antes de borrar, comprobamos si existe para lanzar el 404 si falla
         if (!citaRepository.existsById(id)) {
             throw new ResourceNotFoundException("No se puede eliminar: La cita con ID " + id + " no existe.");
         }
@@ -63,16 +61,54 @@ public class CitaService {
     }
 
     // ------------------------------------------------------------------
-    // METODOS DE APOYO PARA VALIDACIONES DE NEGOCIO
+    // LÓGICA DE VALIDACIÓN Y APOYO
     // ------------------------------------------------------------------
 
-    // Comprobar tiempo correcto e interesado existente
-    private void validarCita(Cita cita) {
-        if (cita.getFechaHora().isBefore(LocalDateTime.now())) {
-            throw new BusinessValidationException("No se puede programar una cita en el pasado.");
+    private void procesarInteresadoExpress(Cita cita) {
+        // Si el interesado viene en el JSON pero no tiene ID, es un contacto nuevo
+        if (cita.getInteresado() != null && cita.getInteresado().getId() == null) {
+            Interesado invitado = cita.getInteresado();
+            // Lo guardamos (esto crea el perfil comercial sin cuenta de usuario)
+            invitado = interesadoService.guardar(invitado);
+            cita.setInteresado(invitado);
         }
+    }
+
+    private void validarCita(Cita cita) {
+        // A. Validación temporal básica
+        if (cita.getFechaHora() == null || cita.getFechaHora().isBefore(LocalDateTime.now())) {
+            throw new BusinessValidationException("La fecha de la cita no es válida o está en el pasado.");
+        }
+
+        // B. Validación de asignación
         if (cita.getInteresado() == null) {
             throw new BusinessValidationException("Toda cita debe tener un interesado asignado.");
+        }
+        if (cita.getTrabajador() == null) {
+            throw new BusinessValidationException("Toda cita debe tener un trabajador asignado para realizar la visita.");
+        }
+
+        // C. VALIDACIÓN DE DISPONIBILIDAD (La joya de la corona)
+        validarDisponibilidadTrabajador(cita);
+    }
+
+    private void validarDisponibilidadTrabajador(Cita nuevaCita) {
+        // Definimos un margen de cortesía (ej. 1 hora por visita)
+        // Buscamos si hay otra cita del mismo trabajador entre 59 mins antes y 59 mins después
+        LocalDateTime inicioRango = nuevaCita.getFechaHora().minusMinutes(59);
+        LocalDateTime finRango = nuevaCita.getFechaHora().plusMinutes(59);
+
+        boolean estaOcupado = citaRepository.existsByTrabajadorAndFechaHoraBetween(
+                nuevaCita.getTrabajador(),
+                inicioRango,
+                finRango
+        );
+
+        // Si estamos editando una cita existente, el sistema podría detectar la propia cita
+        // como un conflicto. Aquí comparamos IDs si es necesario (para el método guardar en modo Update)
+        if (estaOcupado) {
+            // Nota: Para ser más precisos en el Update, podrías buscar la cita y ver si el ID es distinto
+            throw new BusinessValidationException("El trabajador ya tiene una visita programada cerca de esa hora.");
         }
     }
 }

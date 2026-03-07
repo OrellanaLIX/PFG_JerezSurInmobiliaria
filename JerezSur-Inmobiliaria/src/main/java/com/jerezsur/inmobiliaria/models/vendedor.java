@@ -72,7 +72,7 @@ public class Vendedor {
     private List<Inmueble_Vendedor> propiedades;
 
     @OneToMany(mappedBy = "vendedor")
-    private List<Contrato_Vendedor> contratosFirmados;
+    private List<Operacion_Vendedor> contratosFirmados;
 
     @OneToOne
     @JoinColumn(name = "usuario_id")

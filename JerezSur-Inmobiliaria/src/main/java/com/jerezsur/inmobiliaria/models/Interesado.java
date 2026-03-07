@@ -93,7 +93,7 @@ public class Interesado {
     private List<Cita> citas;
 
     @OneToMany(mappedBy = "comprador")
-    private List<Contrato_Interesado> contratosFirmados;
+    private List<Operacion_Interesado> operaciones;
 
     @OneToOne
     @JoinColumn(name = "usuario_id")
