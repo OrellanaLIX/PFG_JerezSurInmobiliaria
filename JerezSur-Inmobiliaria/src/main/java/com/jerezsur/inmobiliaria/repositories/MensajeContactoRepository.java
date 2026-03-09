@@ -18,5 +18,5 @@ public interface MensajeContactoRepository extends JpaRepository<MensajeContacto
     List<MensajeContacto> findByInmuebleId(Long inmuebleId);
     
     // Para buscar mensajes de un mismo emisor
-    Page<MensajeContacto> findByEmailorTelefono(String email, String telefono, Pageable pageable);
+    Page<MensajeContacto> findByEmailOrTelefono(String email, String telefono, Pageable pageable);
 }

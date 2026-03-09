@@ -19,7 +19,7 @@ import com.jerezsur.inmobiliaria.models.enums.TipoOperacion;
 public interface InmuebleRepository extends JpaRepository<Inmueble, Long> {
 
         // Econtramos al cendedor por Email
-        Optional<Inmueble> findByContainingTitulo(String titulo);
+        Optional<Inmueble> findByTituloContaining(String titulo);
 
         // Query de filtrado
         @Query("SELECT i FROM Inmueble i WHERE " +

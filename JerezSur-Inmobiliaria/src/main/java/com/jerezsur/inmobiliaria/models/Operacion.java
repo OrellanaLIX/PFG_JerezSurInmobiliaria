@@ -3,6 +3,8 @@ package com.jerezsur.inmobiliaria.models;
 import java.math.BigDecimal;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.jerezsur.inmobiliaria.models.enums.EstadoOperacion;
 import com.jerezsur.inmobiliaria.models.enums.TipoOperacion;
 
@@ -32,6 +34,15 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "categoria_operacion")
+@JsonTypeInfo(
+  use = JsonTypeInfo.Id.NAME, 
+  include = JsonTypeInfo.As.PROPERTY, 
+  property = "categoria_operacion"
+)
+@JsonSubTypes({
+  @JsonSubTypes.Type(value = OperacionAlquiler.class, name = "ALQUILER"),
+  @JsonSubTypes.Type(value = OperacionVenta.class, name = "VENTA")
+})
 public abstract class Operacion {
 
     // --- IDENTIFICADOR ---

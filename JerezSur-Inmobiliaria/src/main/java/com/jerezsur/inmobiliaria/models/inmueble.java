@@ -140,7 +140,7 @@ public class Inmueble {
     private List<Inmueble_Vendedor> propietarios;
 
     @OneToMany(mappedBy = "inmueble")
-    private List<Contrato> contratos;
+    private List<Operacion> operaciones;
 
     // --- AUDITORÍA ---
     @CreationTimestamp

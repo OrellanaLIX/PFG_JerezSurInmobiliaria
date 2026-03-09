@@ -66,11 +66,11 @@ public class CitaService {
 
     private void procesarInteresadoExpress(Cita cita) {
         // Si el interesado viene en el JSON pero no tiene ID, es un contacto nuevo
-        if (cita.getInteresado() != null && cita.getInteresado().getId() == null) {
-            Interesado invitado = cita.getInteresado();
+        if (cita.getComprador() != null && cita.getComprador().getId() == null) {
+            Interesado invitado = cita.getComprador();
             // Lo guardamos (esto crea el perfil comercial sin cuenta de usuario)
             invitado = interesadoService.guardar(invitado);
-            cita.setInteresado(invitado);
+            cita.setComprador(invitado);
         }
     }
 
@@ -81,7 +81,7 @@ public class CitaService {
         }
 
         // Validación de asignación
-        if (cita.getInteresado() == null) {
+        if (cita.getComprador() == null) {
             throw new BusinessValidationException("Toda cita debe tener un interesado asignado.");
         }
         if (cita.getTrabajador() == null) {

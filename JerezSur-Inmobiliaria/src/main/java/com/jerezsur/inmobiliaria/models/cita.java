@@ -64,7 +64,7 @@ public class Cita {
     // El comprador principal (titular de la cita)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "interesado_id", nullable = false)
-    private Interesado interesado;
+    private Interesado comprador;
 
     // --- AUDITORÍA ---
     @CreationTimestamp

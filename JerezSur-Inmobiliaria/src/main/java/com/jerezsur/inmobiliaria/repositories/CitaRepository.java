@@ -30,6 +30,6 @@ public interface CitaRepository extends JpaRepository<Cita, Long> {
 
     // Query para limpieza de datos inutiles
     @Modifying
-    @Query("DELETE FROM Cita c WHERE c.estado = 'CANCELADA' AND c.fecha < :fecha")
+    @Query("DELETE FROM Cita c WHERE c.estado = 'CANCELADA' AND c.fechaHora < :fecha")
     void borrarCitasCanceladasAntiguas(LocalDateTime fecha);
 }
