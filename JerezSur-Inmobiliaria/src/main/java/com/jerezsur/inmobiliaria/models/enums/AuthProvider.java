@@ -1,7 +1,7 @@
 package com.jerezsur.inmobiliaria.models.enums;
 
 public enum AuthProvider {
-    LOCAL,
-    GOOGLE,
-    FACEBOOK
+    LOCAL, // Local en nuestra bd
+    GOOGLE, // Asociado a cuenta de Google
+    FACEBOOK // Asociado a cuenta de Facebook
 }

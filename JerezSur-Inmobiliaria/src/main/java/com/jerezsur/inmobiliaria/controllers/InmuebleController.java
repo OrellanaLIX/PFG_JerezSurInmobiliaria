@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.jerezsur.inmobiliaria.models.Inmueble;
 import com.jerezsur.inmobiliaria.models.enums.EstadoInmueble;
-import com.jerezsur.inmobiliaria.models.enums.Operacion;
+import com.jerezsur.inmobiliaria.models.enums.TipoOperacion;
 import com.jerezsur.inmobiliaria.services.InmuebleService;
 
 import jakarta.validation.constraints.Max;
@@ -39,7 +39,7 @@ public class InmuebleController {
             @RequestParam(required = false) String ref,
             @RequestParam(required = false) String tit,
             @RequestParam(required = false) String desc,
-            @RequestParam(required = false) Operacion operacion,
+            @RequestParam(required = false) TipoOperacion operacion,
             @RequestParam(required = false) EstadoInmueble estado,
             @RequestParam(required = false) BigDecimal precioMin,
             @RequestParam(required = false) BigDecimal precioMax,

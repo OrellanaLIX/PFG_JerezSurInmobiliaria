@@ -22,9 +22,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Builder.Default;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Builder.Default;
 
 @Entity
 @Table(name = "trabajadores")
@@ -34,6 +34,7 @@ import lombok.Builder.Default;
 @AllArgsConstructor
 public class Trabajador {
 
+    // --- IDENTIFICADOR ---
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -50,8 +51,8 @@ public class Trabajador {
     private String dni;
 
     // --- CONTACTO Y ACCESO ---
-    @NotBlank
-    @Email
+    @NotBlank(message = "El email es obligatorio")
+    @Email(message = "El formato del email no es válido")
     @Column(unique = true)
     private String email;
 
@@ -59,31 +60,33 @@ public class Trabajador {
     private String telefono;
 
     @Transient
-    private String password; 
+    private String password; // Uso temporal para registro/cambio (no se persiste aquí)
 
     private String cargo; // Ej: "Agente Comercial", "Administrativo"
 
     // --- GESTIÓN LABORAL ---
-    
     @NotNull(message = "La fecha de inicio es obligatoria")
-    private LocalDate fechaInicioContrato; // Fecha del contrato actual | Sobrescribir si vuelve a la empresa
+    private LocalDate fechaInicioContrato;
 
-    private LocalDate fechaFinContrato; // Solo se rellena si el contrato es temporal o deja la empresa
+    private LocalDate fechaFinContrato; // Se completa en contratos temporales o bajas
 
     @Default
-    private Boolean activo = true; // Define si está trabajando actualmente
+    private Boolean activo = true; // Indica si el trabajador está en plantilla actualmente
 
     @Column(columnDefinition = "TEXT")
-    private String observacionesLaborales; // Aquí puedes anotar: "Pasó de temporal a fijo el 15/01/2026"
+    private String observacionesLaborales; // Historial de cambios de contrato o notas internas
 
     // --- RELACIONES ---
 
+    // Histórico de citas y visitas gestionadas por el trabajador
     @OneToMany(mappedBy = "trabajador")
     private List<Cita> citas;
 
+    // Contratos en los que el trabajador ha actuado como representante/testigo
     @OneToMany(mappedBy = "trabajador")
     private List<Contrato> contratos;
 
+    // Vinculación con las credenciales de seguridad del sistema
     @OneToOne
     @JoinColumn(name = "usuario_id")
     private Usuario usuario;
@@ -95,4 +98,4 @@ public class Trabajador {
 
     @UpdateTimestamp
     private LocalDateTime fechaUltimaActualizacion;
-    }
+}

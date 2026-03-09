@@ -6,7 +6,7 @@ import com.jerezsur.inmobiliaria.models.Inmueble;
 import com.jerezsur.inmobiliaria.models.Inmueble_Vendedor;
 import com.jerezsur.inmobiliaria.models.Vendedor;
 import com.jerezsur.inmobiliaria.models.enums.EstadoInmueble;
-import com.jerezsur.inmobiliaria.models.enums.Operacion;
+import com.jerezsur.inmobiliaria.models.enums.TipoOperacion;
 import com.jerezsur.inmobiliaria.repositories.InmuebleRepository;
 import com.jerezsur.inmobiliaria.repositories.Inmueble_VendedorRepository;
 
@@ -35,7 +35,7 @@ public class InmuebleService {
 
     // LISTAR TODOS CON FILTRADO
     @Transactional(readOnly = true)
-    public Page<Inmueble> buscarConFiltros(String ref, String tit, String desc, Operacion op, EstadoInmueble est,
+    public Page<Inmueble> buscarConFiltros(String ref, String tit, String desc, TipoOperacion op, EstadoInmueble est,
             BigDecimal pMin, BigDecimal pMax, Integer hab, Integer ban, Double sMin, String ciu, String cp, 
             int page, int size, String sortBy, String sortDir) {
 

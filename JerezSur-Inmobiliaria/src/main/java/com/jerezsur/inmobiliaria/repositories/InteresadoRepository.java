@@ -12,7 +12,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.jerezsur.inmobiliaria.models.Interesado;
-import com.jerezsur.inmobiliaria.models.enums.Operacion;
+import com.jerezsur.inmobiliaria.models.enums.TipoOperacion;
 
 // Al hacer extends tenemos save, findById, deleteById, etc... por defecto
 @Repository
@@ -35,10 +35,10 @@ public interface InteresadoRepository extends JpaRepository<Interesado, Long> {
                         @Param("zona") String zona,
                         @Param("habs") Integer habs,
                         @Param("banos") Integer banos,
-                        @Param("tipo") Operacion tipo,
+                        @Param("tipo") TipoOperacion tipo,
                         Pageable pageable);
 
-        // Query para el cleanup
+        // Query para limpieza de datos inutiles
         @Modifying
         @Query("DELETE FROM Interesado i WHERE i.usuario IS NULL AND " +
                         "NOT EXISTS (SELECT c FROM Cita c WHERE c.interesado = i AND c.fechaCita > :fecha)")

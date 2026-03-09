@@ -21,7 +21,7 @@ public class VendedorController {
     @Autowired
     private VendedorService vendedorService;
 
-    // --- 1. REGISTRAR / CREAR VENDEDOR ---
+    // --- REGISTRAR / CREAR VENDEDOR ---
     @PostMapping("/registrar")
     public ResponseEntity<Vendedor> registrarVendedor(@Valid @RequestBody Vendedor vendedor) {
         // El service gestiona: validación DNI, creación de Usuario (ROLE_VENDEDOR) y
@@ -30,7 +30,7 @@ public class VendedorController {
         return new ResponseEntity<>(nuevoVendedor, HttpStatus.CREATED);
     }
 
-    // --- 2. LISTAR TODOS LOS VENDEDORES ---
+    // --- LISTAR TODOS LOS VENDEDORES ---
     @GetMapping
     public ResponseEntity<Page<Vendedor>> listarTodos(
             @RequestParam(required = false, defaultValue = "0") @Min(0) int page,
@@ -40,13 +40,13 @@ public class VendedorController {
         return ResponseEntity.ok(vendedorService.listarTodos(page, size, sortBy, sortDir));
     }
 
-    // --- 3. OBTENER DETALLES DE UN VENDEDOR ---
+    // --- OBTENER DETALLES DE UN VENDEDOR ---
     @GetMapping("/{id}")
     public ResponseEntity<Vendedor> obtenerPorId(@PathVariable Long id) {
         return ResponseEntity.ok(vendedorService.buscarPorId(id));
     }
 
-    // --- 4. ACTUALIZAR DATOS DEL VENDEDOR ---
+    // --- ACTUALIZAR DATOS DEL VENDEDOR ---
     @PutMapping("/{id}")
     public ResponseEntity<Vendedor> actualizarVendedor(
             @PathVariable Long id,
@@ -58,7 +58,7 @@ public class VendedorController {
         return ResponseEntity.ok(actualizado);
     }
 
-    // --- 5. ELIMINAR VENDEDOR ---
+    // --- ELIMINAR VENDEDOR ---
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminarVendedor(@PathVariable Long id) {
         vendedorService.eliminar(id);

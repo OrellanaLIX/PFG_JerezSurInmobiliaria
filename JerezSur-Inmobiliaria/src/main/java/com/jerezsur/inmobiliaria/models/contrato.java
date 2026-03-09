@@ -2,7 +2,9 @@ package com.jerezsur.inmobiliaria.models;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+
 import org.hibernate.annotations.CreationTimestamp;
+
 import com.jerezsur.inmobiliaria.models.enums.EstadoContrato;
 import com.jerezsur.inmobiliaria.models.enums.ModeloContrato;
 
@@ -18,40 +20,55 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.Builder.Default;
 
 @Entity
 @Table(name = "contratos")
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Contrato {
 
+    // --- IDENTIFICADOR ---
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // VINCULACIÓN CON LA OPERACIÓN
+    // --- DATOS DEL CONTRATO ---
+    @NotNull(message = "La fecha de firma es obligatoria")
+    private LocalDate fechaFirma;
+
+    @Enumerated(EnumType.STRING)
+    @Default
+    private EstadoContrato estado = EstadoContrato.BORRADOR; // BORRADOR, PENDIENTE_FIRMA, FIRMADO, CANCELADO
+
+    @Enumerated(EnumType.STRING)
+    private ModeloContrato modelo; // ARRAS, COMPRAVENTA, ALQUILER, ETC.
+
+    @Column(columnDefinition = "TEXT")
+    private String clausulasEspeciales; // Notas o condiciones particulares del contrato
+
+    private String urlDocumentoPdf; // Ruta o enlace al archivo del contrato digitalizado
+
+    // --- RELACIONES ---
+
+    // El contrato se vincula a una operación inmobiliaria específica
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "operacion_id", nullable = false)
     private Operacion operacion;
 
-    @NotNull
-    private LocalDate fechaFirma;
-
-    @Enumerated(EnumType.STRING)
-    private EstadoContrato estado = EstadoContrato.BORRADOR;
-
-    @Enumerated(EnumType.STRING)
-    private ModeloContrato modelo;
-
-    @Column(columnDefinition = "TEXT")
-    private String clausulasEspeciales;
-
-    private String urlDocumentoPdf;
-
+    // Trabajador responsable de gestionar o supervisar la firma
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "trabajador_id", nullable = false)
     private Trabajador trabajador;
 
+    // --- AUDITORÍA ---
     @CreationTimestamp
+    @Column(updatable = false)
     private LocalDateTime fechaRegistro;
 }

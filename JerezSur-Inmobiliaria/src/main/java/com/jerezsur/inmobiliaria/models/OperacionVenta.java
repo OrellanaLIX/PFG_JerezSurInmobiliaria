@@ -5,15 +5,23 @@ import java.time.LocalDate;
 
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 @Entity
 @DiscriminatorValue("VENTA")
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class OperacionVenta extends Operacion {
-    private BigDecimal depositoArras;
-    private LocalDate fechaLimiteEscritura;
-    private Boolean incluyeMobiliario;
+
+    // --- DATOS ESPECÍFICOS DE LA COMPRAVENTA ---
+    private BigDecimal depositoArras; // Cantidad entregada en la señalización
+
+    private LocalDate fechaLimiteEscritura; // Fecha máxima para firmar ante notario
+
+    private Boolean incluyeMobiliario; // Indica si el precio incluye muebles o está vacío
 }

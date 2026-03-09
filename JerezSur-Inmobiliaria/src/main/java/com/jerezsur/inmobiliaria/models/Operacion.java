@@ -17,6 +17,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
@@ -32,35 +33,51 @@ import lombok.NoArgsConstructor;
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "categoria_operacion")
 public abstract class Operacion {
+
+    // --- IDENTIFICADOR ---
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    private Inmueble inmueble;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    private Vendedor representanteVendedor;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    private Interesado representanteComprador;
-
+    // --- DATOS ECONÓMICOS Y ESTADO ---
     private BigDecimal precioAcordado;
 
     @Enumerated(EnumType.STRING)
-    private TipoOperacion tipo;
+    private TipoOperacion tipo; // VENTA, ALQUILER, TRASPASO
 
     @Enumerated(EnumType.STRING)
-    private EstadoOperacion estadoActual = EstadoOperacion.ABIERTA;
+    private EstadoOperacion estadoActual = EstadoOperacion.ABIERTA; // ABIERTA, EN_TRAMITE, CERRADA, CANCELADA
 
-    // Relación con los documentos generados
+    // --- RELACIONES PRINCIPALES ---
+
+    // El inmueble objeto de la transacción
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "inmueble_id")
+    private Inmueble inmueble;
+
+    // Representante principal de la parte vendedora/arrendadora
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "vendedor_id")
+    private Vendedor representanteVendedor;
+
+    // Representante principal de la parte compradora/arrendataria
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "interesado_id")
+    private Interesado representanteComprador;
+
+    // --- DOCUMENTACIÓN Y SEGUIMIENTO ---
+
+    // Listado de contratos y anexos generados durante la operación
     @OneToMany(mappedBy = "operacion", cascade = CascadeType.ALL)
     private List<Contrato> documentos;
 
-    // Relación con todos los intervinientes (Tablas intermedias)
+    // --- PARTICIPANTES (MULTI-PROPIEDAD / CO-COMPRADORES) ---
+
+    // Relación con todos los vendedores que intervienen en la firma
     @OneToMany(mappedBy = "operacion", cascade = CascadeType.ALL)
     private List<Operacion_Vendedor> vendedores;
 
+    // Relación con todos los interesados/compradores que intervienen
     @OneToMany(mappedBy = "operacion", cascade = CascadeType.ALL)
     private List<Operacion_Interesado> compradores;
 }

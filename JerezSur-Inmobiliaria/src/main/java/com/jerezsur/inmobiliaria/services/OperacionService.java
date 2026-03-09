@@ -1,12 +1,17 @@
 package com.jerezsur.inmobiliaria.services;
 
-import com.jerezsur.inmobiliaria.exceptions.BusinessValidationException;
-import com.jerezsur.inmobiliaria.exceptions.ResourceNotFoundException;
-import com.jerezsur.inmobiliaria.models.*;
-import com.jerezsur.inmobiliaria.repositories.OperacionRepository;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.jerezsur.inmobiliaria.exceptions.BusinessValidationException;
+import com.jerezsur.inmobiliaria.exceptions.ResourceNotFoundException;
+import com.jerezsur.inmobiliaria.models.Operacion;
+import com.jerezsur.inmobiliaria.models.OperacionAlquiler;
+import com.jerezsur.inmobiliaria.models.OperacionVenta;
+import com.jerezsur.inmobiliaria.repositories.OperacionRepository;
 
 @Service
 public class OperacionService {
@@ -14,12 +19,20 @@ public class OperacionService {
     @Autowired
     private OperacionRepository operacionRepository;
 
+    // ------------------------------------------------------------------
+    // GESTIÓN DE OPERACIONES (VENTAS / ALQUILERES)
+    // ------------------------------------------------------------------
+
+    /**
+     * Crea una nueva operación asegurando la integridad de las relaciones
+     * bidireccionales con vendedores y compradores intervinientes.
+     */
     @Transactional
     public Operacion crearOperacion(Operacion operacion) {
-        // 1. Validar reglas de negocio según el tipo
+        // VALIDACIÓN: Reglas de negocio según el tipo de operación (Venta/Alquiler)
         validarDatosOperacion(operacion);
 
-        // 2. Vincular relaciones bidireccionales de las tablas intermedias
+        // VINCULACIÓN: Sincronización de tablas intermedias para persistencia correcta
         if (operacion.getVendedores() != null) {
             operacion.getVendedores().forEach(v -> v.setOperacion(operacion));
         }
@@ -36,16 +49,33 @@ public class OperacionService {
                 .orElseThrow(() -> new ResourceNotFoundException("Operación no encontrada con ID: " + id));
     }
 
-    private void validarDatosOperacion(Operacion op) {
-        if (op.getInmueble() == null)
-            throw new BusinessValidationException("El inmueble es obligatorio.");
+    @Transactional(readOnly = true)
+    public List<Operacion> listarPorInmueble(Long id) {
+        return operacionRepository.findByInmuebleId(id);
+    }
 
+    // ------------------------------------------------------------------
+    // LÓGICA DE VALIDACIÓN POLIMÓRFICA
+    // ------------------------------------------------------------------
+
+    /**
+     * Aplica reglas de validación diferenciadas mediante Pattern Matching de Java
+     * para asegurar que cada tipo de operación tiene sus datos críticos.
+     */
+    private void validarDatosOperacion(Operacion op) {
+        if (op.getInmueble() == null) {
+            throw new BusinessValidationException("El inmueble es obligatorio para abrir una operación.");
+        }
+
+        // Validaciones específicas por subclase
         if (op instanceof OperacionAlquiler alq) {
-            if (alq.getFianza() == null)
-                throw new BusinessValidationException("La fianza es obligatoria en alquileres.");
+            if (alq.getFianza() == null) {
+                throw new BusinessValidationException("La fianza es obligatoria en operaciones de alquiler.");
+            }
         } else if (op instanceof OperacionVenta vta) {
-            if (vta.getDepositoArras() == null)
-                throw new BusinessValidationException("El depósito de arras es obligatorio en ventas.");
+            if (vta.getDepositoArras() == null) {
+                throw new BusinessValidationException("El depósito de arras es obligatorio en operaciones de venta.");
+            }
         }
     }
 }

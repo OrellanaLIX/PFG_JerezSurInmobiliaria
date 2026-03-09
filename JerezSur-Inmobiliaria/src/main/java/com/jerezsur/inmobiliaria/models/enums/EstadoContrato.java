@@ -1,8 +1,8 @@
 package com.jerezsur.inmobiliaria.models.enums;
 
 public enum EstadoContrato {
-    BORRADOR, 
-    PENDIENTE_FIRMA, 
-    FIRMADO, 
-    CANCELADO
+    BORRADOR, // En proceso
+    PENDIENTE_FIRMA, // Solo falta la firma
+    FIRMADO, // Finalizado
+    CANCELADO // Cancelado
 }

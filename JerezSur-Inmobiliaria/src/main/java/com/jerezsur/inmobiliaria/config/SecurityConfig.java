@@ -21,56 +21,53 @@ import java.util.Arrays;
 public class SecurityConfig {
 
     @Autowired
-    private OAuth2UserService<OAuth2UserRequest, OAuth2User> customOAuth2UserService;
+    private OAuth2UserService<OAuth2UserRequest, OAuth2User> customOAuth2UserService; // Inyectamos servicio OAuth
 
     @Autowired
-    private CustomLoginSuccessHandler successHandler; // Inyectamos tu nuevo handler
+    private CustomLoginSuccessHandler successHandler; // Inyectamos handler
 
     @Bean
-    public BCryptPasswordEncoder passwordEncoder() {
+    public BCryptPasswordEncoder passwordEncoder() { // Modulo de encriptacion de contraseñas
         return new BCryptPasswordEncoder();
     }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            // 1. Configuración de CORS para permitir peticiones desde React
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            
-            // 2. Deshabilitar CSRF para la API
-            .csrf(csrf -> csrf.disable())
-            
-            // 3. Configurar permisos de rutas según tus roles definidos
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/api/inmuebles/**", "/login/**", "/css/**", "/js/**").permitAll()
-                .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                .requestMatchers("/api/trabajador/**").hasAnyRole("ADMIN", "TRABAJADOR")
-                .anyRequest().authenticated()
-            )
-            
-            // 4. Configurar Login Formulario (Local)
-            .formLogin(form -> form
-                .loginPage("/login")
-                .loginProcessingUrl("/api/auth/login") // URL que llamará React para el login
-                .successHandler(successHandler) // Devolverá el JSON con el rol
-                .permitAll()
-            )
+                // Configuración de CORS para permitir peticiones desde React
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
-            // 5. Configurar OAuth2 (Google/Facebook)
-            .oauth2Login(oauth2 -> oauth2
-                .loginPage("/login")
-                .userInfoEndpoint(userInfo -> userInfo
-                    .userService(customOAuth2UserService) // Lógica de registro automático
+                // Deshabilitar CSRF para la API
+                .csrf(csrf -> csrf.disable())
+
+                // Configurar permisos de rutas según tus roles definidos
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/", "/api/inmuebles/**", "/login/**", "/css/**", "/js/**").permitAll()
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/trabajador/**").hasAnyRole("ADMIN", "TRABAJADOR")
+                        .anyRequest().authenticated())
+
+                // Configurar Login Formulario (Local)
+                .formLogin(form -> form
+                        .loginPage("/login")
+                        .loginProcessingUrl("/api/auth/login") // URL que llamará React para el login
+                        .successHandler(successHandler) // Devolverá el JSON con el rol
+                        .permitAll())
+
+                // Configurar OAuth2 (Google/Facebook)
+                .oauth2Login(oauth2 -> oauth2
+                        .loginPage("/login")
+                        .userInfoEndpoint(userInfo -> userInfo
+                                .userService(customOAuth2UserService) // Lógica de registro automático
+                        )
+                        .successHandler(successHandler) // Redirección inteligente post-login social
                 )
-                .successHandler(successHandler) // Redirección inteligente post-login social
-            )
 
-            // 6. Configurar Logout
-            .logout(logout -> logout
-                .logoutUrl("/logout")
-                .logoutSuccessUrl("/login?logout")
-                .permitAll()
-            );
+                // Configurar Logout
+                .logout(logout -> logout
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("/login?logout")
+                        .permitAll());
 
         return http.build();
     }

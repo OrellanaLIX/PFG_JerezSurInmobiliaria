@@ -17,14 +17,15 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Builder.Default;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Builder.Default;
 
 @Entity
 @Table(name = "usuarios")
@@ -33,45 +34,54 @@ import lombok.Builder.Default;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Usuario {
+
+    // --- IDENTIFICADOR ---
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true, nullable = true)
+    // --- CREDENCIALES Y PERFIL BÁSICO ---
+    @Email(message = "El formato del email no es válido")
+    @Column(unique = true)
     private String email;
 
-    @Column(unique = true, nullable = true)
+    @Column(unique = true)
     private String telefono;
 
     @NotBlank(message = "El nombre es obligatorio")
     private String nombre;
 
-    @Size(min = 8)
+    @Size(min = 8, message = "La contraseña debe tener al menos 8 caracteres")
     private String password;
-
-    @Default
-    private Boolean cambiarPasswd = true;
 
     private String imagenPerfilUrl;
 
-    // Para OAuth2
-    @Enumerated(EnumType.STRING)
-    private AuthProvider provider; // "LOCAL", "GOOGLE", "FACEBOOK"
-
-    private String providerId;
-
+    // --- SEGURIDAD Y ROLES ---
     @Enumerated(EnumType.STRING)
     @NotNull
     @Default
-    private Role role = Role.ROLE_INTERESADO; // ROLE_TRABAJADOR, ROLE_COMPRADOR, ROLE_ADMIN, ROLE_INTERESADO
+    private Role role = Role.ROLE_INTERESADO; // Determina los permisos en el sistema
 
-    // RELACIONES Opcionales (1:1)
+    @Default
+    private Boolean cambiarPasswd = true; // Forzar cambio de clave en el primer login o tras reset
+
+    // --- AUTENTICACIÓN EXTERNA (OAuth2) ---
+    @Enumerated(EnumType.STRING)
+    private AuthProvider provider; // LOCAL, GOOGLE, FACEBOOK
+
+    private String providerId; // ID único proporcionado por el proveedor externo
+
+    // --- RELACIONES DE PERFIL (1:1) ---
+
+    // Perfil vinculado si el usuario es un empleado de la inmobiliaria
     @OneToOne(mappedBy = "usuario")
     private Trabajador trabajador;
 
+    // Perfil vinculado si el usuario es un cliente buscando inmuebles
     @OneToOne(mappedBy = "usuario")
     private Interesado interesado;
 
+    // Perfil vinculado si el usuario es un propietario vendiendo/alquilando
     @OneToOne(mappedBy = "usuario")
     private Vendedor vendedor;
 

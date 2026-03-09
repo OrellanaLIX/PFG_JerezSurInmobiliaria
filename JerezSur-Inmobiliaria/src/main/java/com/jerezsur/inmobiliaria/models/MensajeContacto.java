@@ -1,9 +1,24 @@
 package com.jerezsur.inmobiliaria.models;
 
 import java.time.LocalDateTime;
-import jakarta.persistence.*;
-import lombok.*; // Si usas Lombok
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.Table;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Builder.Default;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "mensajes_contacto")
@@ -13,33 +28,40 @@ import lombok.Builder.Default;
 @AllArgsConstructor
 public class MensajeContacto {
 
+    // --- IDENTIFICADOR ---
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false) // 3. El nombre no debería ser nulo
+    // --- DATOS DEL REMITENTE ---
+    @NotNull(message = "El nombre es obligatorio")
     private String nombre;
 
-    @Column(nullable = false) // 4. El email es clave para responder
+    @Email(message = "El formato del email no es válido")
+    @NotNull(message = "El email es obligatorio")
     private String email;
 
     private String telefono;
 
-    @Column(columnDefinition = "TEXT") // 5. Para mensajes largos que superen los 255 caracteres
-    private String mensaje;
+    // --- CONTENIDO DEL MENSAJE ---
+    @Column(columnDefinition = "TEXT")
+    private String mensaje; // Consulta detallada del cliente
 
-    @ManyToOne(fetch = FetchType.LAZY) // 6. Fetch Lazy por rendimiento
+    @Default
+    private boolean leido = false; // Estado de gestión del mensaje
+
+    // --- RELACIONES ---
+
+    // Inmueble por el que se está solicitando información (puede ser nulo si es
+    // consulta general)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "inmueble_id")
     private Inmueble inmueble;
 
+    // --- AUDITORÍA Y CONTROL ---
     @Column(name = "fecha_envio", updatable = false)
     private LocalDateTime fechaEnvio;
 
-    @Column(nullable = false)
-    @Default
-    private boolean leido = false;
-
-    // 7. Método automático para asignar la fecha justo antes de guardar en DB
     @PrePersist
     protected void onCreate() {
         this.fechaEnvio = LocalDateTime.now();

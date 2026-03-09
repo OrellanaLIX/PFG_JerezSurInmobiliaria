@@ -27,6 +27,7 @@ public class MensajeContactoController {
     @Autowired
     private MensajeContactoService mensajeService;
 
+    // Mapear mensajes
     @GetMapping
     public ResponseEntity<Page<MensajeContacto>> listarTodos(
             @RequestParam(required = false, defaultValue = "0") @Min(0) int page,
@@ -38,6 +39,7 @@ public class MensajeContactoController {
                 size, sortBy, sortDir));
     }
 
+    // Enviar mensaje
     @PostMapping("/enviar")
     public ResponseEntity<Void> recibirMensaje(@RequestBody MensajeContacto mensaje) {
         mensajeService.enviarMensaje(mensaje);

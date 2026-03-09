@@ -11,7 +11,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import com.jerezsur.inmobiliaria.models.enums.EstadoInmueble;
-import com.jerezsur.inmobiliaria.models.enums.Operacion;
+import com.jerezsur.inmobiliaria.models.enums.TipoOperacion;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.CollectionTable;
@@ -69,7 +69,7 @@ public class Inmueble {
     private BigDecimal precio;
 
     @Enumerated(EnumType.STRING)
-    private Operacion operacion; // VENTA, ALQUILER, AMBOS
+    private TipoOperacion operacion; // VENTA, ALQUILER, AMBOS
 
     @Enumerated(EnumType.STRING)
     private EstadoInmueble estado; // DISPONIBLE, VENDIDO, RESERVADO

@@ -12,8 +12,8 @@ import com.jerezsur.inmobiliaria.exceptions.ResourceNotFoundException;
 import com.jerezsur.inmobiliaria.models.Interesado;
 import com.jerezsur.inmobiliaria.models.Usuario;
 import com.jerezsur.inmobiliaria.models.enums.EstadoComprador;
-import com.jerezsur.inmobiliaria.models.enums.Operacion;
 import com.jerezsur.inmobiliaria.models.enums.Role;
+import com.jerezsur.inmobiliaria.models.enums.TipoOperacion;
 import com.jerezsur.inmobiliaria.repositories.InteresadoRepository;
 
 @Service
@@ -32,7 +32,7 @@ public class InteresadoService {
 
     // LISTAR TODOS
     @Transactional(readOnly = true)
-    public Page<Interesado> listarTodo(boolean hipo, Double presu, String zona, int habs, int banos, Operacion tipo,
+    public Page<Interesado> listarTodo(boolean hipo, Double presu, String zona, int habs, int banos, TipoOperacion tipo,
             int page, int size, String sortBy, String sortDir) {
 
         Sort sort = Sort.by(Sort.Direction.fromString(sortDir), sortBy);

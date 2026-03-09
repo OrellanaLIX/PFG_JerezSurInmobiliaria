@@ -1,7 +1,17 @@
 package com.jerezsur.inmobiliaria.models;
 
-import jakarta.persistence.*;
-import lombok.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "inmuebles_vendedores")
@@ -11,20 +21,24 @@ import lombok.*;
 @AllArgsConstructor
 public class Inmueble_Vendedor {
 
+    // --- IDENTIFICADOR ---
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Relación con el Inmueble
+    // --- DATOS DE LA PROPIEDAD ---
+    // Porcentaje de titularidad sobre el inmueble (ej: 50.0 para proindivisos)
+    private Double porcentajePropiedad;
+
+    // --- RELACIONES ---
+
+    // El inmueble que está vinculado a uno o varios dueños
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "inmueble_id", nullable = false)
     private Inmueble inmueble;
 
-    // Relación con el Vendedor
+    // El vendedor que posee una parte o la totalidad del inmueble
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "vendedor_id", nullable = false)
     private Vendedor vendedor;
-
-    // Campo opcional pero muy útil: Porcentaje de propiedad (ej: 50.0)
-    private Double porcentajePropiedad;
 }

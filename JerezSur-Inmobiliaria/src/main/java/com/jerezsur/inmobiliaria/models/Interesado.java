@@ -8,7 +8,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import com.jerezsur.inmobiliaria.models.enums.EstadoComprador;
-import com.jerezsur.inmobiliaria.models.enums.Operacion;
+import com.jerezsur.inmobiliaria.models.enums.TipoOperacion;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -83,7 +83,7 @@ public class Interesado {
     private Integer banosMinimos;
 
     @Enumerated(EnumType.STRING)
-    private Operacion tipoBusqueda;
+    private TipoOperacion tipoBusqueda;
 
     @Column(columnDefinition = "TEXT")
     private String observaciones;

@@ -21,7 +21,7 @@ public class TrabajadorController {
     @Autowired
     private TrabajadorService trabajadorService;
 
-    // --- 1. CREAR / REGISTRAR TRABAJADOR ---
+    // --- CREAR / REGISTRAR TRABAJADOR ---
     @PostMapping("/registrar")
     public ResponseEntity<Trabajador> registrarTrabajador(@Valid @RequestBody Trabajador trabajador) {
         // Crea el perfil de trabajador y automáticamente su cuenta de Usuario
@@ -30,7 +30,7 @@ public class TrabajadorController {
         return new ResponseEntity<>(nuevoTrabajador, HttpStatus.CREATED);
     }
 
-    // --- 2. LISTAR PLANTILLA COMPLETA ---
+    // --- LISTAR PLANTILLA COMPLETA ---
     @GetMapping
     public ResponseEntity<Page<Trabajador>> listarTodos(
             @RequestParam(required = false, defaultValue = "0") @Min(0) int page,
@@ -42,13 +42,13 @@ public class TrabajadorController {
                 size, sortBy, sortDir));
     }
 
-    // --- 3. OBTENER DETALLES DE UN TRABAJADOR ---
+    // --- OBTENER DETALLES DE UN TRABAJADOR ---
     @GetMapping("/{id}")
     public ResponseEntity<Trabajador> obtenerPorId(@PathVariable Long id) {
         return ResponseEntity.ok(trabajadorService.buscarPorId(id));
     }
 
-    // --- 4. ACTUALIZAR TRABAJADOR (Cambio de cargo, teléfono, etc.) ---
+    // --- ACTUALIZAR TRABAJADOR (Cambio de cargo, teléfono, etc.) ---
     @PutMapping("/{id}")
     public ResponseEntity<Trabajador> actualizarTrabajador(
             @PathVariable Long id,
@@ -60,7 +60,7 @@ public class TrabajadorController {
         return ResponseEntity.ok(actualizado);
     }
 
-    // --- 5. ELIMINAR / DAR DE BAJA ---
+    // --- ELIMINAR / DAR DE BAJA ---
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminarTrabajador(@PathVariable Long id) {
         trabajadorService.eliminar(id);

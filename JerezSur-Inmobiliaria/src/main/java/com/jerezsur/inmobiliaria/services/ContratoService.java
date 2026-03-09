@@ -1,9 +1,12 @@
 package com.jerezsur.inmobiliaria.services;
 
-import com.jerezsur.inmobiliaria.models.*;
+import com.jerezsur.inmobiliaria.models.Contrato;
+import com.jerezsur.inmobiliaria.models.Operacion;
+import com.jerezsur.inmobiliaria.models.Trabajador;
 import com.jerezsur.inmobiliaria.models.enums.EstadoContrato;
 import com.jerezsur.inmobiliaria.models.enums.ModeloContrato;
 import com.jerezsur.inmobiliaria.repositories.ContratoRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,25 +23,28 @@ public class ContratoService {
     @Autowired
     private OperacionService operacionService;
 
+    // ------------------------------------------------------------------
+    // GESTIÓN DE DOCUMENTACIÓN
+    // ------------------------------------------------------------------
+
     /**
-     * Este método es el "Asistente". El trabajador solo indica la operación y el
-     * modelo.
-     * El sistema rellena el resto automáticamente (Solo lectura).
+     * ASISTENTE DE GENERACIÓN: Crea un borrador de contrato vinculando la 
+     * operación y el trabajador responsable. El sistema automatiza el 
+     * pre-rellenado de cláusulas legales base.
      */
     @Transactional
     public Contrato generarBorrador(Long operacionId, ModeloContrato modelo, Trabajador trabajador) {
+        // Recuperamos la operación para extraer datos del inmueble y partes implicadas
         Operacion op = operacionService.buscarPorId(operacionId);
 
-        Contrato contrato = new Contrato();
-        contrato.setOperacion(op);
-        contrato.setModelo(modelo);
-        contrato.setTrabajador(trabajador);
-        contrato.setFechaFirma(LocalDate.now());
-        contrato.setEstado(EstadoContrato.BORRADOR);
-
-        // Aquí podrías añadir lógica para pre-rellenar cláusulas por defecto según el
-        // modelo
-        contrato.setClausulasEspeciales(generarClausulasEstandar(op, modelo));
+        Contrato contrato = Contrato.builder()
+                .operacion(op)
+                .modelo(modelo)
+                .trabajador(trabajador)
+                .fechaFirma(LocalDate.now())
+                .estado(EstadoContrato.BORRADOR)
+                .clausulasEspeciales(generarClausulasEstandar(op, modelo))
+                .build();
 
         return contratoRepository.save(contrato);
     }
@@ -48,13 +54,22 @@ public class ContratoService {
         return contratoRepository.findByOperacionId(operacionId);
     }
 
+    // ------------------------------------------------------------------
+    // LÓGICA DE APOYO Y PLANTILLAS
+    // ------------------------------------------------------------------
+
+    /**
+     * Motor de plantillas básico que devuelve el texto legal inicial 
+     * dependiendo del tipo de contrato (Arras, Alquiler, etc.)
+     */
     private String generarClausulasEstandar(Operacion op, ModeloContrato modelo) {
-        // Lógica para devolver un texto base según el tipo de contrato
         return switch (modelo) {
-            case ARRAS ->
+            case ARRAS -> 
                 "Contrato de arras penitenciales por el inmueble situado en " + op.getInmueble().getDireccion();
-            case ALQUILER_VIVIENDA -> "Contrato de arrendamiento sujeto a la LAU vigente...";
-            default -> "Documentación relativa a la operación " + op.getId();
+            case ALQUILER_VIVIENDA -> 
+                "Contrato de arrendamiento sujeto a la LAU vigente...";
+            default -> 
+                "Documentación relativa a la operación " + op.getId();
         };
     }
 }

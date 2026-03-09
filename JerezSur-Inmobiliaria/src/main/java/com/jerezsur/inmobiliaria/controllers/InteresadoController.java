@@ -7,7 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.jerezsur.inmobiliaria.models.Interesado;
-import com.jerezsur.inmobiliaria.models.enums.Operacion;
+import com.jerezsur.inmobiliaria.models.enums.TipoOperacion;
 import com.jerezsur.inmobiliaria.services.InteresadoService;
 
 import jakarta.validation.Valid;
@@ -22,7 +22,7 @@ public class InteresadoController {
     @Autowired
     private InteresadoService interesadoService;
 
-    // --- 1. REGISTRO / CREACIÓN ---
+    // --- REGISTRO / CREACIÓN ---
     @PostMapping("/registrar")
     public ResponseEntity<Interesado> registrarInteresado(@Valid @RequestBody Interesado interesado) {
         // El service se encarga de la lógica de usuario, password y sincronización
@@ -30,7 +30,7 @@ public class InteresadoController {
         return new ResponseEntity<>(nuevoInteresado, HttpStatus.CREATED);
     }
 
-    // --- 2. BÚSQUEDA DINÁMICA (Para el Administrador/Comercial) ---
+    // --- BÚSQUEDA DINÁMICA (Para el Administrador/Comercial) ---
     @GetMapping
     public ResponseEntity<Page<Interesado>> buscarInteresados(
             @RequestParam(required = false) Boolean hipoteca,
@@ -38,7 +38,7 @@ public class InteresadoController {
             @RequestParam(required = false) String zona,
             @RequestParam(required = false) Integer habs,
             @RequestParam(required = false) Integer banos,
-            @RequestParam(required = false) Operacion tipo,
+            @RequestParam(required = false) TipoOperacion tipo,
             @RequestParam(required = false, defaultValue = "0") @Min(0) int page,
             @RequestParam(required = false, defaultValue = "10") @Min(1) @Max(100) int size,
             @RequestParam(required = false, defaultValue = "id") String sortBy,
@@ -49,13 +49,13 @@ public class InteresadoController {
         return ResponseEntity.ok(resultados);
     }
 
-    // --- 3. OBTENER PERFIL INDIVIDUAL ---
+    // --- OBTENER PERFIL INDIVIDUAL ---
     @GetMapping("/{id}")
     public ResponseEntity<Interesado> obtenerPorId(@PathVariable Long id) {
         return ResponseEntity.ok(interesadoService.buscarPorId(id));
     }
 
-    // --- 4. ACTUALIZAR (Cambio de preferencias, presupuesto, etc.) ---
+    // --- ACTUALIZAR (Cambio de preferencias, presupuesto, etc.) ---
     @PutMapping("/{id}")
     public ResponseEntity<Interesado> actualizarInteresado(
             @PathVariable Long id,
@@ -67,7 +67,7 @@ public class InteresadoController {
         return ResponseEntity.ok(actualizado);
     }
 
-    // --- 5. ELIMINAR ---
+    // --- ELIMINAR ---
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminarInteresado(@PathVariable Long id) {
         interesadoService.eliminar(id);

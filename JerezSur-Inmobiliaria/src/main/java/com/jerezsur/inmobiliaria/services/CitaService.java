@@ -43,10 +43,10 @@ public class CitaService {
 
     @Transactional
     public Cita guardar(Cita cita) {
-        // 1. LEAD EXPRESS: Si el interesado no existe en DB, lo creamos automáticamente
+        // LEAD EXPRESS: Si el interesado no existe en DB, lo creamos automáticamente
         procesarInteresadoExpress(cita);
 
-        // 2. VALIDACIONES DE NEGOCIO (Pasado, disponibilidad, etc.)
+        // VALIDACIONES DE NEGOCIO (Pasado, disponibilidad, etc.)
         validarCita(cita);
 
         return citaRepository.save(cita);
@@ -75,12 +75,12 @@ public class CitaService {
     }
 
     private void validarCita(Cita cita) {
-        // A. Validación temporal básica
+        // Validación temporal básica
         if (cita.getFechaHora() == null || cita.getFechaHora().isBefore(LocalDateTime.now())) {
             throw new BusinessValidationException("La fecha de la cita no es válida o está en el pasado.");
         }
 
-        // B. Validación de asignación
+        // Validación de asignación
         if (cita.getInteresado() == null) {
             throw new BusinessValidationException("Toda cita debe tener un interesado asignado.");
         }
@@ -88,7 +88,7 @@ public class CitaService {
             throw new BusinessValidationException("Toda cita debe tener un trabajador asignado para realizar la visita.");
         }
 
-        // C. VALIDACIÓN DE DISPONIBILIDAD (La joya de la corona)
+        // VALIDACIÓN DE DISPONIBILIDAD (La joya de la corona)
         validarDisponibilidadTrabajador(cita);
     }
 
