@@ -6,9 +6,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
-import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -19,9 +16,6 @@ import java.util.Arrays;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-
-    @Autowired
-    private OAuth2UserService<OAuth2UserRequest, OAuth2User> customOAuth2UserService; // Inyectamos servicio OAuth
 
     @Autowired
     private CustomLoginSuccessHandler successHandler; // Inyectamos handler
@@ -53,15 +47,6 @@ public class SecurityConfig {
                         .loginProcessingUrl("/api/auth/login") // URL que llamará React para el login
                         .successHandler(successHandler) // Devolverá el JSON con el rol
                         .permitAll())
-
-                // Configurar OAuth2 (Google/Facebook)
-                .oauth2Login(oauth2 -> oauth2
-                        .loginPage("/login")
-                        .userInfoEndpoint(userInfo -> userInfo
-                                .userService(customOAuth2UserService) // Lógica de registro automático
-                        )
-                        .successHandler(successHandler) // Redirección inteligente post-login social
-                )
 
                 // Configurar Logout
                 .logout(logout -> logout
