@@ -30,7 +30,7 @@ public interface InmuebleRepository extends JpaRepository<Inmueble, Long> {
                         "(:estado IS NULL OR i.estado = :estado) AND " +
                         "(:precioMin IS NULL OR i.precio >= :precioMin) AND " +
                         "(:precioMax IS NULL OR i.precio <= :precioMax) AND " +
-                        "(:habsMin IS NULL OR i.habitaciones >= :habs) AND " +
+                        "(:habs IS NULL OR i.habitaciones >= :habs) AND " +
                         "(:banos IS NULL OR i.banos >= :banos) AND " +
                         "(:supMin IS NULL OR i.superficieUtil >= :supMin) AND " +
                         "(:ciudad IS NULL OR LOWER(i.ciudad) LIKE LOWER(CONCAT('%', :ciudad, '%'))) AND " +

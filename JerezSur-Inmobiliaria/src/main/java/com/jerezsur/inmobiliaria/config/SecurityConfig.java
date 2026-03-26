@@ -1,6 +1,5 @@
 package com.jerezsur.inmobiliaria.config;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -17,9 +16,6 @@ import java.util.Arrays;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    @Autowired
-    private CustomLoginSuccessHandler successHandler; // Inyectamos handler
-
     @Bean
     public BCryptPasswordEncoder passwordEncoder() { // Modulo de encriptacion de contraseñas
         return new BCryptPasswordEncoder();
@@ -28,31 +24,13 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                // Configuración de CORS para permitir peticiones desde React
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-
-                // Deshabilitar CSRF para la API
-                .csrf(csrf -> csrf.disable())
-
-                // Configurar permisos de rutas según tus roles definidos
+                .csrf(csrf -> csrf.disable()) // Desactivar CSRF (común en APIs)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Usar tu config de CORS
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/api/inmuebles/**", "/login/**", "/css/**", "/js/**").permitAll()
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/api/trabajador/**").hasAnyRole("ADMIN", "TRABAJADOR")
-                        .anyRequest().authenticated())
-
-                // Configurar Login Formulario (Local)
-                .formLogin(form -> form
-                        .loginPage("/login")
-                        .loginProcessingUrl("/api/auth/login") // URL que llamará React para el login
-                        .successHandler(successHandler) // Devolverá el JSON con el rol
-                        .permitAll())
-
-                // Configurar Logout
-                .logout(logout -> logout
-                        .logoutUrl("/logout")
-                        .logoutSuccessUrl("/login?logout")
-                        .permitAll());
+                        .anyRequest().permitAll() // <--- ESTO permite entrar sin login
+                )
+                .formLogin(form -> form.disable()) // Desactiva el formulario que ves en la imagen
+                .httpBasic(basic -> basic.disable()); // Desactiva el popup de login del navegador
 
         return http.build();
     }

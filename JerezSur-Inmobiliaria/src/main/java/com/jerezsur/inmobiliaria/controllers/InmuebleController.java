@@ -34,7 +34,7 @@ public class InmuebleController {
     private InmuebleService inmuebleService;
 
     // --- BUSQUEDA CON FILTROS (Ya lo tienes, está muy bien) ---
-    @GetMapping("/buscar")
+    @GetMapping
     public ResponseEntity<Page<Inmueble>> filtrar(
             @RequestParam(required = false) String ref,
             @RequestParam(required = false) String tit,
