@@ -1,0 +1,88 @@
+@use './globals/_Variables' as *;
+
+.site-footer {
+  background: linear-gradient(135deg, $color-primary-dark, $color-primary);
+  color: $color-white;
+  margin-top: $space-10;
+
+  &__top {
+    width: min($container-max, calc(100% - 2rem));
+    margin-inline: auto;
+    padding: 4rem 0 2.5rem;
+    display: grid;
+    grid-template-columns: 1.3fr 1fr 1fr 1.2fr;
+    gap: 2rem;
+
+    @media (max-width: $laptop) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    @media (max-width: $tablet) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &__brand {
+    p {
+      color: rgba(255, 255, 255, 0.9);
+      max-width: 340px;
+    }
+  }
+
+  &__logo {
+    max-width: 220px;
+    margin-bottom: 1rem;
+    background: white;
+    padding: 0.35rem 0.5rem;
+    border-radius: $radius-sm;
+  }
+
+  h4 {
+    color: $color-white;
+    margin-bottom: 1rem;
+    font-size: 1.15rem;
+  }
+
+  ul {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+  }
+
+  a,
+  li {
+    color: rgba(255, 255, 255, 0.9);
+    transition: color $transition-base;
+  }
+
+  a:hover {
+    color: #dff3df;
+  }
+
+  &__bottom {
+    width: min($container-max, calc(100% - 2rem));
+    margin-inline: auto;
+    padding: 1.25rem 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.14);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+
+    p {
+      color: rgba(255, 255, 255, 0.82);
+      font-size: $font-size-sm;
+    }
+  }
+
+  &__legal {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+
+    a {
+      font-size: $font-size-sm;
+    }
+  }
+}

@@ -1,0 +1,421 @@
+@use '../globals/_Variables' as *;
+
+/* =========================
+   HERO
+========================= */
+.home-hero {
+  min-height: 88vh;
+
+  &__sell-box {
+    margin: 1.5rem auto 0;
+    max-width: 920px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.25rem;
+    padding: 1.15rem 1.25rem;
+    border-radius: $radius-lg;
+    background: linear-gradient(
+      135deg,
+      rgba(103, 180, 55, 0.18),
+      rgba(255, 255, 255, 0.12)
+    );
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    backdrop-filter: blur(12px);
+    box-shadow: $shadow-md;
+  }
+
+  &__sell-text {
+    text-align: left;
+
+    span {
+      display: block;
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: $color-white;
+      margin-bottom: 0.35rem;
+    }
+
+    p {
+      margin: 0;
+      font-size: 1rem;
+      color: rgba(255, 255, 255, 0.88);
+      max-width: 620px;
+    }
+  }
+
+  &__sell-btn {
+    min-width: 180px;
+    font-size: 1.02rem;
+    box-shadow: $shadow-sm;
+  }
+
+  .main-actions {
+    margin-top: 1rem;
+  }
+
+  @media (max-width: $tablet) {
+    &__sell-box {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    &__sell-btn {
+      width: 100%;
+    }
+
+    .main-actions .btn {
+      width: 100%;
+    }
+  }
+}
+
+/* =========================
+   SEARCH
+========================= */
+.home-search {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.2fr auto;
+  gap: 0.75rem;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(12px);
+  padding: 1rem;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-md;
+  margin: 0 auto 1.5rem;
+  max-width: 920px;
+
+  select,
+  input {
+    min-height: 52px;
+    width: 100%;
+    padding: 0 1rem;
+    border: 1px solid $color-border;
+    border-radius: $radius-sm;
+    background: rgba(255, 255, 255, 0.96);
+    color: $color-text;
+    outline: none;
+  }
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =========================
+   CTA VENDEDORES
+========================= */
+.home-cta {
+  background: linear-gradient(135deg, $color-primary, $color-primary-dark);
+  color: $color-white;
+  position: relative;
+  overflow: hidden;
+
+  .section {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  h2,
+  p {
+    color: $color-white;
+  }
+
+  p {
+    opacity: 0.92;
+    max-width: 720px;
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    right: -80px;
+    top: -80px;
+    width: 260px;
+    height: 260px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: -60px;
+    bottom: -60px;
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    background: rgba(103, 180, 55, 0.12);
+  }
+
+  @media (max-width: $tablet) {
+    .section {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+}
+
+/* =========================
+   VENTAJAS
+========================= */
+.home-advantages {
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+
+    @media (max-width: $tablet) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &__item {
+    background-color: $color-surface;
+    border-radius: $radius-lg;
+    padding: 2rem;
+    box-shadow: $shadow-sm;
+    border: 1px solid rgba(0, 67, 156, 0.06);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+    &:hover {
+      transform: translateY(-6px);
+      box-shadow: $shadow-md;
+    }
+
+    h3 {
+      margin-bottom: 0.75rem;
+    }
+
+    p {
+      color: $color-text-soft;
+    }
+  }
+}
+
+/* =========================
+   TESTIMONIOS
+========================= */
+.home-testimonials {
+  background: linear-gradient(135deg, $color-primary, $color-primary-dark);
+  color: $color-white;
+  position: relative;
+  overflow: hidden;
+
+  .section {
+    position: relative;
+    z-index: 1;
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    right: -70px;
+    top: -70px;
+    width: 240px;
+    height: 240px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: -60px;
+    bottom: -60px;
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    background: rgba(103, 180, 55, 0.12);
+  }
+
+  &__content {
+    display: grid;
+    grid-template-columns: 0.95fr 1.05fr;
+    align-items: center;
+    gap: 2rem;
+  }
+
+  &__intro {
+    h2 {
+      color: $color-white;
+      margin-bottom: 1rem;
+      max-width: 460px;
+    }
+
+    p {
+      color: rgba(255, 255, 255, 0.9);
+      max-width: 520px;
+    }
+  }
+
+  &__carousel {
+    min-width: 0;
+  }
+
+  &__slider {
+    overflow: hidden;
+    border-radius: $radius-lg;
+  }
+
+  &__track {
+    display: flex;
+    transition: transform 0.7s ease;
+  }
+
+  &__slide {
+    min-width: 100%;
+  }
+
+  &__card {
+    position: relative;
+    background: $color-white;
+    border-radius: $radius-lg;
+    padding: 1.75rem;
+    box-shadow: $shadow-md;
+    min-height: 220px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    p {
+      color: $color-text;
+      line-height: 1.8;
+      margin-bottom: 1rem;
+      font-size: 1.02rem;
+    }
+
+    strong {
+      color: $color-primary-dark;
+      font-size: 1rem;
+    }
+  }
+
+  &__quote {
+    position: absolute;
+    top: 0.8rem;
+    left: 1rem;
+    font-size: 3.5rem;
+    line-height: 1;
+    color: rgba(0, 67, 156, 0.1);
+    font-weight: 800;
+  }
+
+  &__dots {
+    display: flex;
+    gap: 0.65rem;
+    margin-top: 1rem;
+
+    button {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(255, 255, 255, 0.35);
+      transition: transform 0.25s ease, background 0.25s ease;
+
+      &.is-active {
+        background: $color-secondary;
+        transform: scale(1.15);
+      }
+    }
+  }
+
+  @media (max-width: $laptop) {
+    &__content {
+      grid-template-columns: 1fr;
+    }
+
+    &__intro {
+      text-align: left;
+    }
+  }
+
+  @media (max-width: $tablet) {
+    &__card {
+      min-height: 200px;
+      padding: 1.4rem;
+    }
+
+    &__card p {
+      font-size: 1rem;
+      line-height: 1.7;
+    }
+  }
+}
+
+/* =========================
+   UBICACIÓN / OFICINA
+========================= */
+.home-location {
+  &__content {
+    display: grid;
+    grid-template-columns: 1fr 1.1fr;
+    gap: 2rem;
+    align-items: stretch;
+
+    @media (max-width: $laptop) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &__info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    h2 {
+      margin-bottom: 1rem;
+    }
+
+    p {
+      margin-bottom: 1rem;
+      color: $color-text-soft;
+    }
+  }
+
+  &__details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+
+    li {
+      color: $color-text;
+    }
+
+    strong {
+      color: $color-primary-dark;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  &__map {
+    min-height: 380px;
+    border-radius: $radius-lg;
+    overflow: hidden;
+    box-shadow: $shadow-sm;
+    border: 1px solid rgba(0, 67, 156, 0.08);
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      min-height: 380px;
+      border: 0;
+    }
+  }
+}

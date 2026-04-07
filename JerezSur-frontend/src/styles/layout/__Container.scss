@@ -1,0 +1,6 @@
+@use '../globals/_Variables' as *;
+
+.container {
+  width: min($container-max, calc(100% - 2rem));
+  margin-inline: auto;
+}

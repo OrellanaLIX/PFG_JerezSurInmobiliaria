@@ -1,0 +1,119 @@
+@use "./_Fonts.scss" as *;
+
+/* =========================
+   COLORES CORPORATIVOS
+========================= */
+
+$color-primary: #00439c;          // Azul principal del logo
+$color-primary-dark: #003380;     // Azul más profundo
+$color-primary-light: #dce8f8;    // Azul suave para fondos
+
+$color-secondary: #67b437;        // Verde principal del logo
+$color-secondary-dark: #4e9226;   // Verde hover / contraste
+$color-secondary-light: #e8f4df;  // Verde suave para fondos
+
+$color-white: #ffffff;
+$color-black: #000000;
+
+$color-bg: #f7f9fc;
+$color-surface: #ffffff;
+$color-surface-alt: #f1f5f9;
+
+$color-text: #1f2937;
+$color-text-soft: #6b7280;
+$color-text-muted: #94a3b8;
+
+$color-border: #e5e7eb;
+$color-border-strong: #cbd5e1;
+
+$color-success: #2e9b4d;
+$color-warning: #e6a700;
+$color-error: #d9534f;
+
+/* =========================
+   TIPOGRAFÍA
+========================= */
+
+$font-family-base: 'BerlinSans', 'Segoe UI', Roboto, sans-serif;
+$font-family-brand-jerez: 'Mouser', sans-serif;
+$font-family-brand-sur: 'ArtBrush', sans-serif;
+
+/* Escala tipográfica */
+$font-size-root: 16px;
+
+$font-size-xs: 0.75rem;
+$font-size-sm: 0.875rem;
+$font-size-md: 1rem;
+$font-size-lg: 1.125rem;
+$font-size-xl: 1.25rem;
+$font-size-2xl: 1.5rem;
+$font-size-3xl: 2rem;
+$font-size-4xl: 2.5rem;
+$font-size-5xl: 3.25rem;
+
+$font-size-h1: clamp(2.2rem, 5vw, 4.25rem);
+$font-size-h2: clamp(1.8rem, 3vw, 2.75rem);
+$font-size-h3: clamp(1.35rem, 2vw, 1.8rem);
+$font-size-body: 1rem;
+$font-size-body-lg: 1.125rem;
+
+$line-height-tight: 1.15;
+$line-height-normal: 1.6;
+$line-height-relaxed: 1.8;
+
+/* =========================
+   ESPACIADO
+========================= */
+
+$space-1: 0.25rem;
+$space-2: 0.5rem;
+$space-3: 0.75rem;
+$space-4: 1rem;
+$space-5: 1.5rem;
+$space-6: 2rem;
+$space-7: 3rem;
+$space-8: 4rem;
+$space-9: 5rem;
+$space-10: 6rem;
+
+/* =========================
+   BORDES / SOMBRAS
+========================= */
+
+$radius-xs: 6px;
+$radius-sm: 10px;
+$radius-md: 14px;
+$radius-lg: 18px;
+$radius-xl: 24px;
+$radius-pill: 999px;
+
+$shadow-xs: 0 2px 6px rgba(0, 0, 0, 0.06);
+$shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.08);
+$shadow-md: 0 10px 24px rgba(0, 0, 0, 0.1);
+$shadow-lg: 0 18px 40px rgba(0, 0, 0, 0.14);
+
+/* =========================
+   LAYOUT
+========================= */
+
+$container-max: 1200px;
+$container-padding: 1rem;
+$section-padding-y: clamp(3.5rem, 6vw, 6rem);
+
+/* =========================
+   BREAKPOINTS
+========================= */
+
+$mobile: 480px;
+$tablet: 768px;
+$laptop: 1024px;
+$desktop: 1280px;
+$wide: 1440px;
+
+/* =========================
+   TRANSICIONES
+========================= */
+
+$transition-fast: 0.2s ease;
+$transition-base: 0.3s ease;
+$transition-smooth: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
