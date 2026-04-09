@@ -15,11 +15,7 @@
     gap: 1.25rem;
     padding: 1.15rem 1.25rem;
     border-radius: $radius-lg;
-    background: linear-gradient(
-      135deg,
-      rgba(103, 180, 55, 0.18),
-      rgba(255, 255, 255, 0.12)
-    );
+    background: linear-gradient(135deg, rgba(103, 180, 55, 0.18), rgba(255, 255, 255, 0.12));
     border: 1px solid rgba(255, 255, 255, 0.22);
     backdrop-filter: blur(12px);
     box-shadow: $shadow-md;
@@ -75,7 +71,7 @@
 ========================= */
 .home-search {
   display: grid;
-  grid-template-columns: 1fr 1fr 1.2fr auto;
+  grid-template-columns: 1fr 1fr 1fr 1.2fr auto;
   gap: 0.75rem;
   background: rgba(255, 255, 255, 0.12);
   border: 1px solid rgba(255, 255, 255, 0.16);
@@ -104,64 +100,6 @@
 
   @media (max-width: 600px) {
     grid-template-columns: 1fr;
-  }
-}
-
-/* =========================
-   CTA VENDEDORES
-========================= */
-.home-cta {
-  background: linear-gradient(135deg, $color-primary, $color-primary-dark);
-  color: $color-white;
-  position: relative;
-  overflow: hidden;
-
-  .section {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 2rem;
-    position: relative;
-    z-index: 1;
-  }
-
-  h2,
-  p {
-    color: $color-white;
-  }
-
-  p {
-    opacity: 0.92;
-    max-width: 720px;
-  }
-
-  &::before {
-    content: '';
-    position: absolute;
-    right: -80px;
-    top: -80px;
-    width: 260px;
-    height: 260px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.06);
-  }
-
-  &::after {
-    content: '';
-    position: absolute;
-    left: -60px;
-    bottom: -60px;
-    width: 220px;
-    height: 220px;
-    border-radius: 50%;
-    background: rgba(103, 180, 55, 0.12);
-  }
-
-  @media (max-width: $tablet) {
-    .section {
-      flex-direction: column;
-      align-items: flex-start;
-    }
   }
 }
 
@@ -198,157 +136,6 @@
 
     p {
       color: $color-text-soft;
-    }
-  }
-}
-
-/* =========================
-   TESTIMONIOS
-========================= */
-.home-testimonials {
-  background: linear-gradient(135deg, $color-primary, $color-primary-dark);
-  color: $color-white;
-  position: relative;
-  overflow: hidden;
-
-  .section {
-    position: relative;
-    z-index: 1;
-  }
-
-  &::before {
-    content: '';
-    position: absolute;
-    right: -70px;
-    top: -70px;
-    width: 240px;
-    height: 240px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.05);
-  }
-
-  &::after {
-    content: '';
-    position: absolute;
-    left: -60px;
-    bottom: -60px;
-    width: 220px;
-    height: 220px;
-    border-radius: 50%;
-    background: rgba(103, 180, 55, 0.12);
-  }
-
-  &__content {
-    display: grid;
-    grid-template-columns: 0.95fr 1.05fr;
-    align-items: center;
-    gap: 2rem;
-  }
-
-  &__intro {
-    h2 {
-      color: $color-white;
-      margin-bottom: 1rem;
-      max-width: 460px;
-    }
-
-    p {
-      color: rgba(255, 255, 255, 0.9);
-      max-width: 520px;
-    }
-  }
-
-  &__carousel {
-    min-width: 0;
-  }
-
-  &__slider {
-    overflow: hidden;
-    border-radius: $radius-lg;
-  }
-
-  &__track {
-    display: flex;
-    transition: transform 0.7s ease;
-  }
-
-  &__slide {
-    min-width: 100%;
-  }
-
-  &__card {
-    position: relative;
-    background: $color-white;
-    border-radius: $radius-lg;
-    padding: 1.75rem;
-    box-shadow: $shadow-md;
-    min-height: 220px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-
-    p {
-      color: $color-text;
-      line-height: 1.8;
-      margin-bottom: 1rem;
-      font-size: 1.02rem;
-    }
-
-    strong {
-      color: $color-primary-dark;
-      font-size: 1rem;
-    }
-  }
-
-  &__quote {
-    position: absolute;
-    top: 0.8rem;
-    left: 1rem;
-    font-size: 3.5rem;
-    line-height: 1;
-    color: rgba(0, 67, 156, 0.1);
-    font-weight: 800;
-  }
-
-  &__dots {
-    display: flex;
-    gap: 0.65rem;
-    margin-top: 1rem;
-
-    button {
-      width: 11px;
-      height: 11px;
-      border-radius: 50%;
-      border: none;
-      background: rgba(255, 255, 255, 0.35);
-      transition: transform 0.25s ease, background 0.25s ease;
-
-      &.is-active {
-        background: $color-secondary;
-        transform: scale(1.15);
-      }
-    }
-  }
-
-  @media (max-width: $laptop) {
-    &__content {
-      grid-template-columns: 1fr;
-    }
-
-    &__intro {
-      text-align: left;
-    }
-  }
-
-  @media (max-width: $tablet) {
-    &__card {
-      min-height: 200px;
-      padding: 1.4rem;
-    }
-
-    &__card p {
-      font-size: 1rem;
-      line-height: 1.7;
     }
   }
 }
@@ -416,6 +203,269 @@
       height: 100%;
       min-height: 380px;
       border: 0;
+    }
+  }
+}
+
+/* =========================
+   CTA VENDEDORES
+========================= */
+.home-cta {
+  padding: 2.5rem 0;
+  background: transparent;
+
+  &__container {
+    margin: 0 auto;
+    background: linear-gradient(135deg, $color-primary-dark, $color-primary);
+    box-shadow: $shadow-md;
+    position: relative;
+    overflow: hidden;
+  }
+
+  &__content {
+    color: $color-white;
+    padding: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+  }
+
+  &__text {
+    max-width: 720px;
+
+    h2 {
+      color: $color-white;
+      margin-bottom: 0.75rem;
+      font-size: clamp(1.8rem, 3vw, 2.5rem);
+    }
+
+    p {
+      color: rgba(255, 255, 255, 0.9);
+      margin: 0;
+    }
+  }
+
+  &__content::before {
+    content: '';
+    position: absolute;
+    right: -70px;
+    top: -70px;
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  @media (max-width: $tablet) {
+    &__content {
+      flex-direction: column;
+      align-items: flex-start;
+      padding: 2rem;
+    }
+
+    .btn {
+      width: 100%;
+    }
+  }
+}
+
+/* =========================
+   TESTIMONIOS (DISEÑO FINAL)
+========================= */
+.home-testimonials {
+  padding-bottom: 2.5rem;
+  background: transparent;
+
+  &__container {
+    margin: 0 auto;
+    background: linear-gradient(135deg, $color-primary-dark, $color-primary);
+    box-shadow: $shadow-md;
+    position: relative;
+    overflow: hidden;
+  }
+
+  &__content {
+    color: $color-white;
+    padding: 3rem;
+    max-width: 1200px;
+    display: grid;
+    justify-self: center;
+    grid-template-columns: 0.9fr 1.1fr;
+    gap: 3rem;
+    align-items: start; // <--- CLAVE: Alineación superior
+  }
+
+  &__content::before {
+    content: '';
+    position: absolute;
+    left: -60px;
+    bottom: -60px;
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    background: rgba(103, 180, 55, 0.12);
+  }
+
+  &__intro {
+    position: relative;
+    align-self: center;
+    z-index: 1;
+
+    h2 {
+      color: $color-white;
+      margin-bottom: 0.9rem;
+      font-size: clamp(1.8rem, 3vw, 2.5rem);
+      max-width: 440px;
+    }
+
+    p {
+      color: rgba(255, 255, 255, 0.9);
+      margin: 0;
+      max-width: 520px;
+    }
+  }
+
+  &__counter {
+    display: block;
+    margin-bottom: 1rem;
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.72);
+    letter-spacing: 1px;
+  }
+
+  &__carousel {
+    min-width: 0;
+    position: relative;
+    z-index: 1;
+    padding: 1rem 0; // Da espacio para que las sombras de las cards no se corten
+  }
+
+  &__slider {
+    overflow: hidden;
+    padding: 1rem; // Permite que el hover y la sombra se vean sin cortarse
+    margin: -1rem; // Compensa el padding para mantener el alineamiento
+  }
+
+  &__track {
+    display: flex;
+    align-items: stretch; // CLAVE 1: Obliga a todos los slides a medir lo mismo (la altura del más alto)
+    // CLAVE 2: Una transición cubic-bezier da un efecto rápido al inicio y suave al frenar (muy premium)
+    transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+
+  &__slide {
+    min-width: 100%;
+    display: flex; // Necesario para que la tarjeta hija se estire
+    box-sizing: border-box;
+    padding: 0 0.5rem; // Pequeño margen entre slides si decides mostrar más de uno en el futuro
+  }
+
+  &__card {
+    position: relative;
+    background: $color-white;
+    border-radius: $radius-lg;
+    padding: 2.5rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06); // Sombra más grande pero más transparente y elegante
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    // Eliminamos el max-height y el scroll. 
+    // Al no tener altura fija, toma el 100% del stretch del flexbox padre.
+
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    overflow: hidden; // Para contener la marca de agua de las comillas
+    z-index: 1;
+
+    // Efecto sutil al pasar el ratón (opcional pero estético)
+    &:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+    }
+  }
+
+  // --- Estética de la tarjeta ---
+  &__quote {
+    position: absolute;
+    top: -15px;
+    left: 15px;
+    font-size: 8rem; // Hacemos las comillas gigantes
+    line-height: 1;
+    font-family: Georgia, serif;
+    color: rgba($color-primary-dark, 0.05); // Las convertimos en una marca de agua de fondo
+    z-index: -1;
+    user-select: none;
+  }
+
+  p {
+    color: $color-text;
+    line-height: 1.7;
+    margin: 0;
+    font-size: 1.1rem;
+    flex-grow: 1; // CLAVE 3: Empuja el nombre del autor siempre hacia abajo, alineando todos los nombres al mismo nivel
+    position: relative;
+  }
+
+  strong {
+    color: $color-primary-dark;
+    font-size: 1rem;
+    margin-top: 2rem;
+    display: block;
+    font-weight: 600;
+
+    // Una pequeña línea decorativa encima del nombre le da un toque muy profesional
+    &::before {
+      content: '';
+      display: block;
+      width: 40px;
+      height: 2px;
+      background-color: $color-primary-dark; // O el color de acento de tu marca
+      margin-bottom: 0.8rem;
+      opacity: 0.5;
+    }
+  }
+
+  .white {
+    color: $color-white;
+  }
+
+  &__quote {
+    position: absolute;
+    top: 1.2rem;
+    left: 1rem;
+    font-size: 3.5rem;
+    line-height: 1;
+    color: rgba(0, 67, 156, 0.1);
+    font-weight: 800;
+  }
+
+  @media (max-width: $laptop) {
+    &__content {
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+
+    &__card {
+      max-height: 240px;
+    }
+  }
+
+  @media (max-width: $tablet) {
+    &__content {
+      padding: 2rem;
+    }
+
+    &__card {
+      padding: 1.25rem;
+
+      p {
+        padding-left: 2.2rem;
+      }
+
+      strong {
+        padding-left: 2.2rem;
+      }
     }
   }
 }

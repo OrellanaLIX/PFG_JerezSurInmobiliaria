@@ -2,197 +2,131 @@
 @use './components/_Buttons' as *;
 
 .site-header {
-  position: sticky;
+  position: fixed;
   top: 0;
-  z-index: 1000;
+  left: 0;
   width: 100%;
-  background-color: rgba(255, 255, 255, 0.96);
+  z-index: 1000;
+  background-color: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
-  border-bottom: 1px solid transparent;
-  transition:
-    background-color $transition-base,
-    box-shadow $transition-base,
-    border-color $transition-base;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s, box-shadow 0.3s;
 
+  // ESTADO: OCULTO (Cuando está sobre el Hero)
+  &--hidden {
+    transform: translateY(-100%);
+    pointer-events: none;
+  }
+
+  // ESTADO: SCROLLED (Sombras suaves al bajar)
   &--scrolled {
     box-shadow: $shadow-sm;
-    border-color: rgba(0, 0, 0, 0.06);
+    background-color: white;
+    border-bottom-color: rgba(0, 0, 0, 0.1);
   }
 
   &__container {
     width: min($container-max, calc(100% - 2rem));
     margin-inline: auto;
-    min-height: 84px;
+    height: 84px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 1.25rem;
   }
 
-  &__logo {
-    flex-shrink: 0;
-
-    img {
-      width: auto;
-      height: 54px;
-      object-fit: contain;
-    }
+  &__logo img {
+    height: 50px;
+    display: block;
   }
 
   &__nav {
     display: flex;
-    align-items: center;
     gap: 1.5rem;
 
-    a {
-      position: relative;
-      font-size: $font-size-md;
-      color: $color-text;
-      transition: color $transition-base;
-      padding: 0.4rem 0;
+    &--desktop {
+      @media (max-width: $laptop) { display: none; }
+    }
 
-      &:hover {
-        color: $color-primary;
-      }
+    a {
+      color: $color-text;
+      font-weight: 500;
+      position: relative;
+      padding: 0.5rem 0;
 
       &.is-active {
         color: $color-primary;
-        font-weight: 700;
+        &::after {
+          content: '';
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          width: 100%;
+          height: 2px;
+          background: $color-primary;
+        }
       }
-
-      &.is-active::after {
-        content: '';
-        position: absolute;
-        left: 0;
-        bottom: -0.2rem;
-        width: 100%;
-        height: 3px;
-        border-radius: $radius-pill;
-        background-color: $color-secondary;
-      }
-    }
-
-    &--desktop {
-      @media (max-width: $laptop) {
-        display: none;
-      }
-    }
-  }
-
-  &__actions {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-
-    &--desktop {
-      @media (max-width: $laptop) {
-        display: none;
-      }
-    }
-  }
-
-  &__login {
-    color: $color-primary-dark;
-    font-weight: 600;
-    transition: color $transition-base;
-
-    &:hover {
-      color: $color-secondary-dark;
     }
   }
 
   &__toggle {
     display: none;
-    width: 46px;
-    height: 46px;
-    border-radius: $radius-sm;
-    background-color: $color-surface-alt;
-    border: 1px solid $color-border;
-    align-items: center;
-    justify-content: center;
     flex-direction: column;
     gap: 5px;
-    transition: background-color $transition-base, border-color $transition-base;
+    cursor: pointer;
+    background: none;
+    border: none;
+    z-index: 1100;
 
     span {
-      display: block;
-      width: 20px;
+      width: 24px;
       height: 2px;
-      background-color: $color-primary-dark;
-      border-radius: 999px;
-      transition: transform $transition-base, opacity $transition-base;
-    }
-
-    &:hover {
-      background-color: $color-primary-light;
-      border-color: $color-primary;
+      background: $color-text;
+      transition: 0.3s;
     }
 
     &.is-open {
-      span:nth-child(1) {
-        transform: translateY(7px) rotate(45deg);
-      }
-
-      span:nth-child(2) {
-        opacity: 0;
-      }
-
-      span:nth-child(3) {
-        transform: translateY(-7px) rotate(-45deg);
-      }
+      span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+      span:nth-child(2) { opacity: 0; }
+      span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
     }
 
-    @media (max-width: $laptop) {
-      display: inline-flex;
-    }
+    @media (max-width: $laptop) { display: flex; }
+  }
+
+  &__overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    opacity: 0;
+    pointer-events: none;
+    transition: 0.3s;
+    z-index: 1050;
+    &--open { opacity: 1; pointer-events: auto; }
   }
 }
 
 .mobile-menu {
   position: fixed;
-  inset: 84px 0 auto 0;
-  background-color: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-  box-shadow: $shadow-md;
-  transform: translateY(-120%);
-  opacity: 0;
-  pointer-events: none;
-  transition: transform $transition-smooth, opacity $transition-base;
-  z-index: 999;
+  top: 0;
+  right: 0;
+  width: 280px;
+  height: 100vh;
+  background: white;
+  z-index: 1060;
+  padding: 100px 2rem;
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
 
-  &--open {
-    transform: translateY(0);
-    opacity: 1;
-    pointer-events: auto;
-  }
+  &--open { transform: translateX(0); }
 
   &__nav {
-    width: min($container-max, calc(100% - 2rem));
-    margin-inline: auto;
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
-    padding: 1.25rem 0 1.5rem;
-
-    a {
-      padding: 0.9rem 0.25rem;
-      font-size: 1.05rem;
-      color: $color-text;
-      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-
-      &:hover,
-      &.active {
-        color: $color-primary;
-      }
+    gap: 1.5rem;
+    a { 
+        font-size: 1.1rem; 
+        color: $color-text;
+        &.is-active { color: $color-primary; font-weight: bold; }
     }
-
-    .btn {
-      margin-top: 0.75rem;
-    }
-  }
-
-  @media (min-width: calc(#{$laptop} + 1px)) {
-    display: none;
   }
 }
