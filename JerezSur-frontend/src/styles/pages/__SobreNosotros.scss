@@ -1,0 +1,111 @@
+@use '../globals/_Variables' as *;
+@use '../components/_Buttons' as *;
+
+// Contenedor principal de la página que añade el espacio para el header fijo.
+.page-wrapper.about-us-page {
+  padding-top: 84px;
+}
+
+// 2. Estilos de Sección Genéricos
+.page-section {
+  padding: 4rem 1rem;
+  @media(min-width: $tablet) {
+    padding: 6rem 1rem;
+  }
+}
+
+.section-title {
+  text-align: center;
+  font-size: clamp(2rem, 4vw, 2.5rem);
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+}
+
+.section-subtitle {
+  text-align: center;
+  font-size: 1.1rem;
+  color: $color-text-soft; // Usando tu variable
+  margin-bottom: 3rem;
+  max-width: 550px;
+  margin-inline: auto;
+  line-height: 1.6;
+}
+
+// 3. Grids Específicos
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+.values-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  
+  @media (min-width: $tablet) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+// 4. Estilos de las Tarjetas (Componentes)
+.team-member-card {
+  background-color: $color-white;
+  border-radius: $radius-lg;
+  overflow: hidden;
+  box-shadow: $shadow-sm;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-8px);
+    box-shadow: $shadow-md;
+  }
+
+  &__image {
+    width: 100%;
+    aspect-ratio: 4 / 3; // Mantiene la proporción de la imagen
+    object-fit: cover;
+    object-position: top center;
+  }
+
+  &__info {
+    padding: 1.5rem;
+  }
+
+  &__name {
+    font-size: 1.5rem;
+    font-weight: 600;
+  }
+
+  &__title {
+    color: $color-primary;
+    font-weight: 500;
+    margin-top: 0.25rem;
+    margin-bottom: 1rem;
+  }
+
+  &__bio {
+    color: $color-text-soft;
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+}
+
+.value-card {
+  text-align: center;
+  padding: 2rem;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  background-color: $color-surface;
+
+  &__title {
+    font-size: 1.5rem;
+    color: $color-primary;
+    margin-bottom: 1rem;
+  }
+  
+  p {
+    color: $color-text-soft;
+    line-height: 1.6;
+  }
+}
