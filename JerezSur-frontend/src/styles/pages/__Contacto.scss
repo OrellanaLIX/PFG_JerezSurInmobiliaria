@@ -348,7 +348,7 @@
 
     &--success {
       background: rgba($color-secondary, 0.1);
-      color: darken($color-secondary, 15%);
+      color: $color-secondary;
       border: 1px solid rgba($color-secondary, 0.25);
     }
 

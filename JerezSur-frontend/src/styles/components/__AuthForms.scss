@@ -1,0 +1,272 @@
+// src/components/propietarios/AuthForms.scss
+@use '../../styles/globals/_Variables' as *;
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+
+  &__header {
+    margin-bottom: 1rem;
+
+    h2 {
+      font-size: clamp(1.5rem, 3vw, 1.875rem);
+      margin-bottom: 0.5rem;
+      color: $color-text;
+    }
+
+    p {
+      color: $color-text-soft;
+      margin: 0;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+  }
+
+  &__group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+
+    &--checkbox {
+      margin-top: 0.5rem;
+    }
+
+    label {
+      font-weight: 600;
+      color: $color-text;
+      font-size: 0.95rem;
+    }
+
+    input,
+    textarea,
+    select {
+      padding: 0.95rem 1.25rem;
+      border: 2px solid $color-border;
+      border-radius: $radius-sm;
+      font-size: 1rem;
+      font-family: inherit;
+      transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+      background: $color-white;
+      color: $color-text;
+      width: 100%;
+
+      &:focus {
+        outline: none;
+        border-color: $color-primary;
+        box-shadow: 0 0 0 4px rgba($color-primary, 0.08);
+      }
+
+      &::placeholder {
+        color: $color-text-muted;
+      }
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+      line-height: 1.6;
+    }
+
+    select {
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.75rem center;
+      background-size: 1.25rem;
+      padding-right: 3rem;
+    }
+  }
+
+  &__input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+
+    input,
+    select {
+      padding-left: 3rem;
+    }
+
+    select {
+      padding-left: 3rem;
+    }
+  }
+
+  &__input-icon {
+    position: absolute;
+    left: 1rem;
+    color: $color-text-muted;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  &__toggle-password {
+    position: absolute;
+    right: 1rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: $color-text-muted;
+    transition: color 0.3s ease;
+
+    &:hover {
+      color: $color-text;
+    }
+
+    &:focus {
+      outline: 2px solid $color-primary;
+      outline-offset: 2px;
+      border-radius: 4px;
+    }
+  }
+
+  &__extras {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  &__checkbox {
+    display: flex;
+    align-items: start;
+    gap: 0.75rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: $color-text-soft;
+    line-height: 1.5;
+
+    input[type="checkbox"] {
+      margin-top: 0.2rem;
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+      flex-shrink: 0;
+      accent-color: $color-primary;
+    }
+
+    a {
+      color: $color-primary;
+      text-decoration: underline;
+      font-weight: 600;
+      transition: color 0.3s ease;
+
+      &:hover {
+        color: $color-primary-dark;
+      }
+    }
+  }
+
+  &__link {
+    color: $color-primary;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    transition: all 0.3s ease;
+
+    &:hover {
+      color: $color-primary-dark;
+      text-decoration: underline;
+    }
+
+    &:focus {
+      outline: 2px solid $color-primary;
+      outline-offset: 2px;
+      border-radius: 4px;
+    }
+  }
+
+  .btn {
+    margin-top: 0.5rem;
+    padding: 1rem 2rem;
+    font-size: 1.05rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .spinner {
+      animation: spin 1s linear infinite;
+    }
+  }
+
+  &__message {
+    padding: 1rem 1.25rem;
+    border-radius: $radius-sm;
+    font-weight: 600;
+    text-align: center;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    line-height: 1.4;
+
+    &--success {
+      background: rgba($color-secondary, 0.1);
+      color: $color-secondary;
+      border: 1px solid rgba($color-secondary, 0.25);
+    }
+
+    &--error {
+      background: rgba(#dc3545, 0.1);
+      color: #721c24;
+      border: 1px solid rgba(#dc3545, 0.25);
+    }
+  }
+
+  &__divider {
+    position: relative;
+    text-align: center;
+    margin: 0.5rem 0;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: $color-border;
+    }
+
+    span {
+      position: relative;
+      display: inline-block;
+      padding: 0 1rem;
+      background: $color-white;
+      color: $color-text-muted;
+      font-size: 0.9rem;
+    }
+  }
+
+  &__footer {
+    text-align: center;
+    color: $color-text-soft;
+    font-size: 0.95rem;
+    margin: 0;
+    line-height: 1.5;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

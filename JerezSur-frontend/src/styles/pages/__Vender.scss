@@ -1,0 +1,501 @@
+// src/styles/Propietarios.scss
+@use '../globals/_Variables' as *;
+
+/* =========================
+   CONTENIDO PRINCIPAL
+========================= */
+.propietarios-content {
+  padding: 4rem 2rem;
+  margin-top: -2rem;
+}
+
+.propietarios-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: start;
+
+  @media (max-width: $laptop) {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+  }
+}
+
+/* =========================
+   COLUMNA INFO
+========================= */
+.propietarios-info {
+  position: sticky;
+  top: 120px;
+
+  @media (max-width: $laptop) {
+    position: static;
+    order: 2;
+  }
+
+  &__content {
+    background: $color-white;
+    padding: 3rem;
+    border-radius: $radius-lg;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(0, 67, 156, 0.06);
+
+    h2 {
+      font-size: clamp(1.75rem, 3vw, 2.25rem);
+      margin-bottom: 2rem;
+      color: $color-text;
+    }
+  }
+
+  &__features {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    margin-bottom: 3rem;
+  }
+
+  &__feature {
+    display: flex;
+    gap: 1.25rem;
+    align-items: start;
+
+    h3 {
+      font-size: 1.15rem;
+      margin-bottom: 0.5rem;
+      color: $color-text;
+    }
+
+    p {
+      color: $color-text-soft;
+      line-height: 1.6;
+      margin: 0;
+      font-size: 0.95rem;
+    }
+  }
+
+  &__icon {
+    flex-shrink: 0;
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(135deg, $color-primary, $color-secondary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: $color-white;
+    box-shadow: 0 4px 12px rgba($color-primary, 0.25);
+  }
+
+  &__stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    padding: 2rem;
+    background: rgba($color-primary, 0.03);
+    border-radius: $radius-md;
+    border: 1px solid rgba($color-primary, 0.08);
+    text-align: center;
+
+    @media (max-width: $tablet) {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+  }
+
+  &__stat {
+    p {
+      margin: 0;
+      font-size: 0.9rem;
+      color: $color-text-soft;
+      line-height: 1.4;
+    }
+  }
+
+  &__stat-number {
+    font-size: clamp(1.75rem, 3vw, 2.25rem);
+    font-weight: 800;
+    color: $color-primary;
+    margin-bottom: 0.25rem;
+    line-height: 1;
+  }
+
+  @media (max-width: $tablet) {
+    &__content {
+      padding: 2rem;
+    }
+  }
+}
+
+/* =========================
+   COLUMNA AUTH
+========================= */
+.propietarios-auth {
+  background: $color-white;
+  border-radius: $radius-lg;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 67, 156, 0.06);
+  overflow: hidden;
+
+  @media (max-width: $laptop) {
+    order: 1;
+  }
+
+  &__tabs {
+    display: flex;
+    border-bottom: 2px solid $color-border;
+    background: rgba($color-primary, 0.02);
+  }
+
+  &__tab {
+    flex: 1;
+    padding: 1.25rem 2rem;
+    background: transparent;
+    border: none;
+    font-size: 1rem;
+    font-weight: 600;
+    color: $color-text-soft;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+    position: relative;
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: $color-primary;
+      transform: scaleX(0);
+      transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    &:hover {
+      background: rgba($color-primary, 0.04);
+      color: $color-text;
+    }
+
+    &--active {
+      color: $color-primary;
+      background: $color-white;
+
+      &::after {
+        transform: scaleX(1);
+      }
+    }
+
+    @media (max-width: $tablet) {
+      padding: 1rem;
+      font-size: 0.95rem;
+    }
+  }
+
+  &__content {
+    padding: 3rem;
+
+    @media (max-width: $tablet) {
+      padding: 2rem;
+    }
+  }
+}
+
+/* =========================
+   FORMULARIO
+========================= */
+.propietarios-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+
+  &__header {
+    margin-bottom: 1rem;
+
+    h2 {
+      font-size: clamp(1.5rem, 3vw, 1.875rem);
+      margin-bottom: 0.5rem;
+      color: $color-text;
+    }
+
+    p {
+      color: $color-text-soft;
+      margin: 0;
+      font-size: 0.95rem;
+    }
+  }
+
+  &__group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+
+    &--checkbox {
+      margin-top: 0.5rem;
+    }
+
+    label {
+      font-weight: 600;
+      color: $color-text;
+      font-size: 0.95rem;
+    }
+
+    input,
+    textarea,
+    select {
+      padding: 0.95rem 1.25rem;
+      border: 2px solid $color-border;
+      border-radius: $radius-sm;
+      font-size: 1rem;
+      font-family: inherit;
+      transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+      background: $color-white;
+      color: $color-text;
+
+      &:focus {
+        outline: none;
+        border-color: $color-primary;
+        box-shadow: 0 0 0 4px rgba($color-primary, 0.08);
+      }
+
+      &::placeholder {
+        color: $color-text-muted;
+      }
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+      line-height: 1.6;
+    }
+
+    select {
+      cursor: pointer;
+    }
+  }
+
+  &__extras {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  &__checkbox {
+    display: flex;
+    align-items: start;
+    gap: 0.75rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: $color-text-soft;
+    line-height: 1.5;
+
+    input[type="checkbox"] {
+      margin-top: 0.2rem;
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+      flex-shrink: 0;
+      accent-color: $color-primary;
+    }
+
+    a {
+      color: $color-primary;
+      text-decoration: underline;
+      font-weight: 600;
+
+      &:hover {
+        color: $color-primary-dark;
+      }
+    }
+  }
+
+  &__link {
+    color: $color-primary;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: color 0.3s ease;
+
+    &:hover {
+      color: $color-primary-dark;
+      text-decoration: underline;
+    }
+  }
+
+  .btn {
+    margin-top: 0.5rem;
+    padding: 1rem 2rem;
+    font-size: 1.05rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .spinner {
+      animation: spin 1s linear infinite;
+    }
+  }
+
+  &__message {
+    padding: 1rem 1.25rem;
+    border-radius: $radius-sm;
+    font-weight: 600;
+    text-align: center;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+
+    &--success {
+      background: rgba($color-secondary, 0.1);
+      color: $color-secondary;
+      border: 1px solid rgba($color-secondary, 0.25);
+    }
+
+    &--error {
+      background: rgba(#dc3545, 0.1);
+      color: #721c24;
+      border: 1px solid rgba(#dc3545, 0.25);
+    }
+  }
+
+  &__divider {
+    position: relative;
+    text-align: center;
+    margin: 0.5rem 0;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: $color-border;
+    }
+
+    span {
+      position: relative;
+      display: inline-block;
+      padding: 0 1rem;
+      background: $color-white;
+      color: $color-text-muted;
+      font-size: 0.9rem;
+    }
+  }
+
+  &__footer {
+    text-align: center;
+    color: $color-text-soft;
+    font-size: 0.95rem;
+    margin: 0;
+  }
+}
+
+/* =========================
+   AYUDA
+========================= */
+.propietarios-ayuda {
+  padding: 4rem 2rem;
+
+  &__content {
+    max-width: 1000px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 2.5rem;
+    padding: 3rem;
+    background: $color-white;
+    border-radius: $radius-lg;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(0, 67, 156, 0.06);
+
+    @media (max-width: $laptop) {
+      flex-direction: column;
+      text-align: center;
+    }
+
+    @media (max-width: $tablet) {
+      padding: 2rem;
+    }
+  }
+
+  &__icon {
+    flex-shrink: 0;
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, rgba($color-primary, 0.1), rgba($color-secondary, 0.1));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: $color-primary;
+  }
+
+  &__text {
+    flex: 1;
+
+    h2 {
+      font-size: clamp(1.5rem, 3vw, 2rem);
+      margin-bottom: 0.75rem;
+      color: $color-text;
+    }
+
+    p {
+      color: $color-text-soft;
+      margin: 0;
+      line-height: 1.6;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    gap: 1rem;
+    flex-shrink: 0;
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      white-space: nowrap;
+
+      svg {
+        flex-shrink: 0;
+      }
+    }
+
+    @media (max-width: $laptop) {
+      width: 100%;
+      justify-content: center;
+    }
+
+    @media (max-width: $tablet) {
+      flex-direction: column;
+
+      .btn {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+  }
+}
+
+/* =========================
+   ANIMACIONES
+========================= */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
