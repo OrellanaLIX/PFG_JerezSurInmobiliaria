@@ -3,6 +3,8 @@ package com.jerezsur.inmobiliaria.services;
 import com.jerezsur.inmobiliaria.exceptions.BusinessValidationException;
 import com.jerezsur.inmobiliaria.exceptions.ResourceNotFoundException;
 import com.jerezsur.inmobiliaria.models.Usuario;
+import com.jerezsur.inmobiliaria.models.enums.AuthProvider;
+import com.jerezsur.inmobiliaria.models.enums.Role;
 import com.jerezsur.inmobiliaria.repositories.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -38,6 +40,45 @@ public class UsuarioService {
                 .orElseThrow(() -> new ResourceNotFoundException("El usuario con ID " + id + " no existe."));
     }
 
+    // LOGIN POR PROVIDER
+    @Transactional
+    public Usuario procesarLoginSocial(String email, String nombre, AuthProvider provider, String providerId) {
+
+        System.out.println("LOGIN PROVIDER");
+
+        Usuario nuevo = new Usuario();
+        nuevo.setEmail(email);
+        nuevo.setNombre(nombre);
+        nuevo.setRole(Role.ROLE_NOROL); // El rol base que creamos antes
+        nuevo.setProvider(provider);
+        nuevo.setProviderId(providerId);
+        nuevo.setCambiarPasswd(false); // No necesita cambiar pass porque entra por Google
+
+        return usuarioRepository.save(nuevo);
+    }
+
+    // LOGIN (BUSCAR POR EMAIL O TELEFONO + VALIDAR CONTRASEÑA)
+    @Transactional(readOnly = true)
+    public Usuario login(String identifier, String password) {
+        // Buscamos al usuario por email o teléfono (el identifier sirve para ambos)
+        Usuario usuario = usuarioRepository.buscarPorEmailOTelefono(identifier)
+                .orElseThrow(
+                        () -> new BusinessValidationException("Credenciales incorrectas o usuario no encontrado."));
+
+        // Verificamos si tiene password (casos de solo contacto no pueden loguearse)
+        if (usuario.getPassword() == null) {
+            throw new BusinessValidationException(
+                    "Tu cuenta aún no tiene contraseña. Contacta con nosotros para activarla.");
+        }
+
+        // Comparamos la contraseña enviada con la cifrada en DB
+        if (!passwordEncoder.matches(password, usuario.getPassword())) {
+            throw new BusinessValidationException("Credenciales incorrectas.");
+        }
+
+        return usuario;
+    }
+
     /**
      * MÉTODO PRINCIPAL PARA REGISTRO DE CLIENTES (INTERESADOS)
      * Maneja los 3 escenarios:
@@ -55,11 +96,15 @@ public class UsuarioService {
             String passCifrada = passwordEncoder.encode(usuario.getPassword());
             usuario.setPassword(passCifrada);
             usuario.setCambiarPasswd(false);
+            usuario.setProvider(AuthProvider.LOCAL);
         } else {
             // Escenarios 2 y 3: No hay contraseña todavía
             usuario.setPassword(null);
             usuario.setCambiarPasswd(true); // Obligatorio cambiarla al entrar
+            usuario.setProvider(AuthProvider.LOCAL);
         }
+
+        usuario.setRole(Role.ROLE_NOROL);
 
         return usuarioRepository.save(usuario);
     }
@@ -105,7 +150,7 @@ public class UsuarioService {
 
         // 2. Validación de duplicados (Solo para nuevos usuarios)
         if (usuario.getId() == null) {
-            if (tieneEmail && usuarioRepository.existsByEmailOrTelefono(usuario.getEmail(), usuario.getTelefono())) {
+            if (tieneEmail && usuarioRepository.existePorEmailOTelefono(usuario.getEmail(), usuario.getTelefono())) {
                 throw new BusinessValidationException("El email " + usuario.getEmail() + "o el telefono"
                         + usuario.getTelefono() + " ya está registrado.");
             }

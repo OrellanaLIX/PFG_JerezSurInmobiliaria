@@ -1,9 +1,10 @@
 // src/components/propietarios/LoginForm.tsx
 import { useState, type FormEvent } from 'react';
-import '../styles/AuthForms.scss';
+import { useAuth } from '../../context/AuthContext';
+import '../../styles/AuthForms.scss';
 
 type LoginData = {
-  email: string;
+  identifier: string; // Email o teléfono
   password: string;
   remember: boolean;
 };
@@ -14,12 +15,16 @@ interface LoginFormProps {
 }
 
 const LoginForm = ({ onSwitchToRegister, onLoginSuccess }: LoginFormProps) => {
+  const { login } = useAuth(); // Función del contexto para guardar la sesión
+  
   const [formData, setFormData] = useState<LoginData>({
-    email: '',
+    identifier: '',
     password: '',
     remember: false,
   });
+  
   const [formStatus, setFormStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
+  const [errorMessage, setErrorMessage] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -33,55 +38,79 @@ const LoginForm = ({ onSwitchToRegister, onLoginSuccess }: LoginFormProps) => {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setFormStatus('sending');
+    setErrorMessage('');
 
-    // Simulación de login - Aquí irá tu lógica real
-    setTimeout(() => {
-      console.log('Login:', formData);
+    const loginPayload = {
+      username: formData.identifier.trim(),
+      password: formData.password,
+    };
+
+    try {
+      const response = await fetch('http://localhost:8080/api/usuarios/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(loginPayload),
+      });
+
+      if (!response.ok) {
+        // Captura el mensaje de BusinessValidationException del back
+        const errorText = await response.text();
+        throw new Error(errorText || 'Credenciales incorrectas');
+      }
+
+      // El backend devuelve el objeto Usuario (sin password por el @JsonIgnore)
+      const usuarioData = await response.json();
+      
+      // 1. Guardamos en el AuthContext (y este lo guarda en LocalStorage)
+      login(usuarioData);
+
       setFormStatus('success');
       
+      // 2. Notificamos éxito y redirigimos
       setTimeout(() => {
-        if (onLoginSuccess) {
-          onLoginSuccess();
-        }
-        // Redirigir al dashboard
-        // navigate('/propietarios/dashboard');
+        if (onLoginSuccess) onLoginSuccess();
       }, 1000);
-    }, 1500);
+
+    } catch (error: any) {
+      setErrorMessage(error.message);
+      setFormStatus('error');
+    }
   };
 
   const handleForgotPassword = (e: React.MouseEvent) => {
     e.preventDefault();
-    // Aquí irá tu lógica de recuperación de contraseña
-    alert('Funcionalidad de recuperación de contraseña - Por implementar');
+    alert('Funcionalidad en desarrollo: Se enviará un enlace de recuperación a su contacto.');
   };
 
   return (
     <form className="auth-form" onSubmit={handleSubmit}>
       <div className="auth-form__header">
-        <h2>Accede a tu área privada</h2>
-        <p>Introduce tus credenciales para acceder</p>
+        <h2>Área de Propietarios</h2>
+        <p>Accede con tu email o número de teléfono</p>
       </div>
 
+      {/* IDENTIFICADOR */}
       <div className="auth-form__group">
-        <label htmlFor="email">Email *</label>
+        <label htmlFor="identifier">Email o Teléfono *</label>
         <div className="auth-form__input-wrapper">
           <svg className="auth-form__input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-            <polyline points="22,6 12,13 2,6"></polyline>
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
           </svg>
           <input
-            type="email"
-            id="email"
-            name="email"
-            value={formData.email}
+            type="text"
+            id="identifier"
+            name="identifier"
+            value={formData.identifier}
             onChange={handleChange}
             required
-            placeholder="tu@email.com"
-            autoComplete="email"
+            placeholder="Ej: usuario@mail.com o 600123456"
+            autoComplete="username"
           />
         </div>
       </div>
 
+      {/* CONTRASEÑA */}
       <div className="auth-form__group">
         <label htmlFor="password">Contraseña *</label>
         <div className="auth-form__input-wrapper">
@@ -96,14 +125,14 @@ const LoginForm = ({ onSwitchToRegister, onLoginSuccess }: LoginFormProps) => {
             value={formData.password}
             onChange={handleChange}
             required
-            placeholder="••••••••"
+            placeholder="Introduce tu contraseña"
             autoComplete="current-password"
           />
           <button
             type="button"
             className="auth-form__toggle-password"
             onClick={() => setShowPassword(!showPassword)}
-            aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+            tabIndex={-1}
           >
             {showPassword ? (
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -130,11 +159,7 @@ const LoginForm = ({ onSwitchToRegister, onLoginSuccess }: LoginFormProps) => {
           />
           <span>Recordarme</span>
         </label>
-        <button 
-          type="button" 
-          onClick={handleForgotPassword}
-          className="auth-form__link"
-        >
+        <button type="button" onClick={handleForgotPassword} className="auth-form__link">
           ¿Olvidaste tu contraseña?
         </button>
       </div>
@@ -144,41 +169,25 @@ const LoginForm = ({ onSwitchToRegister, onLoginSuccess }: LoginFormProps) => {
         className="btn btn--primary btn--full btn--large"
         disabled={formStatus === 'sending'}
       >
-        {formStatus === 'sending' ? (
-          <>
-            <svg className="spinner" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="10"></circle>
-            </svg>
-            Accediendo...
-          </>
-        ) : (
-          'Iniciar sesión'
-        )}
+        {formStatus === 'sending' ? 'Verificando...' : 'Iniciar sesión'}
       </button>
 
       {formStatus === 'success' && (
         <div className="auth-form__message auth-form__message--success">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <polyline points="20 6 9 17 4 12"></polyline>
-          </svg>
-          Acceso correcto. Redirigiendo...
+          ¡Bienvenido de nuevo! Accediendo...
         </div>
       )}
 
       {formStatus === 'error' && (
         <div className="auth-form__message auth-form__message--error">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{marginRight: '8px'}}>
             <circle cx="12" cy="12" r="10"></circle>
-            <line x1="15" y1="9" x2="9" y2="15"></line>
-            <line x1="9" y1="9" x2="15" y2="15"></line>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
           </svg>
-          Email o contraseña incorrectos.
+          {errorMessage}
         </div>
       )}
-
-      <div className="auth-form__divider">
-        <span>o</span>
-      </div>
 
       <p className="auth-form__footer">
         ¿Aún no tienes cuenta? 
@@ -187,7 +196,7 @@ const LoginForm = ({ onSwitchToRegister, onLoginSuccess }: LoginFormProps) => {
           onClick={onSwitchToRegister} 
           className="auth-form__link"
         >
-          Solicita acceso
+          Solicita acceso aquí
         </button>
       </p>
     </form>

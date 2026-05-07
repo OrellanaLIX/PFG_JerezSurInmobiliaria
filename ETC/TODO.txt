@@ -1,2 +1,8 @@
+Header por defecto en todas las paginas,
+Cambiar form inicio sesion por form de venta como el de compra
+Cambiar telefono etc de contacto, ponerlo debajo del form como cta
+
+Si sobra tiempo:
 Componente para los form
 Componente para los hero
+Pasar por la IA para mejorar la estética

@@ -51,23 +51,24 @@ public class Usuario {
     @NotBlank(message = "El nombre es obligatorio")
     private String nombre;
 
+    @Column(nullable = false)
     @Size(min = 8, message = "La contraseña debe tener al menos 8 caracteres")
     private String password;
 
     private String imagenPerfilUrl;
 
     // --- SEGURIDAD Y ROLES ---
-    @Enumerated(EnumType.STRING)
-    @NotNull
+    @NotNull(message = "El rol no debe ser nulo")
+    @Enumerated(EnumType.STRING) // <--- ESTO ES VITAL
+    @Column(name = "role", nullable = false)
     @Default
-    private Role role = Role.ROLE_INTERESADO; // Determina los permisos en el sistema
+    private Role role = Role.ROLE_NOROL; // Determina los permisos en el sistema
 
     @Default
     private Boolean cambiarPasswd = true; // Forzar cambio de clave en el primer login o tras reset
 
     // --- AUTENTICACIÓN EXTERNA (OAuth2) ---
-    @Enumerated(EnumType.STRING)
-    private AuthProvider provider; // LOCAL, GOOGLE, FACEBOOK
+    private AuthProvider provider; // LOCAL, GOOGLE, FACEBOOK, APPLE
 
     private String providerId; // ID único proporcionado por el proveedor externo
 

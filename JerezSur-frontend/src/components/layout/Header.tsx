@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { NavLink, Link, useLocation } from 'react-router-dom';
 import logo from '../../assets/imgs/LogoAncho.png';
 import '../../styles/Header.scss';
+import { useAuth } from '../../context/AuthContext';
 
 const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -63,6 +64,8 @@ const Header = () => {
     isHidden && !menuOpen ? 'site-header--hidden' : '', // No se oculta si el menú móvil está abierto
   ].filter(Boolean).join(' ');
 
+  const { isAuthenticated } = useAuth();
+
   return (
     <>
       <header className={headerClasses} ref={headerRef}>
@@ -73,9 +76,9 @@ const Header = () => {
 
           <nav className="site-header__nav site-header__nav--desktop">
             {navLinks.map(link => (
-              <NavLink 
-                key={link.to} 
-                to={link.to} 
+              <NavLink
+                key={link.to}
+                to={link.to}
                 end={link.end}
                 className={({ isActive }) => isActive ? 'is-active' : ''}
               >
@@ -85,7 +88,11 @@ const Header = () => {
           </nav>
 
           <div className="site-header__actions--desktop">
-            <Link to="/propietarios" className="btn btn--secondary">Acceder</Link>
+            {isAuthenticated ? (
+              <Link to="/perfil" className="btn btn--secondary">Tu Perfil</Link>
+            ) : (
+              <Link to="/acceder" className="btn btn--secondary">Acceder</Link>
+            )}
           </div>
 
           <button
@@ -96,12 +103,13 @@ const Header = () => {
             <span /><span /><span />
           </button>
         </div>
-      </header>
+      </header >
 
       {/* Mobile Menu & Overlay */}
-      <div className={`site-header__overlay ${menuOpen ? 'site-header__overlay--open' : ''}`} onClick={() => setMenuOpen(false)} />
-      
-      <aside className={`mobile-menu ${menuOpen ? 'mobile-menu--open' : ''}`}>
+      < div className={`site-header__overlay ${menuOpen ? 'site-header__overlay--open' : ''}`
+      } onClick={() => setMenuOpen(false)} />
+
+      < aside className={`mobile-menu ${menuOpen ? 'mobile-menu--open' : ''}`}>
         <nav className="mobile-menu__nav">
           {navLinks.map(link => (
             <NavLink key={link.to} to={link.to} end={link.end} onClick={() => setMenuOpen(false)}>
@@ -112,7 +120,7 @@ const Header = () => {
             Vender tu vivienda
           </Link>
         </nav>
-      </aside>
+      </aside >
     </>
   );
 };

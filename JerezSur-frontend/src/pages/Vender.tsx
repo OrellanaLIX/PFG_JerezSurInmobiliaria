@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import LoginForm from '../components/LoginForm';
-import RegistroForm from '../components/RegistroForm';
+import LoginForm from '../components/auth/LoginForm';
+import RegistroForm from '../components/auth/RegistroForm';
 import '../styles/Vender.scss';
 
 type AuthMode = 'login' | 'register';
