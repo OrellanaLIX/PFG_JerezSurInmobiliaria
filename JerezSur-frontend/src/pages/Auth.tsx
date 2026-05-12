@@ -1,19 +1,18 @@
 // src/pages/Auth.tsx
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import LoginForm from '../components/auth/LoginForm'; // Ajusta la ruta según tu carpeta
+import { Link, useNavigate } from 'react-router-dom';
+import LoginForm from '../components/auth/LoginForm';
 import RegisterForm from '../components/auth/RegistroForm';
 import SocialAuth from '../components/auth/SocialAuth';
 import logo from '../assets/imgs/Mono.png';
 
-// Definimos interfaces para los datos que esperamos
+// 1. Actualizamos la interfaz con los roles correctos
 interface UserData {
   id: number;
   nombre: string;
   email: string;
-  role: 'ROLE_ADMIN' | 'ROLE_TRABAJADOR' | 'ROLE_INTERESADO' | 'ROLE_VENDEDOR' | 'ROLE_CLIENTE';
+  role: 'ROLE_ADMIN' | 'ROLE_TRABAJADOR' | 'ROLE_NOROL' | 'ROLE_INTERESADO' | 'ROLE_VENDEDOR' | 'ROLE_AMBOS';
   provider?: string;
-  // Añade aquí más campos según tu entidad Usuario de Java
 }
 
 type AuthMode = 'login' | 'register';
@@ -29,67 +28,92 @@ const Auth: React.FC = () => {
     };
   }, []);
 
-  /**
-   * Manejador para el Login Social
-   * @param provider 'google' | 'facebook' | 'apple'
-   * @param token El token recibido del SDK del lado del cliente
-   */
+  // 2. Función centralizada de redirección profesional
+  const redirectByUserRole = (userData: UserData) => {
+    // Guardamos en LocalStorage para que el resto de la app sepa quién ha entrado
+    localStorage.setItem('usuario', JSON.stringify(userData));
+
+    switch (userData.role) {
+      case 'ROLE_NOROL':
+        // Si es nuevo, directos al onboarding que creamos antes
+        navigate('/onboarding');
+        break;
+
+      case 'ROLE_INTERESADO':
+      case 'ROLE_AMBOS':
+        // Interesados o perfiles mixtos van a ver casas
+        navigate('/inmuebles');
+        break;
+
+      case 'ROLE_VENDEDOR':
+        // Propietarios van a su gestión de inmuebles
+        navigate('/propietario');
+        break;
+
+      case 'ROLE_ADMIN':
+      case 'ROLE_TRABAJADOR':
+        navigate('/admin/dashboard');
+        break;
+
+      default:
+        navigate('/');
+        break;
+    }
+  };
+
   const handleSocialLogin = async (provider: 'google' | 'facebook' | 'apple', token: string): Promise<void> => {
     try {
       const response = await fetch(`http://localhost:8080/api/usuarios/auth/${provider}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token }),
       });
 
       if (response.ok) {
         const userData: UserData = await response.json();
-        handleLoginSuccess(userData);
+        redirectByUserRole(userData); // Aplicamos la nueva lógica
       } else {
         const errorMsg = await response.text();
         console.error(`Error en backend (${provider}):`, errorMsg);
         alert("No se pudo completar la autenticación social.");
       }
     } catch (error) {
-      console.error("Error de conexión con el servidor:", error);
-      alert("Error de red al intentar conectar con el servidor.");
+      console.error("Error de conexión:", error);
+      alert("Error de red.");
     }
   };
 
-  const handleLoginSuccess = (userData: UserData): void => {
-    console.log('Sesión iniciada:', userData);
-    
-    // 1. Aquí deberías llamar a tu método de Contexto/Redux para guardar al usuario
-    // authContext.setUser(userData); 
-
-    // 2. Lógica de redirección profesional
-    if (userData.role === 'ROLE_CLIENTE') {
-      navigate('/seleccion-perfil');
-    } else {
-      // Si ya tiene un rol de negocio (Vendedor/Interesado), va a su home
-      navigate('/home');
+  const handleLoginSuccess = (): void => {
+    const userDataJson = localStorage.getItem('usuario');
+    if (!userDataJson) {
+      console.error('Usuario no encontrado en localStorage al iniciar sesión.');
+      return;
     }
+
+    const userData: UserData = JSON.parse(userDataJson);
+    console.log('Sesión iniciada:', userData);
+    redirectByUserRole(userData);
   };
 
   const handleRegisterSuccess = (userData: UserData): void => {
     console.log('Cuenta creada:', userData);
-    // Tras registro local, forzamos selección de perfil
-    navigate('/seleccion-perfil');
+    // Tras registro, siempre mandamos a redirección (que detectará ROLE_NOROL)
+    redirectByUserRole(userData);
   };
 
   return (
     <main className="auth" data-header-transparent data-footer-hidden>
+      <Link to="/" className='btn--ghost' >
+        <i className="fas fa-arrow-left"></i> Volver
+      </Link>
+
       <div className="auth__container">
-        
-        {/* LOGO con retorno a inicio */}
+
         <div className="auth__logo" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
           <img src={logo} alt="JerezSur Inmobiliaria" />
         </div>
 
         <div className="auth__card">
-          {/* TABS DE NAVEGACIÓN INTERNA */}
           <div className="auth__tabs">
             <button
               type="button"
@@ -122,7 +146,6 @@ const Auth: React.FC = () => {
           </div>
         </div>
 
-        {/* COMPONENTE DE BOTONES SOCIALES */}
         <SocialAuth onSocialLogin={handleSocialLogin} />
 
         <div className="auth__legal">

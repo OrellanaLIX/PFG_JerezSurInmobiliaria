@@ -6,6 +6,8 @@ import com.jerezsur.inmobiliaria.models.Trabajador;
 import com.jerezsur.inmobiliaria.models.Usuario;
 import com.jerezsur.inmobiliaria.models.enums.Role;
 import com.jerezsur.inmobiliaria.repositories.TrabajadorRepository;
+import com.jerezsur.inmobiliaria.repositories.UsuarioRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -21,7 +23,7 @@ public class TrabajadorService {
     private TrabajadorRepository trabajadorRepository;
 
     @Autowired
-    private UsuarioService usuarioService;
+    private UsuarioRepository usuarioRepository;
 
     // ------------------------------------------------------------------
     // CRUD BASICO
@@ -46,31 +48,18 @@ public class TrabajadorService {
 
     // GUARDAR
     @Transactional
-    public Trabajador guardar(Trabajador trabajador) {
+    public void guardar(Trabajador trabajador, Usuario usuario) {
+
         validarTrabajador(trabajador);
 
-        // 1. GESTIÓN DEL USUARIO: Si es un trabajador nuevo y no tiene usuario, lo
-        // creamos
-        if (trabajador.getUsuario() == null) {
-            Usuario nuevoUsuario = Usuario.builder()
-                    .email(trabajador.getEmail())
-                    .telefono(trabajador.getTelefono())
-                    .nombre(trabajador.getNombre())
-                    .role(Role.ROLE_TRABAJADOR)
-                    .password(trabajador.getPassword())
-                    .build();
+        trabajadorRepository.save(trabajador);
 
-            // Usamos el método que ya valida y cifra la contraseña
-            Usuario usuarioPersistido = usuarioService.registrarUsuario(nuevoUsuario);
-            trabajador.setUsuario(usuarioPersistido);
-        }
-
-        // 2. SINCRONIZACIÓN: Aseguramos que email/tel coincidan en ambas tablas
-        sincronizarDatosContacto(trabajador);
-
-        return trabajadorRepository.save(trabajador);
+        // 3. Actualizamos el rol del usuario para que ya no sea redirigido al
+        // onboarding
+        usuario.setRole(Role.ROLE_TRABAJADOR); // O el rol que designes para usuarios activos
+        usuarioRepository.save(usuario);
     }
-
+        
     // ELIMINAR
     @Transactional
     public void eliminar(Long id) {
@@ -78,33 +67,6 @@ public class TrabajadorService {
             throw new ResourceNotFoundException("No se puede eliminar: El trabajador con ID " + id + " no existe.");
         }
         trabajadorRepository.deleteById(id);
-    }
-
-    // ------------------------------------------------------------------
-    // LÓGICA DE SINCRONIZACIÓN AUTOMÁTICA
-    // ------------------------------------------------------------------
-
-    private void sincronizarDatosContacto(Trabajador trabajador) {
-        Usuario usuario = trabajador.getUsuario();
-
-        // REGLA: Si el trabajador está vacío pero el usuario tiene el dato, se copia al
-        // trabajador
-        if (isEmpty(trabajador.getEmail()) && !isEmpty(usuario.getEmail())) {
-            trabajador.setEmail(usuario.getEmail());
-        }
-        if (isEmpty(trabajador.getTelefono()) && !isEmpty(usuario.getTelefono())) {
-            trabajador.setTelefono(usuario.getTelefono());
-        }
-
-        // REGLA INVERSA: Si el trabajador tiene un dato nuevo (ej. puso teléfono en un
-        // form),
-        // lo actualizamos también en su cuenta de usuario para que coincidan.
-        if (!isEmpty(trabajador.getEmail())) {
-            usuario.setEmail(trabajador.getEmail());
-        }
-        if (!isEmpty(trabajador.getTelefono())) {
-            usuario.setTelefono(trabajador.getTelefono());
-        }
     }
 
     // ------------------------------------------------------------------

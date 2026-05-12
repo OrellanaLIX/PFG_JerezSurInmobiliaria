@@ -26,8 +26,8 @@ public class InteresadoController {
     @PostMapping("/registrar")
     public ResponseEntity<Interesado> registrarInteresado(@Valid @RequestBody Interesado interesado) {
         // El service se encarga de la lógica de usuario, password y sincronización
-        Interesado nuevoInteresado = interesadoService.guardar(interesado);
-        return new ResponseEntity<>(nuevoInteresado, HttpStatus.CREATED);
+        //Interesado nuevoInteresado = interesadoService.guardar(interesado);
+        return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
     // --- BÚSQUEDA DINÁMICA (Para el Administrador/Comercial) ---
@@ -63,8 +63,8 @@ public class InteresadoController {
 
         // Aseguramos que el ID del objeto coincida con el de la URL
         interesado.setId(id);
-        Interesado actualizado = interesadoService.guardar(interesado);
-        return ResponseEntity.ok(actualizado);
+        //Interesado actualizado = interesadoService.guardar(interesado);
+        return ResponseEntity.ok(interesado);
     }
 
     // --- ELIMINAR ---

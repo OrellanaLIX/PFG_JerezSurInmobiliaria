@@ -2,65 +2,6 @@
 @use '../globals/_Variables' as *;
 
 /* =========================
-   HERO
-========================= */
-.inmuebles-hero {
-  position: relative;
-  min-height: 50vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  color: $color-white;
-  padding: 6rem 2rem 4rem;
-  overflow: hidden;
-  background:
-    linear-gradient(135deg, rgba(0, 28, 68, 0.88), rgba(0, 67, 156, 0.78)),
-    url('/Hero.jpg') center center / cover no-repeat;
-
-  .hero__content {
-    position: relative;
-    z-index: 1;
-    max-width: 800px;
-    margin: 0 auto;
-
-    .section-heading__eyebrow {
-      display: inline-block;
-      margin-bottom: 1.25rem;
-      padding: 0.55rem 1rem;
-      border-radius: $radius-pill;
-      background: rgba(255, 255, 255, 0.12);
-      border: 1px solid rgba(255, 255, 255, 0.18);
-      backdrop-filter: blur(6px);
-      font-size: $font-size-sm;
-      font-weight: 700;
-      letter-spacing: 0.4px;
-      color: $color-white;
-    }
-
-    h1 {
-      font-size: clamp(2.5rem, 5vw, 3.5rem);
-      margin-bottom: 1.5rem;
-      color: $color-white;
-      text-wrap: balance;
-    }
-
-    p {
-      font-size: 1.25rem;
-      color: rgba(255, 255, 255, 0.92);
-      line-height: 1.6;
-      max-width: 680px;
-      margin: 0 auto;
-    }
-  }
-
-  @media (max-width: $tablet) {
-    min-height: 40vh;
-    padding: 5rem 1.5rem 3rem;
-  }
-}
-
-/* =========================
    TOOLBAR
 ========================= */
 .inmuebles-toolbar {

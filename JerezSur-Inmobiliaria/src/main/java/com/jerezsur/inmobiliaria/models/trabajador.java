@@ -59,9 +59,6 @@ public class Trabajador {
     @Column(unique = true)
     private String telefono;
 
-    @Transient
-    private String password; // Uso temporal para registro/cambio (no se persiste aquí)
-
     private String cargo; // Ej: "Agente Comercial", "Administrativo"
 
     // --- GESTIÓN LABORAL ---

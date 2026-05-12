@@ -44,17 +44,23 @@ public class UsuarioService {
     @Transactional
     public Usuario procesarLoginSocial(String email, String nombre, AuthProvider provider, String providerId) {
 
-        System.out.println("LOGIN PROVIDER");
+        if (!usuarioRepository.existsByEmail(email)) {
+            Usuario nuevo = new Usuario();
+            nuevo.setEmail(email);
+            nuevo.setNombre(nombre);
+            nuevo.setRole(Role.ROLE_NOROL); // El rol base que creamos antes
+            nuevo.setProvider(provider);
+            nuevo.setProviderId(providerId);
+            nuevo.setCambiarPasswd(false); // No necesita cambiar pass porque entra por Google
 
-        Usuario nuevo = new Usuario();
-        nuevo.setEmail(email);
-        nuevo.setNombre(nombre);
-        nuevo.setRole(Role.ROLE_NOROL); // El rol base que creamos antes
-        nuevo.setProvider(provider);
-        nuevo.setProviderId(providerId);
-        nuevo.setCambiarPasswd(false); // No necesita cambiar pass porque entra por Google
-
-        return usuarioRepository.save(nuevo);
+            return usuarioRepository.save(nuevo);
+        } else {
+            // Si ya existe, lo buscamos y actualizamos su provider info por si ha cambiado
+            Usuario existente = usuarioRepository.findByEmail(email).get();
+            existente.setProvider(provider);
+            existente.setProviderId(providerId);
+            return usuarioRepository.save(existente);
+        }
     }
 
     // LOGIN (BUSCAR POR EMAIL O TELEFONO + VALIDAR CONTRASEÑA)
@@ -80,7 +86,7 @@ public class UsuarioService {
     }
 
     /**
-     * MÉTODO PRINCIPAL PARA REGISTRO DE CLIENTES (INTERESADOS)
+     * MÉTODO PRINCIPAL PARA REGISTRO DE CLIENTES
      * Maneja los 3 escenarios:
      * 1. Registro web (trae password) -> Cifra y guarda.
      * 2. Formulario contacto (sin password) -> Guarda null y activa flag.

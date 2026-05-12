@@ -5,5 +5,6 @@ public enum Role {
     ROLE_TRABAJADOR, // Trabajadores de JerezSur
     ROLE_INTERESADO, // Interesados y/o compradores de inmuebles
     ROLE_VENDEDOR, // Vendedores de inmuebles
+    ROLE_AMBOS, // Usuarios que son tanto interesados como vendedores
     ROLE_NOROL
 }

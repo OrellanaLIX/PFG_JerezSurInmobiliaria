@@ -1,0 +1,193 @@
+// Variables de marca
+@use '../globals/_Variables' as *;
+
+main{
+  background-color: linear-gradient(135deg, $color-primary-dark 0%, $color-primary 50%, darken($color-primary, 5%) 100%);
+}
+
+.onboarding-container {
+  max-width: 700px;
+  margin: 40px auto;
+  padding: 40px;
+  background: $color-bg;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+  font-family: 'Segoe UI', Roboto, sans-serif;
+  color: $color-text;
+
+  .onboarding-header {
+    text-align: center;
+    margin-bottom: 40px;
+
+    h2 {
+      color: $color-primary;
+      font-size: 2rem;
+      margin-bottom: 8px;
+    }
+
+    p {
+      color: $color-text-soft;
+      font-size: 1.1rem;
+    }
+  }
+
+  .onboarding-form {
+    fieldset {
+      border: none;
+      padding: 0;
+      margin-bottom: 30px;
+
+      legend {
+        font-weight: 700;
+        font-size: 1.2rem;
+        color: $color-primary;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        width: 100%;
+
+        &::after {
+          content: "";
+          flex: 1;
+          height: 1px;
+          background: $color-border;
+          margin-left: 15px;
+        }
+      }
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+
+      @media (max-width: 600px) {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 20px;
+
+      label {
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: $color-text-soft;
+      }
+
+      input,
+      select,
+      textarea {
+        padding: 12px 16px;
+        border: 1.5px solid $color-border;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+
+        &:focus {
+          outline: none;
+          color-border: $color-secondary;
+          box-shadow: 0 0 0 3px rgba($color-secondary, 0.1);
+        }
+
+        &::placeholder {
+          color: #94a3b8;
+        }
+      }
+
+      textarea {
+        min-height: 100px;
+        resize: vertical;
+      }
+
+      &.main-select {
+        background-color: rgba($color-secondary, 0.05);
+        padding: 20px;
+        border-radius: 12px;
+        border: 1px dashed $color-secondary;
+      }
+    }
+
+    .dynamic-fields {
+      .fade-in {
+        animation: fadeInSlide 0.5s ease forwards;
+      }
+    }
+
+    .btn-submit {
+      width: 100%;
+      padding: 16px;
+      background-color: $color-primary;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.2s, background-color 0.3s;
+      margin-top: 20px;
+
+      &:hover:not(:disabled) {
+        background-color: lighten($color-primary, 5%);
+        transform: translateY(-2px);
+      }
+
+      &:disabled {
+        background-color: #94a3b8;
+        cursor: not-allowed;
+      }
+    }
+  }
+
+  .onboarding-footer {
+    margin-top: 40px;
+    padding-top: 30px;
+    border-top: 1px solid $color-border;
+    text-align: center;
+
+    p {
+      font-size: 0.9rem;
+      color: #64748b;
+      margin-bottom: 15px;
+    }
+
+    .btn-whatsapp {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 24px;
+      background-color: transparent;
+      color: $color-secondary-dark;
+      border: 2px solid $color-secondary-dark;
+      border-radius: 50px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+
+      &:hover {
+        background-color: $color-secondary-dark;
+        color: white;
+      }
+
+      span {
+        font-size: 1.2rem;
+      }
+    }
+  }
+}
+
+// Animación para que los campos aparezcan con estilo
+@keyframes fadeInSlide {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

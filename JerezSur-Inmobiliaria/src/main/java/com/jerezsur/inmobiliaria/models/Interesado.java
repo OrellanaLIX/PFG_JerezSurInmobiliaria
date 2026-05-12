@@ -67,9 +67,6 @@ public class Interesado {
 
     private String direccionPostal;
 
-    @Transient // No se guarda en la tabla 'compradores'
-    private String password;
-
     // --- LÓGICA DE FINANCIACIÓN (HIPOTECA) ---
     @Default
     private Boolean requiereHipoteca = false;

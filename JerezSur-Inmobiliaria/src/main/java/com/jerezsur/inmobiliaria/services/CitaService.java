@@ -69,7 +69,7 @@ public class CitaService {
         if (cita.getComprador() != null && cita.getComprador().getId() == null) {
             Interesado invitado = cita.getComprador();
             // Lo guardamos (esto crea el perfil comercial sin cuenta de usuario)
-            invitado = interesadoService.guardar(invitado);
+            //invitado = interesadoService.guardar(invitado);
             cita.setComprador(invitado);
         }
     }

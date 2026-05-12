@@ -9,9 +9,10 @@ import org.springframework.web.client.RestTemplate;
 
 import com.jerezsur.inmobiliaria.exceptions.BusinessValidationException;
 import com.jerezsur.inmobiliaria.models.Usuario;
+import com.jerezsur.inmobiliaria.services.PerfilService;
 import com.jerezsur.inmobiliaria.services.UsuarioService;
 import com.jerezsur.inmobiliaria.dto.LoginRequest;
-
+import com.jerezsur.inmobiliaria.dto.OnboardingRequest;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
@@ -29,6 +30,9 @@ public class UsuarioController {
 
     @Autowired
     private UsuarioService usuarioService;
+
+    @Autowired
+    private PerfilService perfilService;
 
     @Value("${spring.security.oauth2.client.registration.google.client-id}")
     private String googleClientId;
@@ -68,7 +72,8 @@ public class UsuarioController {
     public ResponseEntity<?> googleLogin(@RequestBody Map<String, String> body) {
         try {
             String token = body.get("token");
-            GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), new GsonFactory())
+            GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(),
+                    new GsonFactory())
                     .setAudience(Collections.singletonList(googleClientId))
                     .build();
 
@@ -76,11 +81,10 @@ public class UsuarioController {
             if (idToken != null) {
                 GoogleIdToken.Payload payload = idToken.getPayload();
                 Usuario user = usuarioService.procesarLoginSocial(
-                    payload.getEmail(),
-                    (String) payload.get("name"),
-                    AuthProvider.GOOGLE,
-                    payload.getSubject()
-                );
+                        payload.getEmail(),
+                        (String) payload.get("name"),
+                        AuthProvider.GOOGLE,
+                        payload.getSubject());
                 return ResponseEntity.ok(user);
             }
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token de Google inválido");
@@ -100,11 +104,10 @@ public class UsuarioController {
 
             if (fbResponse != null && fbResponse.containsKey("email")) {
                 Usuario user = usuarioService.procesarLoginSocial(
-                    (String) fbResponse.get("email"),
-                    (String) fbResponse.get("name"),
-                    AuthProvider.FACEBOOK,
-                    (String) fbResponse.get("id")
-                );
+                        (String) fbResponse.get("email"),
+                        (String) fbResponse.get("name"),
+                        AuthProvider.FACEBOOK,
+                        (String) fbResponse.get("id"));
                 return ResponseEntity.ok(user);
             }
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token de Facebook inválido");
@@ -115,7 +118,8 @@ public class UsuarioController {
 
     @PostMapping("/auth/apple")
     public ResponseEntity<?> appleLogin(@RequestBody Map<String, String> body) {
-        // Nota: Apple requiere una validación de clave pública compleja o usar una librería JWT.
+        // Nota: Apple requiere una validación de clave pública compleja o usar una
+        // librería JWT.
         // Aquí simulamos la recepción del email que Apple envía en el primer login.
         try {
             String email = body.get("email");
@@ -126,6 +130,24 @@ public class UsuarioController {
             return ResponseEntity.ok(user);
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Error en Apple Auth");
+        }
+    }
+
+    @PostMapping("/completar")
+    public ResponseEntity<?> completarPerfil(@RequestBody OnboardingRequest request) {
+        try {
+            // Validaciones básicas manuales si no usas @Valid
+            if (request.getUsuarioId() == null || request.getDni() == null) {
+                return ResponseEntity.badRequest().body("Faltan datos obligatorios (Usuario ID o DNI)");
+            }
+
+            perfilService.completarPerfil(request);
+
+            return ResponseEntity.ok().body(Map.of("message", "Perfil creado correctamente"));
+        } catch (Exception e) {
+            e.printStackTrace(); // Para ver el error en la consola de Java
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al procesar el perfil: " + e.getMessage());
         }
     }
 }

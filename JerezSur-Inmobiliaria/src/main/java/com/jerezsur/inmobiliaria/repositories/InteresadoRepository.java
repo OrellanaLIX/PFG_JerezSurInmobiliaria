@@ -12,6 +12,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.jerezsur.inmobiliaria.models.Interesado;
+import com.jerezsur.inmobiliaria.models.Usuario;
 import com.jerezsur.inmobiliaria.models.enums.TipoOperacion;
 
 // Al hacer extends tenemos save, findById, deleteById, etc... por defecto
@@ -43,4 +44,8 @@ public interface InteresadoRepository extends JpaRepository<Interesado, Long> {
         @Query("DELETE FROM Interesado i WHERE i.usuario IS NULL AND " +
                         "NOT EXISTS (SELECT c FROM Cita c WHERE c.comprador = i AND c.fechaHora > :fecha)")
         void borrarLeadsAntiguos(@Param("fecha") LocalDateTime fecha);
+
+        // Verificamos si el usuario ya tiene perfil de interesado o vendedor para
+        // evitar duplicados
+        boolean existsByUsuario(Usuario usuario);
 }

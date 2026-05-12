@@ -19,4 +19,10 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     // Verificamos si el email o el telefono ya existe para evitar duplicados
     @Query("SELECT COUNT(u) > 0 FROM Usuario u WHERE (:email IS NOT NULL AND u.email = :email) OR (:tel IS NOT NULL AND u.telefono = :tel)")
     boolean existePorEmailOTelefono(@Param("email") String email, @Param("tel") String tel);
+
+    // Para login social, verificamos solo por email
+    boolean existsByEmail(String email);
+
+    // Para login social, buscamos solo por email
+    Optional<Usuario> findByEmail(String email);
 }

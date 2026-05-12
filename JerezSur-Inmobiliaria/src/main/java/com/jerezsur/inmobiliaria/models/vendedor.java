@@ -58,9 +58,6 @@ public class Vendedor {
     @Column(unique = true)
     private String dni;
 
-    @Transient // No se guarda en la tabla 'compradores'
-    private String password;
-
     // --- OTROS DATOS ---
     @Column(columnDefinition = "TEXT")
     private String observaciones;

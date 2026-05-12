@@ -1,5 +1,4 @@
 import { useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import '../styles/SobreNosotros.scss';
 import { CtaSection } from '../components/CtaSection';
 import teamMember1 from '../assets/imgs/placeholders/team1.jpg';
@@ -34,7 +33,19 @@ const valuesData = [
 // --- COMPONENTES DE PRESENTACIÓN ---
 // Componentes pequeños y reutilizables.
 
-const TeamMemberCard = ({ image, name, title, bio }) => (
+interface TeamMemberCardProps {
+    image: string;
+    name: string;
+    title: string;
+    bio: string;
+}
+
+interface ValueCardProps {
+    title: string;
+    text: string;
+}
+
+const TeamMemberCard = ({ image, name, title, bio }: TeamMemberCardProps) => (
     <div className="team-member-card">
         <img src={image} alt={`Retrato de ${name}`} className="team-member-card__image" />
         <div className="team-member-card__info">
@@ -45,7 +56,7 @@ const TeamMemberCard = ({ image, name, title, bio }) => (
     </div>
 );
 
-const ValueCard = ({ title, text }) => (
+const ValueCard = ({ title, text }: ValueCardProps) => (
     <div className="value-card">
         <h3 className="value-card__title">{title}</h3>
         <p>{text}</p>

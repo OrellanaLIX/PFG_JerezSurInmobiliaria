@@ -51,7 +51,7 @@ const Home = () => {
   return (
     <main className="home">
       {/* HERO */}
-      <section className="hero home-hero" data-header-transparent>
+      <section className="hero home-hero">
         <div className="hero__content">
           <img src={logo} alt="JerezSur Inmobiliaria" className="logo-hero" />
           <h1>Encuentra tu hogar ideal en Jerez de la Frontera</h1>

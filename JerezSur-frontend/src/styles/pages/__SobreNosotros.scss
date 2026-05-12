@@ -1,11 +1,6 @@
 @use '../globals/_Variables' as *;
 @use '../components/_Buttons' as *;
 
-// Contenedor principal de la página que añade el espacio para el header fijo.
-.page-wrapper.about-us-page {
-  padding-top: 84px;
-}
-
 // 2. Estilos de Sección Genéricos
 .page-section {
   padding: 4rem 1rem;

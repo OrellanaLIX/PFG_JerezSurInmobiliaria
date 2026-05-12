@@ -2,27 +2,25 @@
 @use './components/_Buttons' as *;
 
 .site-header {
-  position: fixed;
+  position: sticky;
   top: 0;
-  left: 0;
   width: 100%;
   z-index: 1000;
-  background-color: rgba(255, 255, 255, 0.95);
+  background: rgba(white, 0.95);
   backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s, box-shadow 0.3s;
+  border-bottom: 1px solid rgba(black, 0.05);
+  transition: all 0.3s ease-in-out;
 
-  // ESTADO: OCULTO (Cuando está sobre el Hero)
   &--hidden {
-    transform: translateY(-100%);
+    position: absolute;
+    opacity: 0;
     pointer-events: none;
   }
 
-  // ESTADO: SCROLLED (Sombras suaves al bajar)
   &--scrolled {
     box-shadow: $shadow-sm;
-    background-color: white;
-    border-bottom-color: rgba(0, 0, 0, 0.1);
+    background: white;
+    border-bottom-color: rgba(black, 0.1);
   }
 
   &__container {
@@ -44,26 +42,19 @@
     gap: 1.5rem;
 
     &--desktop {
-      @media (max-width: $laptop) { display: none; }
+      @media (max-width: $laptop) {
+        display: none;
+      }
     }
 
     a {
       color: $color-text;
       font-weight: 500;
-      position: relative;
-      padding: 0.5rem 0;
+      padding-block: 0.5rem;
 
       &.is-active {
         color: $color-primary;
-        &::after {
-          content: '';
-          position: absolute;
-          bottom: 0;
-          left: 0;
-          width: 100%;
-          height: 2px;
-          background: $color-primary;
-        }
+        box-shadow: inset 0 -2px $color-primary; // Más limpio que el ::after
       }
     }
   }
@@ -72,10 +63,13 @@
     display: none;
     flex-direction: column;
     gap: 5px;
-    cursor: pointer;
-    background: none;
     border: none;
+    background: none;
     z-index: 1100;
+
+    @media (max-width: $laptop) {
+      display: flex;
+    }
 
     span {
       width: 24px;
@@ -85,48 +79,63 @@
     }
 
     &.is-open {
-      span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
-      span:nth-child(2) { opacity: 0; }
-      span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
-    }
+      span:nth-child(1) {
+        transform: translateY(7px) rotate(45deg);
+      }
 
-    @media (max-width: $laptop) { display: flex; }
+      span:nth-child(2) {
+        opacity: 0;
+      }
+
+      span:nth-child(3) {
+        transform: translateY(-7px) rotate(-45deg);
+      }
+    }
   }
 
   &__overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.4);
+    background: rgba(black, 0.4);
     opacity: 0;
     pointer-events: none;
     transition: 0.3s;
     z-index: 1050;
-    &--open { opacity: 1; pointer-events: auto; }
+
+    &--open {
+      opacity: 1;
+      pointer-events: auto;
+    }
   }
 }
 
 .mobile-menu {
   position: fixed;
-  top: 0;
-  right: 0;
+  inset: 0 0 0 auto; // Top, Right, Bottom, Left (auto)
   width: 280px;
-  height: 100vh;
   background: white;
   z-index: 1060;
   padding: 100px 2rem;
   transform: translateX(100%);
   transition: transform 0.3s ease;
 
-  &--open { transform: translateX(0); }
+  &--open {
+    transform: translateX(0);
+  }
 
   &__nav {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
-    a { 
-        font-size: 1.1rem; 
-        color: $color-text;
-        &.is-active { color: $color-primary; font-weight: bold; }
+
+    a {
+      font-size: 1.1rem;
+      color: $color-text;
+
+      &.is-active {
+        color: $color-primary;
+        font-weight: bold;
+      }
     }
   }
 }

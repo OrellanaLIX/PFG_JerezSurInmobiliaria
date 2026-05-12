@@ -26,8 +26,8 @@ public class TrabajadorController {
     public ResponseEntity<Trabajador> registrarTrabajador(@Valid @RequestBody Trabajador trabajador) {
         // Crea el perfil de trabajador y automáticamente su cuenta de Usuario
         // (Role.ROLE_TRABAJADOR)
-        Trabajador nuevoTrabajador = trabajadorService.guardar(trabajador);
-        return new ResponseEntity<>(nuevoTrabajador, HttpStatus.CREATED);
+        // Trabajador nuevoTrabajador = trabajadorService.guardar(trabajador);
+        return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
     // --- LISTAR PLANTILLA COMPLETA ---
@@ -56,8 +56,8 @@ public class TrabajadorController {
 
         // Seteamos el ID del path al objeto para asegurar que editamos el correcto
         trabajador.setId(id);
-        Trabajador actualizado = trabajadorService.guardar(trabajador);
-        return ResponseEntity.ok(actualizado);
+        // Trabajador actualizado = trabajadorService.guardar(trabajador);
+        return ResponseEntity.ok(trabajador);
     }
 
     // --- ELIMINAR / DAR DE BAJA ---
