@@ -78,11 +78,6 @@ public class TrabajadorService {
     }
 
     private void validarTrabajador(Trabajador trabajador) {
-        // Validación: Nombre y Apellidos obligatorios
-        if (trabajador.getNombre() == null || trabajador.getNombre().trim().isEmpty()) {
-            throw new BusinessValidationException("El nombre del trabajador es obligatorio.");
-        }
-
         // Validación: NIF/DNI (muy importante para la validez de contratos)
         if (trabajador.getDni() == null || trabajador.getDni().length() < 9) {
             throw new BusinessValidationException("El DNI debe tener un formato válido.");
@@ -91,12 +86,6 @@ public class TrabajadorService {
         // Validación: Puesto de trabajo
         if (trabajador.getCargo() == null || trabajador.getCargo().trim().isEmpty()) {
             throw new BusinessValidationException("El puesto del trabajador es obligatorio.");
-        }
-
-        // Al menos uno de los dos debe existir tras la sincronización
-        if (isEmpty(trabajador.getEmail()) && isEmpty(trabajador.getTelefono())) {
-            throw new BusinessValidationException(
-                    "El trabajador debe tener al menos un Email o un Teléfono de contacto.");
         }
     }
 }

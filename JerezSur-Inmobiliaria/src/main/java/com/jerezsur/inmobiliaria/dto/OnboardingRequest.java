@@ -1,26 +1,32 @@
 package com.jerezsur.inmobiliaria.dto;
 
-import lombok.Data;
 import java.math.BigDecimal;
+
+import lombok.Data;
 
 @Data
 public class OnboardingRequest {
-    private Long usuarioId; // ID del usuario logueado
+
+    private Long usuarioId;
     private String perfil; // "interesado", "propietario" o "ambos"
-    
-    // Datos comunes
+
+    // Datos del usuario
     private String nombre;
     private String apellidos;
     private String telefono;
+    private String email;
     private String dni;
-    
+
+    // Cambio de contraseña
+    private String nuevaPassword; // solo si cambiarPasswd = true
+
     // Datos de búsqueda (Interesado)
     private BigDecimal presupuestoMaximo;
     private String zonaInteres;
     private Integer habitacionesMinimas;
     private Integer banosMinimos;
-    private String tipoOperacion; // COMPRA, ALQUILER
-    
+    private String tipoOperacion; // VENTA, ALQUILER, CUALQUIERA
+
     // Datos de propiedad (Vendedor)
     private String detallesPropiedad;
     private String comentariosExtra;

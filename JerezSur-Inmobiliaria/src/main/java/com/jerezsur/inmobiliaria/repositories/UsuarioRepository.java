@@ -25,4 +25,6 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 
     // Para login social, buscamos solo por email
     Optional<Usuario> findByEmail(String email);
+
+    Optional<Usuario> findByTelefono(String telefono);
 }

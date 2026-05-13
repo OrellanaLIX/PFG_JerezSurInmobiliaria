@@ -51,11 +51,22 @@ public class Usuario {
     @NotBlank(message = "El nombre es obligatorio")
     private String nombre;
 
+    private String apellidos;
+
+    //DATOS SENSIBLES
     @Column(nullable = false)
     @Size(min = 8, message = "La contraseña debe tener al menos 8 caracteres")
     private String password;
 
+    @Column(unique = true)
+    private String dni;
+
     private String imagenPerfilUrl;
+
+    @Default
+    private Boolean verified = false; // Para verificar si el email ha sido confirmado
+
+    private String comentarios;
 
     // --- SEGURIDAD Y ROLES ---
     @NotNull(message = "El rol no debe ser nulo")

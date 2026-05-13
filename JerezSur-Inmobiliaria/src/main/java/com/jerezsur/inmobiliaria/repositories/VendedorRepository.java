@@ -23,4 +23,7 @@ public interface VendedorRepository extends JpaRepository<Vendedor, Long> {
     // Verificamos si el usuario ya tiene perfil de interesado o vendedor para
     // evitar duplicados
     boolean existsByUsuario(Usuario usuario);
+
+    Optional<Vendedor> findByUsuario(Usuario usuario);
+
 }

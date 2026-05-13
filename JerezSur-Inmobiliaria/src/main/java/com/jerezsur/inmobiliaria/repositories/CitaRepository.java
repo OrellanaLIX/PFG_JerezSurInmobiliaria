@@ -32,4 +32,6 @@ public interface CitaRepository extends JpaRepository<Cita, Long> {
     @Modifying
     @Query("DELETE FROM Cita c WHERE c.estado = 'CANCELADA' AND c.fechaHora < :fecha")
     void borrarCitasCanceladasAntiguas(LocalDateTime fecha);
+
+    List<Cita> findByTelefonoAnonimoAndUsuarioIsNull(String telefono);
 }

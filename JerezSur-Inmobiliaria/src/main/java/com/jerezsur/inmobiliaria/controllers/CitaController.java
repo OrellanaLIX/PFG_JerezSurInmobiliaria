@@ -1,61 +1,74 @@
 package com.jerezsur.inmobiliaria.controllers;
 
-import java.time.LocalDateTime;
+import com.jerezsur.inmobiliaria.dto.CitaAnonimaRequest;
+import com.jerezsur.inmobiliaria.models.Cita;
+import com.jerezsur.inmobiliaria.services.CitaService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.jerezsur.inmobiliaria.models.Cita;
-import com.jerezsur.inmobiliaria.services.CitaService;
-
-import jakarta.validation.Valid;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/citas")
-@CrossOrigin(origins = "http://localhost:3000")
 public class CitaController {
 
     @Autowired
     private CitaService citaService;
 
-    // --- AGENDAR NUEVA CITA ---
-    @PostMapping
-    public ResponseEntity<Cita> crearCita(@Valid @RequestBody Cita cita) {
-        // El service validará que no haya solapamiento de horarios
-        Cita nuevaCita = citaService.guardar(cita);
-        return new ResponseEntity<>(nuevaCita, HttpStatus.CREATED);
+    /**
+     * POST /api/citas/verificar-telefono
+     * Envía código de verificación al teléfono.
+     * Endpoint público (no requiere autenticación).
+     */
+    @PostMapping("/verificar-telefono")
+    public ResponseEntity<?> enviarCodigo(@RequestBody Map<String, String> body) {
+        try {
+            String telefono = body.get("telefono");
+
+            if (telefono == null || telefono.isBlank()) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("error", "El teléfono es obligatorio"));
+            }
+
+            String mensaje = citaService.enviarCodigoVerificacion(telefono);
+            return ResponseEntity.ok(Map.of("message", mensaje));
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", e.getMessage()));
+        }
     }
 
-    // --- LISTAR TODAS LAS CITAS ---
-    @GetMapping
-    public ResponseEntity<Page<Cita>> listarTodas(@RequestParam LocalDateTime min, @RequestParam LocalDateTime max,
-            @RequestParam int page, @RequestParam int size, @RequestParam String sortBy, @RequestParam String sortDir) {
-        return ResponseEntity.ok(citaService.listarTodas(min, max, page, size, sortBy, sortDir));
-    }
+    /**
+     * POST /api/citas/anonima
+     * Crea una cita anónima tras verificación de teléfono.
+     * Endpoint público (no requiere autenticación).
+     */
+    @PostMapping("/anonima")
+    public ResponseEntity<?> crearCitaAnonima(@RequestBody CitaAnonimaRequest request) {
+        try {
+            Cita cita = citaService.crearCitaAnonima(request);
 
-    // --- OBTENER UNA CITA ESPECÍFICA ---
-    @GetMapping("/{id}")
-    public ResponseEntity<Cita> obtenerPorId(@PathVariable Long id) {
-        return ResponseEntity.ok(citaService.buscarPorId(id));
-    }
+            String lugarTexto = cita.getInmueble() != null
+                    ? "en el inmueble seleccionado"
+                    : "en nuestra oficina";
 
-    // --- REPROGRAMAR CITA (Cambio de hora o fecha) ---
-    @PutMapping("/{id}")
-    public ResponseEntity<Cita> actualizarCita(
-            @PathVariable Long id,
-            @Valid @RequestBody Cita cita) {
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(Map.of(
+                        "message", "Cita solicitada correctamente " + lugarTexto
+                                + ". Un trabajador se pondrá en contacto contigo para confirmarla.",
+                        "citaId", cita.getId()
+                    ));
 
-        cita.setId(id);
-        Cita actualizada = citaService.guardar(cita);
-        return ResponseEntity.ok(actualizada);
-    }
-
-    // --- CANCELAR CITA ---
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> cancelarCita(@PathVariable Long id) {
-        citaService.eliminar(id);
-        return ResponseEntity.noContent().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Error al crear la cita: " + e.getMessage()));
+        }
     }
 }

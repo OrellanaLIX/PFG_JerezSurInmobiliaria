@@ -36,28 +36,6 @@ public class Vendedor {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // --- DATOS PERSONALES ---
-    @NotBlank(message = "El nombre es obligatorio")
-    private String nombre;
-
-    @NotBlank(message = "Los apellidos son obligatorios")
-    private String apellidos;
-
-    // --- DATOS DE CONTACTO ---
-    @Email
-    @Column(unique = true)
-    private String email;
-
-    @Column(unique = true)
-    private String telefono;
-
-    private String direccion;
-
-    // --- DATOS SENSIBLES ---
-    @NotBlank
-    @Column(unique = true)
-    private String dni;
-
     // --- OTROS DATOS ---
     @Column(columnDefinition = "TEXT")
     private String observaciones;

@@ -42,30 +42,10 @@ public class Interesado {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // --- DATOS BÁSICOS ---
-    @NotBlank(message = "El nombre es obligatorio")
-    private String nombre;
-
-    @NotBlank(message = "Los apellidos son obligatorios")
-    private String apellidos;
-
-    @Column(unique = true)
-    private String telefono;
-
-    @Email
-    @Column(unique = true)
-    private String email;
-
     // --- ESTADO ---
     @Enumerated(EnumType.STRING)
     @Default
     private EstadoComprador estado = EstadoComprador.INTERESADO;
-
-    // --- DATOS LEGALES ---
-    @Column(unique = true)
-    private String dni;
-
-    private String direccionPostal;
 
     // --- LÓGICA DE FINANCIACIÓN (HIPOTECA) ---
     @Default
@@ -78,6 +58,7 @@ public class Interesado {
     private String zonaInteres;
     private Integer habitacionesMinimas;
     private Integer banosMinimos;
+    private String tipoInmueblePreferido;
 
     @Enumerated(EnumType.STRING)
     private TipoOperacion tipoBusqueda;

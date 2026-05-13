@@ -46,6 +46,11 @@ public class Cita {
     @Enumerated(EnumType.STRING)
     private EstadoCita estado; // PENDIENTE, CONFIRMADA, CANCELADA, REALIZADA
 
+    private String nombreAnonimo; // "Juan"
+    private String telefonoAnonimo; // "600123456" (verificado)
+    private String emailAnonimo; // opcional
+    private String mensajeSolicitud; // "Me interesa el piso de la calle..."
+
     @Column(columnDefinition = "TEXT")
     private String notasTrabajador; // Comentarios tras la visita (ej: "Le ha gustado la cocina")
 
@@ -53,18 +58,18 @@ public class Cita {
 
     // La cita pertenece a un inmueble concreto
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "inmueble_id", nullable = false)
+    @JoinColumn(name = "inmueble_id", nullable = true)
     private Inmueble inmueble;
 
     // Un solo trabajador es el responsable de la visita
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "trabajador_id", nullable = false)
+    @JoinColumn(name = "trabajador_id", nullable = true)
     private Trabajador trabajador;
 
     // El comprador principal (titular de la cita)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "interesado_id", nullable = false)
-    private Interesado comprador;
+    @JoinColumn(name = "usuario_id", nullable = true)
+    private Usuario usuario;
 
     // --- AUDITORÍA ---
     @CreationTimestamp

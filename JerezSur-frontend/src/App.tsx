@@ -12,6 +12,7 @@ import Auth from './pages/Auth';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { useEffect } from 'react';
 import Onboarding from './pages/Onboarding';
+import UserProfile from './pages/Profile';
 
 const clientGGId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 const clientFBId = import.meta.env.VITE_FACEBOOK_APP_ID;
@@ -53,6 +54,7 @@ function App() {
         <Route path="/inmuebles" element={<Inmuebles />} />
         <Route path="/acceder" element={<Auth />} />
         <Route path="/onboarding" element={<Onboarding />} />
+        <Route path="/perfil" element={<UserProfile />} />
       </Routes>
       <Footer />
     </Router>

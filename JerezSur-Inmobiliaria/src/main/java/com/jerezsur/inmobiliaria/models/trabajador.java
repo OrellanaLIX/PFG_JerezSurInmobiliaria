@@ -39,26 +39,11 @@ public class Trabajador {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // --- DATOS PERSONALES ---
-    @NotBlank(message = "El nombre es obligatorio")
-    private String nombre;
-
-    @NotBlank(message = "Los apellidos son obligatorios")
-    private String apellidos;
-
     @NotBlank(message = "El DNI es obligatorio")
     @Column(unique = true)
     private String dni;
 
     // --- CONTACTO Y ACCESO ---
-    @NotBlank(message = "El email es obligatorio")
-    @Email(message = "El formato del email no es válido")
-    @Column(unique = true)
-    private String email;
-
-    @Column(unique = true)
-    private String telefono;
-
     private String cargo; // Ej: "Agente Comercial", "Administrativo"
 
     // --- GESTIÓN LABORAL ---

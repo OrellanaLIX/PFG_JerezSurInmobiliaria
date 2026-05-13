@@ -19,9 +19,6 @@ import com.jerezsur.inmobiliaria.models.enums.TipoOperacion;
 @Repository
 public interface InteresadoRepository extends JpaRepository<Interesado, Long> {
 
-        // Encontramos al interesado por DNI
-        Optional<Interesado> findByDni(String dni);
-
         // Query de filtrado
         @Query("SELECT i FROM Interesado i WHERE " +
                         "(:hipoteca IS NULL OR i.requiereHipoteca = :hipoteca) AND " +
@@ -48,4 +45,6 @@ public interface InteresadoRepository extends JpaRepository<Interesado, Long> {
         // Verificamos si el usuario ya tiene perfil de interesado o vendedor para
         // evitar duplicados
         boolean existsByUsuario(Usuario usuario);
+
+        Optional<Interesado> findByUsuario(Usuario usuario);
 }

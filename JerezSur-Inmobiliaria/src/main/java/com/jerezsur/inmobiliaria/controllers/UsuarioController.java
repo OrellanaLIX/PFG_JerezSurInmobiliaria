@@ -11,8 +11,12 @@ import com.jerezsur.inmobiliaria.exceptions.BusinessValidationException;
 import com.jerezsur.inmobiliaria.models.Usuario;
 import com.jerezsur.inmobiliaria.services.PerfilService;
 import com.jerezsur.inmobiliaria.services.UsuarioService;
+
+import jakarta.persistence.EntityNotFoundException;
+
 import com.jerezsur.inmobiliaria.dto.LoginRequest;
 import com.jerezsur.inmobiliaria.dto.OnboardingRequest;
+import com.jerezsur.inmobiliaria.dto.UsuarioPerfilDTO;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
@@ -133,21 +137,51 @@ public class UsuarioController {
         }
     }
 
+    /**
+     * GET /api/usuarios/{id}
+     * Devuelve el perfil completo del usuario como DTO seguro.
+     * Solo el propio usuario debería poder acceder a sus datos.
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<?> obtenerPerfil(@PathVariable Long id) {
+        try {
+            UsuarioPerfilDTO dto = perfilService.obtenerPerfil(id);
+            return ResponseEntity.ok(dto);
+
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", e.getMessage()));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Error al obtener el perfil: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * POST /api/usuarios/completar
+     * Completa el onboarding del usuario.
+     */
     @PostMapping("/completar")
     public ResponseEntity<?> completarPerfil(@RequestBody OnboardingRequest request) {
         try {
-            // Validaciones básicas manuales si no usas @Valid
-            if (request.getUsuarioId() == null || request.getDni() == null) {
-                return ResponseEntity.badRequest().body("Faltan datos obligatorios (Usuario ID o DNI)");
+            if (request.getUsuarioId() == null) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("error", "El ID del usuario es obligatorio"));
             }
 
             perfilService.completarPerfil(request);
 
-            return ResponseEntity.ok().body(Map.of("message", "Perfil creado correctamente"));
+            return ResponseEntity.ok(Map.of("message", "Perfil completado correctamente"));
+
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
-            e.printStackTrace(); // Para ver el error en la consola de Java
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error al procesar el perfil: " + e.getMessage());
+                    .body(Map.of("error", "Error al procesar el perfil: " + e.getMessage()));
         }
     }
 }
