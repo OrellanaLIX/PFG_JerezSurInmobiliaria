@@ -1,0 +1,87 @@
+@use '../globals/_Variables' as *;
+@use './_Buttons' as *; // Asumiendo que _Buttons.scss está en la misma carpeta
+
+.cta-section-shared {
+  padding: 2.5rem 0; // Espaciado vertical
+  background: transparent;
+
+  &__container {
+    // Usamos el color de tu marca para el fondo degradado
+    background: linear-gradient(135deg, $color-primary-dark, $color-primary);
+    box-shadow: $shadow-md;
+    position: relative;
+    justify-items: center;
+    overflow: hidden;
+    margin: 0 auto; // Centrado
+    width: 100%; // Ocupa todo el ancho del contenedor padre
+  }
+
+  &__content {
+    color: $color-white;
+    padding: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    position: relative;
+    z-index: 1;
+    max-width: 1200px;
+  }
+
+  &__text {
+    max-width: 720px;
+
+    h2 {
+      color: $color-white;
+      margin-bottom: 0.75rem;
+      font-size: clamp(1.8rem, 3vw, 2.5rem);
+      text-wrap: balance;
+    }
+
+    p {
+      color: rgba(255, 255, 255, 0.9);
+      margin: 0;
+      line-height: 1.6;
+    }
+  }
+
+  // Círculos decorativos
+  &__container::before,
+  &__container::after {
+    content: '';
+    position: absolute;
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    pointer-events: none;
+  }
+  
+  // Círculo superior derecho
+  &__container::before {
+    right: -80px;
+    top: -80px;
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  // Círculo inferior izquierdo (con el color de acento verde)
+  &__container::after {
+    left: -80px;
+    bottom: -80px;
+    background: rgba(103, 180, 55, 0.1);
+  }
+
+  // --- Responsive ---
+  @media (max-width: $tablet) {
+    &__content {
+      flex-direction: column;
+      align-items: flex-start;
+      text-align: left;
+      padding: 2.5rem 2rem;
+    }
+
+    .btn {
+      width: 100%;
+      margin-top: 1rem;
+    }
+  }
+}

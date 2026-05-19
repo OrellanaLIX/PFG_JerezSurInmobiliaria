@@ -1,10 +1,13 @@
 // src/pages/Inmuebles.tsx
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import PropertyCard from '../components/inmuebles/PropertyCard';
 import PropertyFilters from '../components/inmuebles/PropertyFilters';
 import '../styles/Inmuebles.scss';
 
+// ==========================================
+// TIPOS DEL FRONTEND
+// ==========================================
 export type Property = {
   id: number;
   title: string;
@@ -43,155 +46,161 @@ export type FilterOptions = {
   features: string[];
 };
 
-// DATOS MOCK (en producción vendrán de tu API)
-const mockProperties: Property[] = [
-  {
-    id: 1,
-    title: 'Piso luminoso en zona centro',
-    location: 'Centro, Jerez de la Frontera',
-    zone: 'Centro',
-    price: 185000,
-    type: 'Venta',
-    propertyType: 'Piso',
-    image: 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80',
-    beds: 3,
-    baths: 2,
-    area: 108,
-    slug: 'piso-luminoso-zona-centro',
-    featured: true,
-    description: 'Precioso piso en pleno centro de Jerez, totalmente reformado y listo para entrar a vivir.',
-    yearBuilt: 1985,
-    floor: '3º',
-    hasElevator: true,
-    hasParking: false,
-    energyRating: 'D'
-  },
-  {
-    id: 2,
-    title: 'Casa familiar con patio',
-    location: 'Zona Sur, Jerez de la Frontera',
-    zone: 'Sur',
-    price: 249000,
-    type: 'Venta',
-    propertyType: 'Casa',
-    image: 'https://images.unsplash.com/photo-1560185007-c5ca9d2c014d?auto=format&fit=crop&w=1200&q=80',
-    beds: 4,
-    baths: 2,
-    area: 164,
-    slug: 'casa-familiar-con-patio',
-    featured: true,
-    hasGarden: true,
-    hasParking: true,
-    energyRating: 'E'
-  },
-  {
-    id: 3,
-    title: 'Ático con terraza',
-    location: 'Norte, Jerez de la Frontera',
-    zone: 'Norte',
-    price: 950,
-    type: 'Alquiler',
-    propertyType: 'Ático',
-    image: 'https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=1200&q=80',
-    beds: 2,
-    baths: 1,
-    area: 92,
-    slug: 'atico-con-terraza',
-    hasElevator: true,
-    energyRating: 'C'
-  },
-  {
-    id: 4,
-    title: 'Piso reformado cerca Universidad',
-    location: 'Zona Este, Jerez de la Frontera',
-    zone: 'Este',
-    price: 165000,
-    type: 'Venta',
-    propertyType: 'Piso',
-    image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80',
-    beds: 3,
-    baths: 1,
-    area: 95,
-    slug: 'piso-reformado-universidad',
-    hasElevator: false,
-    floor: '1º',
-    energyRating: 'E'
-  },
-  {
-    id: 5,
-    title: 'Chalet independiente con piscina',
-    location: 'Zona Oeste, Jerez de la Frontera',
-    zone: 'Oeste',
-    price: 425000,
-    type: 'Venta',
-    propertyType: 'Casa',
-    image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=80',
-    beds: 5,
-    baths: 3,
-    area: 280,
-    slug: 'chalet-independiente-piscina',
-    featured: true,
-    hasGarden: true,
-    hasPool: true,
-    hasParking: true,
-    energyRating: 'B'
-  },
-  {
-    id: 6,
-    title: 'Dúplex moderno zona nueva',
-    location: 'Norte, Jerez de la Frontera',
-    zone: 'Norte',
-    price: 215000,
-    type: 'Venta',
-    propertyType: 'Dúplex',
-    image: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=80',
-    beds: 3,
-    baths: 2,
-    area: 125,
-    slug: 'duplex-moderno-zona-nueva',
-    hasElevator: true,
-    hasParking: true,
-    energyRating: 'A'
-  },
-  {
-    id: 7,
-    title: 'Apartamento económico',
-    location: 'Sur, Jerez de la Frontera',
-    zone: 'Sur',
-    price: 650,
-    type: 'Alquiler',
-    propertyType: 'Piso',
-    image: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1200&q=80',
-    beds: 2,
-    baths: 1,
-    area: 68,
-    slug: 'apartamento-economico',
-    floor: '2º',
-    hasElevator: true,
-    energyRating: 'D'
-  },
-  {
-    id: 8,
-    title: 'Local comercial en calle principal',
-    location: 'Centro, Jerez de la Frontera',
-    zone: 'Centro',
-    price: 1200,
-    type: 'Alquiler',
-    propertyType: 'Local',
-    image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=80',
-    beds: 0,
-    baths: 1,
-    area: 85,
-    slug: 'local-comercial-calle-principal',
-    energyRating: 'E'
-  },
-];
-
 type SortOption = 'recent' | 'price-asc' | 'price-desc' | 'area-desc';
 
+// ==========================================
+// TIPOS DEL BACKEND (según tu entidad real)
+// ==========================================
+type ImagenBackend = {
+  id?: number;
+  url?: string;
+  urlImagen?: string;
+  principal?: boolean;
+  orden?: number;
+};
+
+type InmuebleBackend = {
+  id: number;
+  referencia: string;
+  titulo: string;
+  descripcion?: string;
+  precio: number;
+
+  operacion?: 'VENTA' | 'ALQUILER' | 'AMBOS';
+  estado?: 'DISPONIBLE' | 'VENDIDO' | 'RESERVADO';
+
+  caracteristicasExtra?: Record<string, string>;
+
+  superficieUtil?: number;
+  mConstruidos?: number;
+  habitaciones?: number;
+  banos?: number;
+
+  direccion: string;
+  codigoPostal: string;
+  ciudad: string;
+
+  comunidad?: number;
+  tieneDerrama?: boolean;
+  valorDerrama?: number;
+  ibi?: number;
+
+  refCatastral?: string;
+  urlNotaSimple?: string;
+  urlCertificadoEnergetico?: string;
+  urlPlanoInmueble?: string;
+
+  imagenes?: ImagenBackend[];
+
+  fechaRegistro?: string;
+  fechaUltimaActualizacion?: string;
+};
+
+// ==========================================
+// CONFIG
+// ==========================================
+const API_BASE = 'http://localhost:8080/api';
+const DEFAULT_IMAGE =
+  'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80';
+
+// ==========================================
+// HELPERS DE MAPEO
+// ==========================================
+const slugify = (text: string): string =>
+  text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)+/g, '');
+
+const parseBoolFromExtra = (v?: string): boolean => {
+  if (!v) return false;
+  const s = v.trim().toLowerCase();
+  return ['true', '1', 'si', 'sí', 'yes', 'y', 'x'].includes(s);
+};
+
+// Operación: VENTA / ALQUILER / AMBOS → Venta / Alquiler
+const mapTipoOperacion = (raw?: string): 'Venta' | 'Alquiler' => {
+  if (raw === 'ALQUILER') return 'Alquiler';
+  return 'Venta'; // VENTA y AMBOS muestran "Venta" por defecto
+};
+
+// Lee el "tipo" desde caracteristicasExtra (no existe como campo en la entidad)
+const mapTipoInmueble = (extras?: Record<string, string>): Property['propertyType'] => {
+  if (!extras) return 'Piso';
+  const valor = (extras['TIPO'] || extras['tipo'] || extras['Tipo'] || '').toUpperCase();
+  if (valor.includes('CASA')) return 'Casa';
+  if (valor.includes('ATICO') || valor.includes('ÁTICO')) return 'Ático';
+  if (valor.includes('DUPLEX') || valor.includes('DÚPLEX')) return 'Dúplex';
+  if (valor.includes('LOCAL')) return 'Local';
+  if (valor.includes('PARCELA')) return 'Parcela';
+  return 'Piso';
+};
+
+// Extrae URL de una Imagen del backend
+const getImageUrl = (img?: ImagenBackend): string | undefined => {
+  if (!img) return undefined;
+  return img.url || img.urlImagen;
+};
+
+// Convierte una lista de Imagen del backend a string[]
+const mapImagenes = (imgs?: ImagenBackend[]): string[] => {
+  if (!imgs || imgs.length === 0) return [];
+
+  // Ordenar: la principal primero, luego por "orden"
+  const sorted = [...imgs].sort((a, b) => {
+    if (a.principal && !b.principal) return -1;
+    if (!a.principal && b.principal) return 1;
+    return (a.orden ?? 0) - (b.orden ?? 0);
+  });
+
+  return sorted.map(getImageUrl).filter((u): u is string => !!u);
+};
+
+const mapInmuebleToProperty = (item: InmuebleBackend): Property => {
+  const extras = item.caracteristicasExtra || {};
+  const imagenes = mapImagenes(item.imagenes);
+
+  return {
+    id: item.id,
+    title: item.titulo || item.referencia || `Inmueble #${item.id}`,
+    location: `${item.direccion}, ${item.ciudad}`,
+    zone: item.ciudad,
+    price: item.precio ?? 0,
+    type: mapTipoOperacion(item.operacion),
+    propertyType: mapTipoInmueble(extras),
+    image: imagenes[0] || DEFAULT_IMAGE,
+    images: imagenes,
+    beds: item.habitaciones ?? 0,
+    baths: item.banos ?? 0,
+    area: item.superficieUtil ?? 0,
+    slug: slugify(item.referencia || item.titulo),
+    featured: parseBoolFromExtra(extras['DESTACADO'] || extras['Destacado']),
+    description: item.descripcion,
+    yearBuilt: extras['AÑO'] ? Number(extras['AÑO']) : undefined,
+    floor: extras['PLANTA'] || extras['Planta'],
+    hasElevator: parseBoolFromExtra(extras['ASCENSOR'] || extras['Ascensor']),
+    hasParking: parseBoolFromExtra(
+      extras['PARKING'] || extras['GARAJE'] || extras['Garaje'] || extras['APARCAMIENTO']
+    ),
+    hasGarden: parseBoolFromExtra(extras['JARDIN'] || extras['JARDÍN'] || extras['Jardín']),
+    hasPool: parseBoolFromExtra(extras['PISCINA'] || extras['Piscina']),
+    energyRating:
+      extras['CERTIFICADO_ENERGETICO'] ||
+      extras['CERTIFICADO'] ||
+      extras['Certificado'] ||
+      undefined,
+  };
+};
+
+// ==========================================
+// COMPONENT
+// ==========================================
 const Inmuebles = () => {
-  const [properties, setProperties] = useState<Property[]>(mockProperties);
-  const [filteredProperties, setFilteredProperties] = useState<Property[]>(mockProperties);
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [filteredProperties, setFilteredProperties] = useState<Property[]>([]);
+
   const [filters, setFilters] = useState<FilterOptions>({
     operation: 'all',
     propertyType: '',
@@ -204,91 +213,164 @@ const Inmuebles = () => {
     maxArea: '',
     features: [],
   });
+
   const [sortBy, setSortBy] = useState<SortOption>('recent');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showFilters, setShowFilters] = useState(false);
 
-  // Aplicar filtros
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const activeFiltersCount = useMemo(() => {
+    return (
+      (filters.operation !== 'all' ? 1 : 0) +
+      (filters.propertyType ? 1 : 0) +
+      (filters.zone ? 1 : 0) +
+      (filters.minPrice ? 1 : 0) +
+      (filters.maxPrice ? 1 : 0) +
+      (filters.minBeds ? 1 : 0) +
+      (filters.minBaths ? 1 : 0) +
+      (filters.minArea ? 1 : 0) +
+      (filters.maxArea ? 1 : 0) +
+      (filters.features?.length ? 1 : 0)
+    );
+  }, [filters]);
+
+  // ==========================================
+  // CARGA DESDE BACKEND
+  // ==========================================
+  useEffect(() => {
+    const controller = new AbortController();
+
+    const fetchInmuebles = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const token =
+          localStorage.getItem('token') ||
+          localStorage.getItem('accessToken') ||
+          '';
+
+        const params = new URLSearchParams();
+
+        // Operación
+        if (filters.operation === 'Venta') params.set('operacion', 'VENTA');
+        else if (filters.operation === 'Alquiler') params.set('operacion', 'ALQUILER');
+
+        // Estado por defecto
+        params.set('estado', 'DISPONIBLE');
+
+        // Precio y Características
+        if (filters.minPrice) params.set('precioMin', filters.minPrice);
+        if (filters.maxPrice) params.set('precioMax', filters.maxPrice);
+        if (filters.minBeds) params.set('habitaciones', filters.minBeds);
+        if (filters.minBaths) params.set('banos', filters.minBaths);
+        if (filters.minArea) params.set('superficieMin', filters.minArea);
+        if (filters.zone) params.set('ciudad', filters.zone);
+
+        // Paginación
+        params.set('page', '0');
+        params.set('size', '100');
+
+        // Ordenación
+        let sortByField = 'id';
+        let sortDir: 'asc' | 'desc' = 'desc';
+
+        if (sortBy === 'recent') {
+          sortByField = 'id';
+          sortDir = 'desc';
+        } else if (sortBy === 'price-asc') {
+          sortByField = 'precio';
+          sortDir = 'asc';
+        } else if (sortBy === 'price-desc') {
+          sortByField = 'precio';
+          sortDir = 'desc';
+        } else if (sortBy === 'area-desc') {
+          sortByField = 'superficieUtil';
+          sortDir = 'desc';
+        }
+
+        params.set('sortBy', sortByField);
+        params.set('sortDir', sortDir);
+
+        const response = await fetch(`${API_BASE}/inmuebles?${params.toString()}`, {
+          signal: controller.signal,
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status} al cargar inmuebles`);
+        }
+
+        const json = await response.json();
+        const content: InmuebleBackend[] = json?.content ?? [];
+        const mapped = content.map(mapInmuebleToProperty);
+        setProperties(mapped);
+      } catch (err) {
+        if (err instanceof DOMException && err.name === 'AbortError') return;
+        setError(err instanceof Error ? err.message : 'Error desconocido');
+        setProperties([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchInmuebles();
+    return () => controller.abort();
+
+    // SOLUCIÓN AQUÍ: Escuchamos propiedades primitivas exactas. 
+    // Esto evita que si cambia otra propiedad no usada por el backend, se reinicie el efecto.
+  }, [
+    filters.operation,
+    filters.minPrice,
+    filters.maxPrice,
+    filters.minBeds,
+    filters.minBaths,
+    filters.minArea,
+    filters.zone,
+    sortBy
+  ]);
+
+  // ==========================================
+  // FILTRADO COMPLEMENTARIO EN CLIENTE
+  // ==========================================
   useEffect(() => {
     let result = [...properties];
 
-    // Filtro de operación
-    if (filters.operation !== 'all') {
-      result = result.filter(p => p.type === filters.operation);
-    }
-
-    // Filtro de tipo de propiedad
+    // propertyType (no lo filtra el backend porque está en caracteristicasExtra)
     if (filters.propertyType) {
-      result = result.filter(p => p.propertyType === filters.propertyType);
+      result = result.filter((p) => p.propertyType === filters.propertyType);
     }
 
-    // Filtro de zona
-    if (filters.zone) {
-      result = result.filter(p => p.zone === filters.zone);
-    }
-
-    // Filtro de precio
-    if (filters.minPrice) {
-      result = result.filter(p => p.price >= Number(filters.minPrice));
-    }
-    if (filters.maxPrice) {
-      result = result.filter(p => p.price <= Number(filters.maxPrice));
-    }
-
-    // Filtro de habitaciones
-    if (filters.minBeds) {
-      result = result.filter(p => p.beds >= Number(filters.minBeds));
-    }
-
-    // Filtro de baños
-    if (filters.minBaths) {
-      result = result.filter(p => p.baths >= Number(filters.minBaths));
-    }
-
-    // Filtro de superficie
-    if (filters.minArea) {
-      result = result.filter(p => p.area >= Number(filters.minArea));
-    }
+    // maxArea (no soportada en backend)
     if (filters.maxArea) {
-      result = result.filter(p => p.area <= Number(filters.maxArea));
+      const maxA = Number(filters.maxArea);
+      if (!Number.isNaN(maxA)) result = result.filter((p) => p.area <= maxA);
     }
 
-    // Filtro de características
+    // features (en caracteristicasExtra)
     if (filters.features.length > 0) {
-      result = result.filter(p => {
-        return filters.features.every(feature => {
+      result = result.filter((p) =>
+        filters.features.every((feature) => {
           switch (feature) {
-            case 'elevator': return p.hasElevator;
-            case 'parking': return p.hasParking;
-            case 'garden': return p.hasGarden;
-            case 'pool': return p.hasPool;
+            case 'elevator': return !!p.hasElevator;
+            case 'parking': return !!p.hasParking;
+            case 'garden': return !!p.hasGarden;
+            case 'pool': return !!p.hasPool;
             default: return true;
           }
-        });
-      });
-    }
-
-    // Ordenar
-    switch (sortBy) {
-      case 'price-asc':
-        result.sort((a, b) => a.price - b.price);
-        break;
-      case 'price-desc':
-        result.sort((a, b) => b.price - a.price);
-        break;
-      case 'area-desc':
-        result.sort((a, b) => b.area - a.area);
-        break;
-      default:
-        result.sort((a, b) => b.id - a.id);
+        })
+      );
     }
 
     setFilteredProperties(result);
-  }, [properties, filters, sortBy]);
+  }, [properties, filters]);
 
-  const handleFilterChange = (newFilters: FilterOptions) => {
-    setFilters(newFilters);
-  };
+  const handleFilterChange = (newFilters: FilterOptions) => setFilters(newFilters);
 
   const handleClearFilters = () => {
     setFilters({
@@ -305,24 +387,18 @@ const Inmuebles = () => {
     });
   };
 
-  const activeFiltersCount = Object.values(filters).filter(value => {
-    if (Array.isArray(value)) return value.length > 0;
-    if (value === 'all' || value === '') return false;
-    return true;
-  }).length;
-
   return (
     <main className="inmuebles">
-
       {/* BARRA DE HERRAMIENTAS */}
-      <section className="section inmuebles-toolbar">
+      <section className="inmuebles-toolbar">
         <div className="inmuebles-toolbar__container">
           <div className="inmuebles-toolbar__left">
             <button
-              className={`inmuebles-toolbar__filter-toggle ${showFilters ? 'inmuebles-toolbar__filter-toggle--active' : ''}`}
+              className={`inmuebles-toolbar__filter-toggle ${showFilters ? 'inmuebles-toolbar__filter-toggle--active' : ''
+                }`}
               onClick={() => setShowFilters(!showFilters)}
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
               </svg>
               Filtros
@@ -332,18 +408,21 @@ const Inmuebles = () => {
             </button>
 
             <div className="inmuebles-toolbar__results">
-              <strong>{filteredProperties.length}</strong> {filteredProperties.length === 1 ? 'inmueble encontrado' : 'inmuebles encontrados'}
+              {loading ? (
+                <span className="inmuebles-toolbar__loading-text">Cargando propiedades...</span>
+              ) : (
+                <>
+                  <strong>{filteredProperties.length}</strong>{' '}
+                  {filteredProperties.length === 1 ? 'inmueble encontrado' : 'inmuebles encontrados'}
+                </>
+              )}
             </div>
           </div>
 
           <div className="inmuebles-toolbar__right">
             <div className="inmuebles-toolbar__sort">
               <label htmlFor="sort">Ordenar por:</label>
-              <select
-                id="sort"
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as SortOption)}
-              >
+              <select id="sort" value={sortBy} onChange={(e) => setSortBy(e.target.value as SortOption)}>
                 <option value="recent">Más recientes</option>
                 <option value="price-asc">Precio: menor a mayor</option>
                 <option value="price-desc">Precio: mayor a menor</option>
@@ -353,23 +432,26 @@ const Inmuebles = () => {
 
             <div className="inmuebles-toolbar__view">
               <button
-                className={`inmuebles-toolbar__view-btn ${viewMode === 'grid' ? 'inmuebles-toolbar__view-btn--active' : ''}`}
+                className={`inmuebles-toolbar__view-btn ${viewMode === 'grid' ? 'inmuebles-toolbar__view-btn--active' : ''
+                  }`}
                 onClick={() => setViewMode('grid')}
                 aria-label="Vista en cuadrícula"
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <rect x="3" y="3" width="7" height="7"></rect>
                   <rect x="14" y="3" width="7" height="7"></rect>
                   <rect x="14" y="14" width="7" height="7"></rect>
                   <rect x="3" y="14" width="7" height="7"></rect>
                 </svg>
               </button>
+
               <button
-                className={`inmuebles-toolbar__view-btn ${viewMode === 'list' ? 'inmuebles-toolbar__view-btn--active' : ''}`}
+                className={`inmuebles-toolbar__view-btn ${viewMode === 'list' ? 'inmuebles-toolbar__view-btn--active' : ''
+                  }`}
                 onClick={() => setViewMode('list')}
                 aria-label="Vista en lista"
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <line x1="8" y1="6" x2="21" y2="6"></line>
                   <line x1="8" y1="12" x2="21" y2="12"></line>
                   <line x1="8" y1="18" x2="21" y2="18"></line>
@@ -383,17 +465,15 @@ const Inmuebles = () => {
         </div>
       </section>
 
-      {/* CONTENIDO */}
-      <section className="section inmuebles-content">
+      {/* CONTENIDO PRINCIPAL Y REJILLA */}
+      <section className="inmuebles-content">
         <div className="inmuebles-container">
-          {/* SIDEBAR FILTROS */}
+
+          {/* PANEL LATERAL DE FILTROS */}
           <aside className={`inmuebles-filters ${showFilters ? 'inmuebles-filters--visible' : ''}`}>
             <div className="inmuebles-filters__header">
-              <h2>Filtros</h2>
-              <button
-                className="inmuebles-filters__close"
-                onClick={() => setShowFilters(false)}
-              >
+              <h2>Filtros avanzados</h2>
+              <button className="inmuebles-filters__close" onClick={() => setShowFilters(false)}>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <line x1="18" y1="6" x2="6" y2="18"></line>
                   <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -408,47 +488,59 @@ const Inmuebles = () => {
             />
           </aside>
 
-          {/* GRID DE PROPIEDADES */}
+          {/* CONTENEDOR DE TARJETAS / ESTADOS */}
           <div className="inmuebles-main">
-            {filteredProperties.length > 0 ? (
+            {error ? (
+              <div className="inmuebles-empty inmuebles-empty--error">
+                <div className="inmuebles-empty__icon-wrapper">
+                  <i className="fas fa-exclamation-triangle"></i>
+                </div>
+                <h3>Error al cargar inmuebles</h3>
+                <p>{error}</p>
+                <button className="btn btn--primary" onClick={() => window.location.reload()}>
+                  <i className="fas fa-sync-alt"></i> Reintentar
+                </button>
+              </div>
+            ) : filteredProperties.length > 0 ? (
               <div className={`inmuebles-grid inmuebles-grid--${viewMode}`}>
                 {filteredProperties.map((property) => (
-                  <PropertyCard
-                    key={property.id}
-                    property={property}
-                    viewMode={viewMode}
-                  />
+                  <PropertyCard key={property.id} property={property} viewMode={viewMode} />
                 ))}
               </div>
             ) : (
               <div className="inmuebles-empty">
-                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="11" cy="11" r="8"></circle>
-                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                </svg>
+                <div className="inmuebles-empty__icon-wrapper">
+                  <i className="fas fa-folder-open"></i>
+                </div>
                 <h3>No se encontraron inmuebles</h3>
-                <p>Intenta ajustar los filtros para ver más resultados</p>
-                <button className="btn btn--primary" onClick={handleClearFilters}>
-                  Limpiar filtros
-                </button>
+                <p>{loading ? 'Buscando en la base de datos...' : 'Intenta ajustar o limpiar los filtros para ver más resultados.'}</p>
+                {!loading && (
+                  <button className="btn btn--primary" onClick={handleClearFilters}>
+                    Limpiar filtros
+                  </button>
+                )}
               </div>
             )}
           </div>
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="section section--alt inmuebles-cta">
-        <div className="inmuebles-cta__content">
-          <h2>¿No encuentras lo que buscas?</h2>
-          <p>Contáctanos y te ayudaremos a encontrar el inmueble perfecto para ti.</p>
-          <div className="inmuebles-cta__actions">
-            <Link to="/contacto" className="btn btn--primary">
-              Contactar
-            </Link>
-            <Link to="/propietarios" className="btn btn--outline">
-              Vender mi inmueble
-            </Link>
+      {/* SECCIÓN CTA FINAL (DISEÑO PREMIUM DEL HOME CONTINUO) */}
+      <section className="inmuebles-cta">
+        <div className="inmuebles-cta__container">
+          <div className="inmuebles-cta__content">
+            <div className="inmuebles-cta__text">
+              <h2>¿No encuentras lo que buscas?</h2>
+              <p>Contáctanos directamente; nuestro equipo se encargará de buscar el inmueble perfecto a la medida de tus necesidades.</p>
+            </div>
+            <div className="inmuebles-cta__actions">
+              <Link to="/contacto" className="btn btn--primary">
+                Contactar ahora
+              </Link>
+              <Link to="/propietarios" className="btn btn--outline white">
+                Vender mi inmueble
+              </Link>
+            </div>
           </div>
         </div>
       </section>

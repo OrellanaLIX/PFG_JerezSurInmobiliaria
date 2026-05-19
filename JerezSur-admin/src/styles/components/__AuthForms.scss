@@ -1,0 +1,575 @@
+// src/styles/Auth.scss
+@use '../globals/_Variables' as *;
+
+/* =========================
+   OCULTAR HEADER Y FOOTER
+========================= */
+body.auth-page {
+  .header,
+  .footer {
+    display: none !important;
+  }
+}
+
+/* =========================
+   AUTH PAGE
+========================= */
+.auth {
+  min-height: 100vh;
+  background: linear-gradient(135deg, $color-primary-dark 0%, $color-primary 50%, darken($color-primary, 5%) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+
+  // Patrón decorativo de fondo
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 800px;
+    height: 800px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -30%;
+    left: -10%;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(103, 180, 55, 0.15) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  @media (max-width: $tablet) {
+    padding: 1.5rem;
+  }
+
+  &__container {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 480px;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  &__logo {
+    text-align: center;
+    margin-bottom: 0.5rem;
+    align-self: center;
+
+    img {
+      max-width: 280px;
+      height: auto;
+
+      @media (max-width: $tablet) {
+        max-width: 220px;
+      }
+    }
+  }
+
+  &__card {
+    background: $color-white;
+    border-radius: $radius-lg;
+    box-shadow: 
+      0 25px 70px rgba(0, 0, 0, 0.3),
+      0 10px 30px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    animation: fadeInUp 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+
+  &__tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    background: rgba($color-primary, 0.03);
+    border-bottom: 2px solid $color-border;
+  }
+
+  &__tab {
+    padding: 1.25rem 2rem;
+    background: transparent;
+    border: none;
+    font-size: 1rem;
+    font-weight: 700;
+    color: $color-text-soft;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+    position: relative;
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, $color-primary, $color-secondary);
+      transform: scaleX(0);
+      transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    &:hover {
+      background: rgba($color-primary, 0.05);
+      color: $color-text;
+    }
+
+    &--active {
+      color: $color-primary;
+      background: $color-white;
+
+      &::after {
+        transform: scaleX(1);
+      }
+    }
+
+    @media (max-width: $tablet) {
+      padding: 1rem;
+      font-size: 0.95rem;
+    }
+  }
+
+  &__content {
+    padding: 3rem;
+
+    @media (max-width: $tablet) {
+      padding: 2rem 1.5rem;
+    }
+  }
+
+  &__divider {
+    position: relative;
+    text-align: center;
+    margin: 2rem 0 1.5rem;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        $color-border 20%,
+        $color-border 80%,
+        transparent
+      );
+    }
+
+    span {
+      position: relative;
+      display: inline-block;
+      padding: 0 1.25rem;
+      background: $color-white;
+      color: $color-text-muted;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+  }
+
+  &__legal {
+    text-align: center;
+    animation: fadeIn 0.8s ease-in-out 0.3s both;
+
+    p {
+      font-size: 0.875rem;
+      color: rgba(255, 255, 255, 0.8);
+      margin: 0;
+      line-height: 1.6;
+
+      a {
+        color: $color-white;
+        font-weight: 700;
+        text-decoration: underline;
+        transition: all 0.3s ease;
+
+        &:hover {
+          color: $color-secondary;
+          text-decoration: none;
+        }
+      }
+    }
+  }
+}
+
+/* =========================
+   AUTH FORMS
+========================= */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+
+  &__group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+
+    &--checkbox {
+      margin-top: 0.5rem;
+    }
+
+    label {
+      font-weight: 600;
+      color: $color-text;
+      font-size: 0.95rem;
+    }
+
+    input {
+      padding: 1rem 1.25rem;
+      border: 2px solid $color-border;
+      border-radius: $radius-sm;
+      font-size: 1rem;
+      font-family: inherit;
+      transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+      background: $color-white;
+      color: $color-text;
+
+      &:focus {
+        outline: none;
+        border-color: $color-primary;
+        box-shadow: 0 0 0 4px rgba($color-primary, 0.1);
+      }
+
+      &::placeholder {
+        color: $color-text-muted;
+      }
+    }
+  }
+
+  &__input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+
+    input {
+      padding-left: 3.25rem;
+      width: 100%;
+    }
+  }
+
+  &__input-icon {
+    position: absolute;
+    left: 1.125rem;
+    color: $color-text-muted;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  &__toggle-password {
+    position: absolute;
+    right: 1rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: $color-text-muted;
+    transition: all 0.3s ease;
+    border-radius: $radius-sm;
+
+    &:hover {
+      color: $color-primary;
+      background: rgba($color-primary, 0.08);
+    }
+
+    &:focus {
+      outline: 2px solid $color-primary;
+      outline-offset: 2px;
+    }
+  }
+
+  &__extras {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-top: -0.5rem;
+  }
+
+  &__checkbox {
+    display: flex;
+    align-items: start;
+    gap: 0.75rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: $color-text-soft;
+    line-height: 1.5;
+
+    input[type="checkbox"] {
+      margin-top: 0.2rem;
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+      flex-shrink: 0;
+      accent-color: $color-primary;
+    }
+
+    a {
+      color: $color-primary;
+      text-decoration: underline;
+      font-weight: 600;
+      transition: color 0.3s ease;
+
+      &:hover {
+        color: $color-primary-dark;
+      }
+    }
+  }
+
+  &__link {
+    color: $color-primary;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    transition: all 0.3s ease;
+
+    &:hover {
+      color: $color-primary-dark;
+      text-decoration: underline;
+    }
+
+    &:focus {
+      outline: 2px solid $color-primary;
+      outline-offset: 2px;
+      border-radius: 4px;
+    }
+  }
+
+  &__error {
+    padding: 1rem 1.25rem;
+    background: rgba(#dc3545, 0.1);
+    border: 1px solid rgba(#dc3545, 0.3);
+    border-radius: $radius-sm;
+    color: #721c24;
+    font-size: 0.9rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    animation: shake 0.4s ease-in-out;
+
+    svg {
+      flex-shrink: 0;
+      color: #dc3545;
+    }
+  }
+
+  .btn {
+    margin-top: 0.5rem;
+    padding: 1.125rem 2rem;
+    font-size: 1.05rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+
+    &:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+
+    .spinner {
+      animation: spin 1s linear infinite;
+    }
+  }
+
+  &__footer {
+    text-align: center;
+    color: $color-text-soft;
+    font-size: 0.95rem;
+    margin: 0.5rem 0 0;
+    line-height: 1.5;
+  }
+}
+
+/* =========================
+   SOCIAL AUTH
+========================= */
+.social-auth {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+
+  &__button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.875rem;
+    padding: 1rem 1.5rem;
+    border: 2px solid $color-border;
+    border-radius: $radius-sm;
+    background: $color-white;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+    position: relative;
+    overflow: hidden;
+
+    &::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: currentColor;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    svg {
+      position: relative;
+      z-index: 1;
+      flex-shrink: 0;
+    }
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+
+      &::before {
+        opacity: 0.05;
+      }
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+
+    &--google {
+      color: #4285F4;
+      
+      &:hover {
+        border-color: #4285F4;
+      }
+    }
+
+    &--facebook {
+      color: #1877F2;
+      
+      &:hover {
+        border-color: #1877F2;
+      }
+    }
+
+    &--apple {
+      color: #000000;
+      
+      &:hover {
+        border-color: #000000;
+      }
+    }
+  }
+}
+
+/* =========================
+   ANIMACIONES
+========================= */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateX(-5px);
+  }
+  20%, 40%, 60%, 80% {
+    transform: translateX(5px);
+  }
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+@media (max-width: $tablet) {
+  .auth {
+    padding: 1rem;
+
+    &__container {
+      gap: 1.5rem;
+    }
+
+    &__card {
+      box-shadow: 
+        0 20px 50px rgba(0, 0, 0, 0.25),
+        0 8px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    &__content {
+      padding: 2rem 1.5rem;
+    }
+  }
+
+  .social-auth__button {
+    padding: 0.875rem 1.25rem;
+    font-size: 0.9rem;
+
+    svg {
+      width: 18px;
+      height: 18px;
+    }
+  }
+
+  .auth-form {
+    gap: 1.25rem;
+
+    .btn {
+      padding: 1rem 1.5rem;
+    }
+  }
+}
+
+@media (max-width: 380px) {
+  .auth {
+    &__tabs {
+      font-size: 0.85rem;
+    }
+
+    &__tab {
+      padding: 0.875rem 1rem;
+    }
+  }
+}

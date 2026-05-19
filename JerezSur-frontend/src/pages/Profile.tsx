@@ -1,942 +1,909 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState, type ChangeEvent, type FormEvent } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import '../styles/Profile.scss';
 
-interface Inmueble {
-  direccion?: string;
-  tipo?: string;
-  precio?: number;
-  superficie?: number;
-  habitaciones?: number;
-  banos?: number;
-  descripcion?: string;
-}
+// --- TIPOS ---
 
-interface Operacion {
-  tipo?: string;
-  precio?: number;
-  fechaInicio?: string;
-  fechaFin?: string;
-  comprador?: string;
-}
+type Perfil = '' | 'interesado' | 'propietario' | 'ambos';
+type TipoOperacion = '' | 'VENTA' | 'ALQUILER' | 'CUALQUIERA';
 
-interface Propiedad {
-  id: number;
-  inmueble: Inmueble;
-  estado: 'activo' | 'vendido' | 'eliminado';
-}
-
-interface Contrato {
-  id: number;
-  operacion: Operacion;
-  estado: 'vigente' | 'finalizado' | 'cancelado';
-}
-
-interface VendedorData {
-  dni: string;
-  propiedades: Propiedad[];
-  contratos: Contrato[];
-}
-
-interface Interes {
-  tipoInmueble: string;
-  zona: string;
-  presupuesto: number;
-  habitaciones: number;
-  banos: number;
-  operacion: 'compra' | 'alquiler';
-}
-
-interface InteresadoData {
-  dni: string;
-  intereses: Interes[];
-}
-
-interface UserProfileData {
-  id: number;
+interface ProfileFormData {
   nombre: string;
+  apellidos: string;
+  dni: string;
+  telefono: string;
   email: string;
-  avatarUrl?: string;
-  roles: ('vendedor' | 'interesado' | 'ambos')[];
-  vendedor?: VendedorData;
-  interesado?: InteresadoData;
+  imagenPerfilUrl: string;
+
+  // Cambio de contraseña (opcional)
+  passwordActual: string;
+  nuevaPassword: string;
+  confirmarPassword: string;
+
+  // Datos de interesado
+  presupuestoMaximo: string;
+  habitacionesMinimas: string;
+  banosMinimos: string;
+  zonaInteres: string;
+  tipoOperacion: TipoOperacion;
+  observacionesInteresado: string;
+
+  // Datos de propietario
+  observacionesVendedor: string;
 }
 
-const UserProfile: React.FC = () => {
+interface UsuarioPerfil {
+  id: number;
+  email: string | null;
+  telefono: string | null;
+  nombre: string | null;
+  apellidos: string | null;
+  dni: string | null;
+  imagenPerfilUrl: string | null;
+  role: string;
+  cambiarPasswd: boolean;
+  interesadoId: number | null;
+  vendedorId: number | null;
+  zonaInteres: string | null;
+  presupuestoMaximo: string | null;
+  habitacionesMinimas: number | null;
+  banosMinimos: number | null;
+  tipoBusqueda: string | null;
+  observacionesInteresado: string | null;
+  observacionesVendedor: string | null;
+}
+
+interface StoredUser {
+  id?: number | string;
+  [key: string]: unknown;
+}
+
+// --- CONSTANTES ---
+
+const API_BASE = 'http://localhost:8080/api';
+
+const INITIAL_FORM: ProfileFormData = {
+  nombre: '',
+  apellidos: '',
+  dni: '',
+  telefono: '',
+  email: '',
+  imagenPerfilUrl: '',
+  passwordActual: '',
+  nuevaPassword: '',
+  confirmarPassword: '',
+  presupuestoMaximo: '',
+  habitacionesMinimas: '',
+  banosMinimos: '',
+  zonaInteres: '',
+  tipoOperacion: '',
+  observacionesInteresado: '',
+  observacionesVendedor: '',
+};
+
+// --- HELPERS ---
+
+const trim = (v: string): string => v.trim();
+
+const normalizeDni = (v: string): string =>
+  v.trim().toUpperCase().replace(/\s/g, '');
+
+const normalizePhone = (v: string): string =>
+  v.trim().replace(/[\s\-()]/g, '');
+
+const emptyToNull = (v: string): string | null => {
+  const c = v.trim();
+  return c === '' ? null : c;
+};
+
+const toNullableNum = (v: string): number | null => {
+  const c = v.trim();
+  if (c === '') return null;
+  const n = Number(c);
+  return Number.isNaN(n) || n < 0 ? null : n;
+};
+
+const toNullableInt = (v: string): number | null => {
+  const c = v.trim();
+  if (c === '') return null;
+  const n = parseInt(c, 10);
+  return Number.isNaN(n) || n < 0 ? null : n;
+};
+
+const validateDniNie = (raw: string): boolean => {
+  const v = normalizeDni(raw);
+  const L = 'TRWAGMYFPDXBNJZSQVHLCKE';
+
+  if (/^\d{8}[A-Z]$/.test(v)) {
+    return L[parseInt(v.slice(0, 8), 10) % 23] === v[8];
+  }
+
+  if (/^[XYZ]\d{7}[A-Z]$/.test(v)) {
+    const m: Record<string, string> = { X: '0', Y: '1', Z: '2' };
+    return L[parseInt(m[v[0]] + v.slice(1, 8), 10) % 23] === v[8];
+  }
+
+  return false;
+};
+
+const validatePhone = (raw: string): boolean => {
+  const v = normalizePhone(raw);
+  return /^(\+34)?[6789]\d{8}$/.test(v);
+};
+
+const validateEmail = (v: string): boolean => {
+  if (!v.trim()) return true;
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
+};
+
+const roleToPerfil = (role: string): Perfil => {
+  if (role === 'ROLE_INTERESADO') return 'interesado';
+  if (role === 'ROLE_VENDEDOR') return 'propietario';
+  if (role === 'ROLE_AMBOS') return 'ambos';
+  return '';
+};
+
+const perfilToRole = (p: Perfil): string => {
+  if (p === 'interesado') return 'ROLE_INTERESADO';
+  if (p === 'propietario') return 'ROLE_VENDEDOR';
+  if (p === 'ambos') return 'ROLE_AMBOS';
+  return 'ROLE_NOROL';
+};
+
+const getStoredUser = (): StoredUser | null => {
+  const json = localStorage.getItem('usuario');
+  if (!json) return null;
+  try {
+    return JSON.parse(json) as StoredUser;
+  } catch {
+    return null;
+  }
+};
+
+const getToken = (): string =>
+  localStorage.getItem('token') ||
+  localStorage.getItem('accessToken') ||
+  '';
+
+const getApiError = async (res: Response): Promise<string> => {
+  const ct = res.headers.get('content-type') || '';
+  try {
+    if (ct.includes('application/json')) {
+      const d = await res.json();
+      return d?.error || d?.message || 'Error desconocido.';
+    }
+    return (await res.text()) || 'Error desconocido.';
+  } catch {
+    return 'No se pudo leer la respuesta del servidor.';
+  }
+};
+
+// --- COMPONENTE ---
+
+const Profile: React.FC = () => {
   const navigate = useNavigate();
 
-  const [user, setUser] = useState<UserProfileData | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+  const [submitSuccess, setSubmitSuccess] = useState('');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [changePasswordMode, setChangePasswordMode] = useState(false);
 
-  const [editingProfile, setEditingProfile] = useState<boolean>(false);
-  const [editNombre, setEditNombre] = useState<string>('');
-  const [editEmail, setEditEmail] = useState<string>('');
-  const [editAvatarUrl, setEditAvatarUrl] = useState<string>('');
+  const [perfil, setPerfil] = useState<Perfil>('');
+  const [formData, setFormData] = useState<ProfileFormData>(INITIAL_FORM);
+  const [serverData, setServerData] = useState<UsuarioPerfil | null>(null);
 
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false);
+  const esInteresado = perfil === 'interesado' || perfil === 'ambos';
+  const esPropietario = perfil === 'propietario' || perfil === 'ambos';
 
-  const [showAddPropiedad, setShowAddPropiedad] = useState<boolean>(false);
-  const [newPropiedad, setNewPropiedad] = useState<Inmueble>({
-    direccion: '',
-    tipo: '',
-    precio: 0,
-    superficie: 0,
-    habitaciones: 0,
-    banos: 0,
-    descripcion: '',
-  });
-
-  const [showAddInteres, setShowAddInteres] = useState<boolean>(false);
-  const [newInteres, setNewInteres] = useState<Interes>({
-    tipoInmueble: '',
-    zona: '',
-    presupuesto: 0,
-    habitaciones: 0,
-    banos: 0,
-    operacion: 'compra',
-  });
-
-  const [editingPropiedadId, setEditingPropiedadId] = useState<number | null>(null);
-  const [editPropiedad, setEditPropiedad] = useState<Inmueble>({});
-  const [editPropiedadEstado, setEditPropiedadEstado] = useState<'activo' | 'vendido' | 'eliminado'>('activo');
-
-  const [editingInteresIndex, setEditingInteresIndex] = useState<number | null>(null);
-  const [editInteres, setEditInteres] = useState<Interes>({
-    tipoInmueble: '',
-    zona: '',
-    presupuesto: 0,
-    habitaciones: 0,
-    banos: 0,
-    operacion: 'compra',
-  });
-
-  const [feedback, setFeedback] = useState<string | null>(null);
+  // --- CARGA INICIAL ---
 
   useEffect(() => {
-    const fetchUserData = async () => {
+    const loadProfile = async () => {
+      const user = getStoredUser();
+      if (!user?.id) {
+        navigate('/acceder');
+        return;
+      }
+
       try {
-        const session = localStorage.getItem('userSession');
-        if (!session) {
+        const token = getToken();
+        const res = await fetch(`${API_BASE}/usuarios/${user.id}`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+
+        if (!res.ok) {
           navigate('/acceder');
           return;
         }
 
-        const { id } = JSON.parse(session);
+        const data: UsuarioPerfil = await res.json();
+        setServerData(data);
 
-        const response = await fetch(`/api/users/profile/${id}`);
-        if (!response.ok) throw new Error('Error al conectar con la base de datos');
+        // Pre-rellenar el formulario con los datos actuales
+        setPerfil(roleToPerfil(data.role));
 
-        const data: UserProfileData = await response.json();
-        setUser(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Error desconocido');
+        setFormData({
+          nombre: data.nombre ?? '',
+          apellidos: data.apellidos ?? '',
+          dni: data.dni ?? '',
+          telefono: data.telefono ?? '',
+          email: data.email ?? '',
+          imagenPerfilUrl: data.imagenPerfilUrl ?? '',
+          passwordActual: '',
+          nuevaPassword: '',
+          confirmarPassword: '',
+          presupuestoMaximo: data.presupuestoMaximo ?? '',
+          habitacionesMinimas: data.habitacionesMinimas?.toString() ?? '',
+          banosMinimos: data.banosMinimos?.toString() ?? '',
+          zonaInteres: data.zonaInteres ?? '',
+          tipoOperacion: (data.tipoBusqueda as TipoOperacion) ?? '',
+          observacionesInteresado: data.observacionesInteresado ?? '',
+          observacionesVendedor: data.observacionesVendedor ?? '',
+        });
+      } catch {
+        setSubmitError('Error al cargar tu perfil. Inténtalo de nuevo.');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchUserData();
-  }, [navigate]);
+    loadProfile();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const showFeedback = (msg: string) => {
-    setFeedback(msg);
-    setTimeout(() => setFeedback(null), 3000);
+  // --- LIMPIAR MENSAJES AL EDITAR ---
+
+  useEffect(() => {
+    if (submitError) setSubmitError('');
+    if (submitSuccess) setSubmitSuccess('');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData, perfil]);
+
+  // --- HANDLERS ---
+
+  const handleChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleStartEditProfile = () => {
-    if (!user) return;
-    setEditNombre(user.nombre);
-    setEditEmail(user.email);
-    setEditAvatarUrl(user.avatarUrl || '');
-    setEditingProfile(true);
+  const handlePerfilChange = (e: ChangeEvent<HTMLSelectElement>) => {
+    const p = e.target.value as Perfil;
+    setPerfil(p);
+
+    setFormData((prev) => ({
+      ...prev,
+      ...(!['interesado', 'ambos'].includes(p) && {
+        presupuestoMaximo: '',
+        habitacionesMinimas: '',
+        banosMinimos: '',
+        zonaInteres: '',
+        tipoOperacion: '' as TipoOperacion,
+        observacionesInteresado: '',
+      }),
+      ...(!['propietario', 'ambos'].includes(p) && {
+        observacionesVendedor: '',
+      }),
+    }));
   };
 
-  const handleSaveProfile = async () => {
-    if (!user) return;
+  const handleToggleChangePassword = () => {
+    setChangePasswordMode((prev) => !prev);
+    setFormData((prev) => ({
+      ...prev,
+      passwordActual: '',
+      nuevaPassword: '',
+      confirmarPassword: '',
+    }));
+  };
+
+  // --- VALIDACIÓN ---
+
+  const validate = (): string | null => {
+    if (!trim(formData.nombre)) return 'El nombre es obligatorio.';
+    if (!trim(formData.apellidos)) return 'Los apellidos son obligatorios.';
+
+    if (!normalizeDni(formData.dni)) return 'El DNI/NIE es obligatorio.';
+    if (!validateDniNie(formData.dni)) return 'El DNI/NIE no es válido.';
+
+    if (!normalizePhone(formData.telefono)) return 'El teléfono es obligatorio.';
+    if (!validatePhone(formData.telefono)) return 'Formato de teléfono no válido (ej: 600123456).';
+
+    if (formData.email.trim() && !validateEmail(formData.email)) {
+      return 'El formato del email no es válido.';
+    }
+
+    if (changePasswordMode) {
+      if (!formData.passwordActual) return 'Debes introducir tu contraseña actual.';
+      if (!formData.nuevaPassword) return 'Debes establecer una nueva contraseña.';
+      if (formData.nuevaPassword.length < 8) return 'La nueva contraseña debe tener al menos 8 caracteres.';
+      if (formData.nuevaPassword !== formData.confirmarPassword) return 'Las contraseñas no coinciden.';
+    }
+
+    if (!perfil) return 'Debes seleccionar un perfil.';
+
+    if (esInteresado && !formData.tipoOperacion) {
+      return 'Indica si buscas compra, alquiler o cualquiera.';
+    }
+
+    const p = formData.presupuestoMaximo.trim();
+    if (p && toNullableNum(p) === null) {
+      return 'El presupuesto debe ser un número positivo.';
+    }
+
+    const h = formData.habitacionesMinimas.trim();
+    if (h && toNullableInt(h) === null) {
+      return 'Las habitaciones deben ser un número positivo.';
+    }
+
+    const b = formData.banosMinimos.trim();
+    if (b && toNullableInt(b) === null) {
+      return 'Los baños deben ser un número positivo.';
+    }
+
+    return null;
+  };
+
+  // --- ENVÍO ---
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setSubmitError('');
+    setSubmitSuccess('');
+
+    const err = validate();
+    if (err) {
+      setSubmitError(err);
+      return;
+    }
+
+    const user = getStoredUser();
+    if (!user?.id) {
+      setSubmitError('Sesión no válida. Inicia sesión de nuevo.');
+      return;
+    }
+
+    const userId = Number(user.id);
+    if (!Number.isFinite(userId)) {
+      setSubmitError('ID de usuario no válido.');
+      return;
+    }
+
+    setSubmitting(true);
+
+    const payload = {
+      usuarioId: userId,
+      perfil,
+      role: perfilToRole(perfil),
+
+      nombre: trim(formData.nombre),
+      apellidos: trim(formData.apellidos),
+      telefono: normalizePhone(formData.telefono),
+      email: formData.email.trim() ? formData.email.trim().toLowerCase() : null,
+      dni: normalizeDni(formData.dni),
+      imagenPerfilUrl: emptyToNull(formData.imagenPerfilUrl),
+
+      // Solo enviar contraseñas si está en modo cambio
+      passwordActual: changePasswordMode ? formData.passwordActual : null,
+      nuevaPassword: changePasswordMode ? formData.nuevaPassword : null,
+
+      // Datos de interesado
+      presupuestoMaximo: esInteresado ? toNullableNum(formData.presupuestoMaximo) : null,
+      zonaInteres: esInteresado ? emptyToNull(formData.zonaInteres) : null,
+      habitacionesMinimas: esInteresado ? toNullableInt(formData.habitacionesMinimas) : null,
+      banosMinimos: esInteresado ? toNullableInt(formData.banosMinimos) : null,
+      tipoOperacion: esInteresado ? (formData.tipoOperacion || null) : null,
+      observacionesInteresado: esInteresado ? emptyToNull(formData.observacionesInteresado) : null,
+
+      // Datos de propietario
+      observacionesVendedor: esPropietario ? emptyToNull(formData.observacionesVendedor) : null,
+    };
+
     try {
-      const response = await fetch(`/api/users/profile/${user.id}`, {
+      const token = getToken();
+      const res = await fetch(`${API_BASE}/usuarios/${userId}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          nombre: editNombre,
-          email: editEmail,
-          avatarUrl: editAvatarUrl || undefined,
-        }),
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(payload),
       });
-      if (!response.ok) throw new Error('Error al actualizar el perfil');
-      const updatedUser: UserProfileData = await response.json();
-      setUser(updatedUser);
-      setEditingProfile(false);
-      showFeedback('Perfil actualizado correctamente.');
-    } catch (err) {
-      showFeedback(err instanceof Error ? err.message : 'Error al guardar');
+
+      if (!res.ok) {
+        const msg = await getApiError(res);
+        setSubmitError(msg);
+        return;
+      }
+
+      // Actualizar localStorage con los nuevos datos
+      const updatedUser = {
+        ...user,
+        nombre: trim(formData.nombre),
+        apellidos: trim(formData.apellidos),
+        telefono: normalizePhone(formData.telefono),
+        ...(formData.email.trim() && { email: formData.email.trim().toLowerCase() }),
+        role: perfilToRole(perfil),
+      };
+
+      localStorage.setItem('usuario', JSON.stringify(updatedUser));
+
+      setSubmitSuccess('Perfil actualizado correctamente.');
+      setChangePasswordMode(false);
+      setFormData((prev) => ({
+        ...prev,
+        passwordActual: '',
+        nuevaPassword: '',
+        confirmarPassword: '',
+      }));
+
+      // Recargar datos del servidor
+      const refreshed = await fetch(`${API_BASE}/usuarios/${userId}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (refreshed.ok) {
+        const refreshedData: UsuarioPerfil = await refreshed.json();
+        setServerData(refreshedData);
+      }
+    } catch {
+      setSubmitError('Error de conexión. Inténtalo de nuevo.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  const handleCancelEditProfile = () => {
-    setEditingProfile(false);
-  };
+  // --- LOGOUT ---
 
   const handleLogout = () => {
-    localStorage.removeItem('userSession');
+    localStorage.removeItem('usuario');
+    localStorage.removeItem('token');
+    localStorage.removeItem('accessToken');
     navigate('/');
   };
 
+  // --- ELIMINAR CUENTA ---
+
   const handleDeleteAccount = async () => {
-    if (!user) return;
+    const user = getStoredUser();
+    if (!user?.id) return;
+
     try {
-      const response = await fetch(`/api/users/${user.id}`, {
+      const token = getToken();
+      const res = await fetch(`${API_BASE}/usuarios/${user.id}`, {
         method: 'DELETE',
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
-      if (!response.ok) throw new Error('Error al eliminar la cuenta');
-      localStorage.removeItem('userSession');
+
+      if (!res.ok) {
+        const msg = await getApiError(res);
+        setSubmitError(msg);
+        setShowDeleteConfirm(false);
+        return;
+      }
+
+      localStorage.removeItem('usuario');
+      localStorage.removeItem('token');
+      localStorage.removeItem('accessToken');
       navigate('/');
-    } catch (err) {
-      showFeedback(err instanceof Error ? err.message : 'Error al eliminar la cuenta');
+    } catch {
+      setSubmitError('Error al eliminar la cuenta. Inténtalo de nuevo.');
       setShowDeleteConfirm(false);
     }
   };
 
-  const handleAddPropiedad = async () => {
-    if (!user) return;
-    try {
-      const response = await fetch(`/api/users/${user.id}/propiedades`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          inmueble: newPropiedad,
-          estado: 'activo',
-        }),
-      });
-      if (!response.ok) throw new Error('Error al añadir propiedad');
-      const createdPropiedad: Propiedad = await response.json();
+  // --- RENDER ---
 
-      setUser((prev) => {
-        if (!prev || !prev.vendedor) return prev;
-        return {
-          ...prev,
-          vendedor: {
-            ...prev.vendedor,
-            propiedades: [...prev.vendedor.propiedades, createdPropiedad],
-          },
-        };
-      });
-
-      setShowAddPropiedad(false);
-      setNewPropiedad({
-        direccion: '',
-        tipo: '',
-        precio: 0,
-        superficie: 0,
-        habitaciones: 0,
-        banos: 0,
-        descripcion: '',
-      });
-      showFeedback('Propiedad añadida correctamente.');
-    } catch (err) {
-      showFeedback(err instanceof Error ? err.message : 'Error al añadir propiedad');
-    }
-  };
-
-  const handleStartEditPropiedad = (propiedad: Propiedad) => {
-    setEditingPropiedadId(propiedad.id);
-    setEditPropiedad({ ...propiedad.inmueble });
-    setEditPropiedadEstado(propiedad.estado);
-  };
-
-  const handleSaveEditPropiedad = async () => {
-    if (!user || editingPropiedadId === null) return;
-    try {
-      const response = await fetch(`/api/users/${user.id}/propiedades/${editingPropiedadId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          inmueble: editPropiedad,
-          estado: editPropiedadEstado,
-        }),
-      });
-      if (!response.ok) throw new Error('Error al actualizar propiedad');
-      const updatedPropiedad: Propiedad = await response.json();
-
-      setUser((prev) => {
-        if (!prev || !prev.vendedor) return prev;
-        return {
-          ...prev,
-          vendedor: {
-            ...prev.vendedor,
-            propiedades: prev.vendedor.propiedades.map((p) =>
-              p.id === editingPropiedadId ? updatedPropiedad : p
-            ),
-          },
-        };
-      });
-
-      setEditingPropiedadId(null);
-      showFeedback('Propiedad actualizada correctamente.');
-    } catch (err) {
-      showFeedback(err instanceof Error ? err.message : 'Error al actualizar propiedad');
-    }
-  };
-
-  const handleDeletePropiedad = async (propiedadId: number) => {
-    if (!user) return;
-    try {
-      const response = await fetch(`/api/users/${user.id}/propiedades/${propiedadId}`, {
-        method: 'DELETE',
-      });
-      if (!response.ok) throw new Error('Error al eliminar propiedad');
-
-      setUser((prev) => {
-        if (!prev || !prev.vendedor) return prev;
-        return {
-          ...prev,
-          vendedor: {
-            ...prev.vendedor,
-            propiedades: prev.vendedor.propiedades.filter((p) => p.id !== propiedadId),
-          },
-        };
-      });
-      showFeedback('Propiedad eliminada correctamente.');
-    } catch (err) {
-      showFeedback(err instanceof Error ? err.message : 'Error al eliminar propiedad');
-    }
-  };
-
-  const handleAddInteres = async () => {
-    if (!user) return;
-    try {
-      const response = await fetch(`/api/users/${user.id}/intereses`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newInteres),
-      });
-      if (!response.ok) throw new Error('Error al añadir interés');
-      const createdInteres: Interes = await response.json();
-
-      setUser((prev) => {
-        if (!prev || !prev.interesado) return prev;
-        return {
-          ...prev,
-          interesado: {
-            ...prev.interesado,
-            intereses: [...prev.interesado.intereses, createdInteres],
-          },
-        };
-      });
-
-      setShowAddInteres(false);
-      setNewInteres({
-        tipoInmueble: '',
-        zona: '',
-        presupuesto: 0,
-        habitaciones: 0,
-        banos: 0,
-        operacion: 'compra',
-      });
-      showFeedback('Interés añadido correctamente.');
-    } catch (err) {
-      showFeedback(err instanceof Error ? err.message : 'Error al añadir interés');
-    }
-  };
-
-  const handleStartEditInteres = (index: number) => {
-    if (!user || !user.interesado) return;
-    setEditingInteresIndex(index);
-    setEditInteres({ ...user.interesado.intereses[index] });
-  };
-
-  const handleSaveEditInteres = async () => {
-    if (!user || editingInteresIndex === null) return;
-    try {
-      const response = await fetch(`/api/users/${user.id}/intereses/${editingInteresIndex}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editInteres),
-      });
-      if (!response.ok) throw new Error('Error al actualizar interés');
-      const updatedInteres: Interes = await response.json();
-
-      setUser((prev) => {
-        if (!prev || !prev.interesado || editingInteresIndex === null) return prev;
-        const newIntereses = [...prev.interesado.intereses];
-        newIntereses[editingInteresIndex] = updatedInteres;
-        return {
-          ...prev,
-          interesado: {
-            ...prev.interesado,
-            intereses: newIntereses,
-          },
-        };
-      });
-
-      setEditingInteresIndex(null);
-      showFeedback('Interés actualizado correctamente.');
-    } catch (err) {
-      showFeedback(err instanceof Error ? err.message : 'Error al actualizar interés');
-    }
-  };
-
-  const handleDeleteInteres = async (index: number) => {
-    if (!user) return;
-    try {
-      const response = await fetch(`/api/users/${user.id}/intereses/${index}`, {
-        method: 'DELETE',
-      });
-      if (!response.ok) throw new Error('Error al eliminar interés');
-
-      setUser((prev) => {
-        if (!prev || !prev.interesado) return prev;
-        return {
-          ...prev,
-          interesado: {
-            ...prev.interesado,
-            intereses: prev.interesado.intereses.filter((_, i) => i !== index),
-          },
-        };
-      });
-      showFeedback('Interés eliminado correctamente.');
-    } catch (err) {
-      showFeedback(err instanceof Error ? err.message : 'Error al eliminar interés');
-    }
-  };
-
-  if (loading) return <p>Cargando perfil...</p>;
-  if (error) return <p>Hubo un error: {error}</p>;
-  if (!user) return <p>No se encontraron datos de usuario.</p>;
+  if (loading) {
+    return (
+      <main data-header-transparent data-footer-hidden>
+        <div className="profile-container">
+          <p>Cargando tu perfil...</p>
+        </div>
+      </main>
+    );
+  }
 
   return (
-    <div>
-      {feedback && <div><p>{feedback}</p></div>}
+    <main data-header-transparent data-footer-hidden className="profile-section">
+      <div className="profile-section__container">
 
-      <header>
-        <button onClick={() => navigate(-1)}>Volver</button>
+        {/* BOTÓN VOLVER (ESTILO GHOST DE TU SISTEMA) */}
+        <Link to="/" className="btn--ghost">
+          <i className="fas fa-arrow-left"></i> Volver
+        </Link>
 
-        {!editingProfile ? (
-          <>
+        {/* HEADER DE USUARIO */}
+        <header className="profile-header">
+          <div className="profile-header__avatar">
             <img
-              src={user.avatarUrl || '/default-user.png'}
+              src={
+                serverData?.imagenPerfilUrl ||
+                'https://api.dicebear.com/7.x/bottts/svg?seed=default'
+              }
               alt="Avatar"
-              width="100"
-              height="100"
               onError={(e) => {
-                (e.target as HTMLImageElement).src = '/default-user.png';
+                (e.target as HTMLImageElement).src =
+                  'https://api.dicebear.com/7.x/bottts/svg?seed=default';
               }}
             />
-            <h1>{user.nombre}</h1>
-            <p>{user.email}</p>
-            <p>
-              <strong>Roles:</strong>{' '}
-              {user.roles.map((r) => r.charAt(0).toUpperCase() + r.slice(1)).join(', ')}
-            </p>
-            <button onClick={handleStartEditProfile}>Editar Perfil</button>
-          </>
-        ) : (
-          <div>
-            <h2>Editar Perfil</h2>
-            <div>
-              <label>Nombre:</label>
-              <br />
-              <input
-                type="text"
-                value={editNombre}
-                onChange={(e) => setEditNombre(e.target.value)}
-              />
-            </div>
-            <div>
-              <label>Email:</label>
-              <br />
-              <input
-                type="email"
-                value={editEmail}
-                onChange={(e) => setEditEmail(e.target.value)}
-              />
-            </div>
-            <div>
-              <label>URL de Avatar:</label>
-              <br />
-              <input
-                type="text"
-                value={editAvatarUrl}
-                onChange={(e) => setEditAvatarUrl(e.target.value)}
-              />
-            </div>
-            <br />
-            <button onClick={handleSaveProfile}>Guardar</button>{' '}
-            <button onClick={handleCancelEditProfile}>Cancelar</button>
           </div>
-        )}
-      </header>
+          <div className="profile-header__info">
+            <h1>Mi Perfil</h1>
+            <p>Gestiona tu información personal y tus preferencias.</p>
+          </div>
+        </header>
 
-      {(user.roles.includes('vendedor') || user.roles.includes('ambos')) && user.vendedor && (
-        <section>
-          <h2>Informacion de Vendedor</h2>
-          <p>
-            <strong>DNI:</strong> {user.vendedor.dni}
-          </p>
+        {/* FORMULARIO PRINCIPAL */}
+        <form onSubmit={handleSubmit} className="profile-form" noValidate>
 
-          <h3>Propiedades ({user.vendedor.propiedades.length})</h3>
-          <button onClick={() => setShowAddPropiedad(!showAddPropiedad)}>
-            {showAddPropiedad ? 'Cancelar' : 'Añadir Propiedad'}
-          </button>
+          {/* DATOS PERSONALES */}
+          <fieldset className="profile-card">
+            <legend>Datos de Contacto</legend>
 
-          {showAddPropiedad && (
-            <div>
-              <h4>Nueva Propiedad</h4>
-              <div>
-                <label>Direccion:</label>
-                <br />
+            <div className="profile-card__row">
+              <div className="profile-card__group">
+                <label htmlFor="nombre">Nombre *</label>
                 <input
+                  id="nombre"
                   type="text"
-                  value={newPropiedad.direccion || ''}
-                  onChange={(e) => setNewPropiedad({ ...newPropiedad, direccion: e.target.value })}
+                  name="nombre"
+                  required
+                  value={formData.nombre}
+                  onChange={handleChange}
+                  placeholder="Tu nombre"
+                  autoComplete="given-name"
                 />
               </div>
-              <div>
-                <label>Tipo:</label>
-                <br />
-                <select
-                  value={newPropiedad.tipo || ''}
-                  onChange={(e) => setNewPropiedad({ ...newPropiedad, tipo: e.target.value })}
-                >
-                  <option value="">Seleccionar...</option>
-                  <option value="piso">Piso</option>
-                  <option value="casa">Casa</option>
-                  <option value="chalet">Chalet</option>
-                  <option value="local">Local</option>
-                  <option value="oficina">Oficina</option>
-                  <option value="terreno">Terreno</option>
-                </select>
-              </div>
-              <div>
-                <label>Precio:</label>
-                <br />
-                <input
-                  type="number"
-                  value={newPropiedad.precio || 0}
-                  onChange={(e) => setNewPropiedad({ ...newPropiedad, precio: parseFloat(e.target.value) || 0 })}
-                />
-              </div>
-              <div>
-                <label>Superficie:</label>
-                <br />
-                <input
-                  type="number"
-                  value={newPropiedad.superficie || 0}
-                  onChange={(e) => setNewPropiedad({ ...newPropiedad, superficie: parseFloat(e.target.value) || 0 })}
-                />
-              </div>
-              <div>
-                <label>Habitaciones:</label>
-                <br />
-                <input
-                  type="number"
-                  value={newPropiedad.habitaciones || 0}
-                  onChange={(e) => setNewPropiedad({ ...newPropiedad, habitaciones: parseInt(e.target.value) || 0 })}
-                />
-              </div>
-              <div>
-                <label>Banos:</label>
-                <br />
-                <input
-                  type="number"
-                  value={newPropiedad.banos || 0}
-                  onChange={(e) => setNewPropiedad({ ...newPropiedad, banos: parseInt(e.target.value) || 0 })}
-                />
-              </div>
-              <div>
-                <label>Descripcion:</label>
-                <br />
-                <textarea
-                  value={newPropiedad.descripcion || ''}
-                  onChange={(e) => setNewPropiedad({ ...newPropiedad, descripcion: e.target.value })}
-                />
-              </div>
-              <br />
-              <button onClick={handleAddPropiedad}>Guardar Propiedad</button>
-            </div>
-          )}
 
-          {user.vendedor.propiedades.length === 0 ? (
-            <p>No tienes propiedades registradas.</p>
-          ) : (
-            <ul>
-              {user.vendedor.propiedades.map((propiedad) => (
-                <li key={propiedad.id}>
-                  {editingPropiedadId === propiedad.id ? (
-                    <div>
-                      <h4>Editando Propiedad #{propiedad.id}</h4>
-                      <div>
-                        <label>Direccion:</label>
-                        <br />
-                        <input
-                          type="text"
-                          value={editPropiedad.direccion || ''}
-                          onChange={(e) => setEditPropiedad({ ...editPropiedad, direccion: e.target.value })}
-                        />
-                      </div>
-                      <div>
-                        <label>Tipo:</label>
-                        <br />
-                        <select
-                          value={editPropiedad.tipo || ''}
-                          onChange={(e) => setEditPropiedad({ ...editPropiedad, tipo: e.target.value })}
-                        >
-                          <option value="">Seleccionar...</option>
-                          <option value="piso">Piso</option>
-                          <option value="casa">Casa</option>
-                          <option value="chalet">Chalet</option>
-                          <option value="local">Local</option>
-                          <option value="oficina">Oficina</option>
-                          <option value="terreno">Terreno</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label>Precio:</label>
-                        <br />
-                        <input
-                          type="number"
-                          value={editPropiedad.precio || 0}
-                          onChange={(e) =>
-                            setEditPropiedad({ ...editPropiedad, precio: parseFloat(e.target.value) || 0 })
-                          }
-                        />
-                      </div>
-                      <div>
-                        <label>Superficie:</label>
-                        <br />
-                        <input
-                          type="number"
-                          value={editPropiedad.superficie || 0}
-                          onChange={(e) =>
-                            setEditPropiedad({ ...editPropiedad, superficie: parseFloat(e.target.value) || 0 })
-                          }
-                        />
-                      </div>
-                      <div>
-                        <label>Habitaciones:</label>
-                        <br />
-                        <input
-                          type="number"
-                          value={editPropiedad.habitaciones || 0}
-                          onChange={(e) =>
-                            setEditPropiedad({ ...editPropiedad, habitaciones: parseInt(e.target.value) || 0 })
-                          }
-                        />
-                      </div>
-                      <div>
-                        <label>Banos:</label>
-                        <br />
-                        <input
-                          type="number"
-                          value={editPropiedad.banos || 0}
-                          onChange={(e) =>
-                            setEditPropiedad({ ...editPropiedad, banos: parseInt(e.target.value) || 0 })
-                          }
-                        />
-                      </div>
-                      <div>
-                        <label>Descripcion:</label>
-                        <br />
-                        <textarea
-                          value={editPropiedad.descripcion || ''}
-                          onChange={(e) => setEditPropiedad({ ...editPropiedad, descripcion: e.target.value })}
-                        />
-                      </div>
-                      <div>
-                        <label>Estado:</label>
-                        <br />
-                        <select
-                          value={editPropiedadEstado}
-                          onChange={(e) =>
-                            setEditPropiedadEstado(e.target.value as 'activo' | 'vendido' | 'eliminado')
-                          }
-                        >
-                          <option value="activo">Activo</option>
-                          <option value="vendido">Vendido</option>
-                          <option value="eliminado">Eliminado</option>
-                        </select>
-                      </div>
-                      <br />
-                      <button onClick={handleSaveEditPropiedad}>Guardar</button>{' '}
-                      <button onClick={() => setEditingPropiedadId(null)}>Cancelar</button>
-                    </div>
-                  ) : (
-                    <div>
-                      <p><strong>ID:</strong> {propiedad.id}</p>
-                      <p><strong>Direccion:</strong> {propiedad.inmueble.direccion || 'N/A'}</p>
-                      <p><strong>Tipo:</strong> {propiedad.inmueble.tipo || 'N/A'}</p>
-                      <p><strong>Precio:</strong> {propiedad.inmueble.precio ?? 'N/A'}</p>
-                      <p><strong>Superficie:</strong> {propiedad.inmueble.superficie ?? 'N/A'}</p>
-                      <p><strong>Habitaciones:</strong> {propiedad.inmueble.habitaciones ?? 'N/A'}</p>
-                      <p><strong>Banos:</strong> {propiedad.inmueble.banos ?? 'N/A'}</p>
-                      <p><strong>Descripcion:</strong> {propiedad.inmueble.descripcion || 'N/A'}</p>
-                      <p><strong>Estado:</strong> {propiedad.estado}</p>
-                      <button onClick={() => handleStartEditPropiedad(propiedad)}>Editar</button>{' '}
-                      <button
-                        onClick={() => {
-                          if (window.confirm('Estas seguro de eliminar esta propiedad?')) {
-                            handleDeletePropiedad(propiedad.id);
-                          }
-                        }}
-                      >
-                        Eliminar
-                      </button>
-                    </div>
-                  )}
-                </li>
-              ))}
-            </ul>
-          )}
-
-          <h3>Contratos ({user.vendedor.contratos.length})</h3>
-          {user.vendedor.contratos.length === 0 ? (
-            <p>No tienes contratos registrados.</p>
-          ) : (
-            <ul>
-              {user.vendedor.contratos.map((contrato) => (
-                <li key={contrato.id}>
-                  <p><strong>ID Contrato:</strong> {contrato.id}</p>
-                  <p><strong>Tipo de Operacion:</strong> {contrato.operacion.tipo || 'N/A'}</p>
-                  <p><strong>Precio:</strong> {contrato.operacion.precio ?? 'N/A'}</p>
-                  <p><strong>Fecha Inicio:</strong> {contrato.operacion.fechaInicio || 'N/A'}</p>
-                  <p><strong>Fecha Fin:</strong> {contrato.operacion.fechaFin || 'N/A'}</p>
-                  <p><strong>Comprador:</strong> {contrato.operacion.comprador || 'N/A'}</p>
-                  <p><strong>Estado:</strong> {contrato.estado}</p>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-      )}
-
-      {(user.roles.includes('interesado') || user.roles.includes('ambos')) && user.interesado && (
-        <section>
-          <h2>Panel de Interesado</h2>
-          <p><strong>DNI:</strong> {user.interesado.dni}</p>
-
-          <h3>Intereses ({user.interesado.intereses.length})</h3>
-          <button onClick={() => setShowAddInteres(!showAddInteres)}>
-            {showAddInteres ? 'Cancelar' : 'Añadir Interes'}
-          </button>
-
-          {showAddInteres && (
-            <div>
-              <h4>Nuevo Interes</h4>
-              <div>
-                <label>Tipo de Inmueble:</label>
-                <br />
-                <select
-                  value={newInteres.tipoInmueble}
-                  onChange={(e) => setNewInteres({ ...newInteres, tipoInmueble: e.target.value })}
-                >
-                  <option value="">Seleccionar...</option>
-                  <option value="piso">Piso</option>
-                  <option value="casa">Casa</option>
-                  <option value="chalet">Chalet</option>
-                  <option value="local">Local</option>
-                  <option value="oficina">Oficina</option>
-                  <option value="terreno">Terreno</option>
-                </select>
-              </div>
-              <div>
-                <label>Zona:</label>
-                <br />
+              <div className="profile-card__group">
+                <label htmlFor="apellidos">Apellidos *</label>
                 <input
+                  id="apellidos"
                   type="text"
-                  value={newInteres.zona}
-                  onChange={(e) => setNewInteres({ ...newInteres, zona: e.target.value })}
+                  name="apellidos"
+                  required
+                  value={formData.apellidos}
+                  onChange={handleChange}
+                  placeholder="Tus apellidos"
+                  autoComplete="family-name"
                 />
               </div>
-              <div>
-                <label>Presupuesto:</label>
-                <br />
-                <input
-                  type="number"
-                  value={newInteres.presupuesto}
-                  onChange={(e) =>
-                    setNewInteres({ ...newInteres, presupuesto: parseFloat(e.target.value) || 0 })
-                  }
-                />
-              </div>
-              <div>
-                <label>Habitaciones:</label>
-                <br />
-                <input
-                  type="number"
-                  value={newInteres.habitaciones}
-                  onChange={(e) =>
-                    setNewInteres({ ...newInteres, habitaciones: parseInt(e.target.value) || 0 })
-                  }
-                />
-              </div>
-              <div>
-                <label>Banos:</label>
-                <br />
-                <input
-                  type="number"
-                  value={newInteres.banos}
-                  onChange={(e) =>
-                    setNewInteres({ ...newInteres, banos: parseInt(e.target.value) || 0 })
-                  }
-                />
-              </div>
-              <div>
-                <label>Operacion:</label>
-                <br />
-                <select
-                  value={newInteres.operacion}
-                  onChange={(e) =>
-                    setNewInteres({ ...newInteres, operacion: e.target.value as 'compra' | 'alquiler' })
-                  }
-                >
-                  <option value="compra">Compra</option>
-                  <option value="alquiler">Alquiler</option>
-                </select>
-              </div>
-              <br />
-              <button onClick={handleAddInteres}>Guardar Interes</button>
             </div>
-          )}
 
-          {user.interesado.intereses.length === 0 ? (
-            <p>No tienes intereses registrados.</p>
-          ) : (
-            <div>
-              {user.interesado.intereses.map((interes, index) => (
-                <div key={index}>
-                  {editingInteresIndex === index ? (
-                    <div>
-                      <h4>Editando Interes #{index + 1}</h4>
-                      <div>
-                        <label>Tipo de Inmueble:</label>
-                        <br />
-                        <select
-                          value={editInteres.tipoInmueble}
-                          onChange={(e) =>
-                            setEditInteres({ ...editInteres, tipoInmueble: e.target.value })
-                          }
-                        >
-                          <option value="">Seleccionar...</option>
-                          <option value="piso">Piso</option>
-                          <option value="casa">Casa</option>
-                          <option value="chalet">Chalet</option>
-                          <option value="local">Local</option>
-                          <option value="oficina">Oficina</option>
-                          <option value="terreno">Terreno</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label>Zona:</label>
-                        <br />
-                        <input
-                          type="text"
-                          value={editInteres.zona}
-                          onChange={(e) => setEditInteres({ ...editInteres, zona: e.target.value })}
-                        />
-                      </div>
-                      <div>
-                        <label>Presupuesto:</label>
-                        <br />
-                        <input
-                          type="number"
-                          value={editInteres.presupuesto}
-                          onChange={(e) =>
-                            setEditInteres({
-                              ...editInteres,
-                              presupuesto: parseFloat(e.target.value) || 0,
-                            })
-                          }
-                        />
-                      </div>
-                      <div>
-                        <label>Habitaciones:</label>
-                        <br />
-                        <input
-                          type="number"
-                          value={editInteres.habitaciones}
-                          onChange={(e) =>
-                            setEditInteres({
-                              ...editInteres,
-                              habitaciones: parseInt(e.target.value) || 0,
-                            })
-                          }
-                        />
-                      </div>
-                      <div>
-                        <label>Banos:</label>
-                        <br />
-                        <input
-                          type="number"
-                          value={editInteres.banos}
-                          onChange={(e) =>
-                            setEditInteres({
-                              ...editInteres,
-                              banos: parseInt(e.target.value) || 0,
-                            })
-                          }
-                        />
-                      </div>
-                      <div>
-                        <label>Operacion:</label>
-                        <br />
-                        <select
-                          value={editInteres.operacion}
-                          onChange={(e) =>
-                            setEditInteres({
-                              ...editInteres,
-                              operacion: e.target.value as 'compra' | 'alquiler',
-                            })
-                          }
-                        >
-                          <option value="compra">Compra</option>
-                          <option value="alquiler">Alquiler</option>
-                        </select>
-                      </div>
-                      <br />
-                      <button onClick={handleSaveEditInteres}>Guardar</button>{' '}
-                      <button onClick={() => setEditingInteresIndex(null)}>Cancelar</button>
-                    </div>
-                  ) : (
-                    <div>
-                      <p><strong>Tipo de Inmueble:</strong> {interes.tipoInmueble}</p>
-                      <p><strong>Zona:</strong> {interes.zona}</p>
-                      <p><strong>Presupuesto:</strong> {interes.presupuesto}</p>
-                      <p><strong>Habitaciones:</strong> {interes.habitaciones}</p>
-                      <p><strong>Banos:</strong> {interes.banos}</p>
-                      <p><strong>Operacion:</strong> {interes.operacion}</p>
-                      <button onClick={() => handleStartEditInteres(index)}>Editar</button>{' '}
-                      <button
-                        onClick={() => {
-                          if (window.confirm('Estas seguro de eliminar este interes?')) {
-                            handleDeleteInteres(index);
-                          }
-                        }}
-                      >
-                        Eliminar
-                      </button>
-                    </div>
-                  )}
+            <div className="profile-card__row">
+              <div className="profile-card__group">
+                <label htmlFor="dni">DNI / NIE *</label>
+                <input
+                  id="dni"
+                  type="text"
+                  name="dni"
+                  required
+                  maxLength={9}
+                  value={formData.dni}
+                  onChange={handleChange}
+                  placeholder="12345678X"
+                  autoComplete="off"
+                />
+              </div>
+
+              <div className="profile-card__group">
+                <label htmlFor="telefono">Teléfono *</label>
+                <input
+                  id="telefono"
+                  type="tel"
+                  name="telefono"
+                  required
+                  value={formData.telefono}
+                  onChange={handleChange}
+                  placeholder="600 000 000"
+                  autoComplete="tel"
+                />
+              </div>
+            </div>
+
+            <div className="profile-card__row">
+              <div className="profile-card__group">
+                <label htmlFor="email">Email</label>
+                <input
+                  id="email"
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="tu@email.com"
+                  autoComplete="email"
+                />
+              </div>
+
+              <div className="profile-card__group">
+                <label htmlFor="imagenPerfilUrl">URL de Avatar</label>
+                <input
+                  id="imagenPerfilUrl"
+                  type="text"
+                  name="imagenPerfilUrl"
+                  value={formData.imagenPerfilUrl}
+                  onChange={handleChange}
+                  placeholder="https://..."
+                />
+              </div>
+            </div>
+          </fieldset>
+
+          {/* CAMBIO DE CONTRASEÑA */}
+          <fieldset className="profile-card">
+            <legend>Seguridad</legend>
+
+            {!changePasswordMode ? (
+              <button
+                type="button"
+                className="btn btn--secondary"
+                onClick={handleToggleChangePassword}
+              >
+                🔒 Cambiar contraseña
+              </button>
+            ) : (
+              <div className="fade-in">
+                <div className="profile-card__row--full">
+                  <div className="profile-card__group">
+                    <label htmlFor="passwordActual">Contraseña actual *</label>
+                    <input
+                      id="passwordActual"
+                      type="password"
+                      name="passwordActual"
+                      value={formData.passwordActual}
+                      onChange={handleChange}
+                      placeholder="Tu contraseña actual"
+                      autoComplete="current-password"
+                    />
+                  </div>
                 </div>
-              ))}
+
+                <div className="profile-card__row">
+                  <div className="profile-card__group">
+                    <label htmlFor="nuevaPassword">Nueva contraseña *</label>
+                    <input
+                      id="nuevaPassword"
+                      type="password"
+                      name="nuevaPassword"
+                      minLength={8}
+                      value={formData.nuevaPassword}
+                      onChange={handleChange}
+                      placeholder="Mínimo 8 caracteres"
+                      autoComplete="new-password"
+                    />
+                  </div>
+
+                  <div className="profile-card__group">
+                    <label htmlFor="confirmarPassword">Confirmar contraseña *</label>
+                    <input
+                      id="confirmarPassword"
+                      type="password"
+                      name="confirmarPassword"
+                      minLength={8}
+                      value={formData.confirmarPassword}
+                      onChange={handleChange}
+                      placeholder="Repite la nueva contraseña"
+                      autoComplete="new-password"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  className="btn btn--secondary btn--sm"
+                  onClick={handleToggleChangePassword}
+                  style={{ marginTop: '1rem' }}
+                >
+                  Cancelar cambio de contraseña
+                </button>
+              </div>
+            )}
+          </fieldset>
+
+          {/* SELECCIÓN DE PERFIL */}
+          <div className="profile-card__group main-select">
+            <label htmlFor="perfil">Tu perfil en la plataforma *</label>
+            <select
+              id="perfil"
+              value={perfil}
+              onChange={handlePerfilChange}
+              required
+            >
+              <option value="">Selecciona una opción...</option>
+              <option value="interesado">Busco comprar o alquilar</option>
+              <option value="propietario">Quiero poner mi casa en el mercado</option>
+              <option value="ambos">Ambas cosas</option>
+            </select>
+          </div>
+
+          {/* CAMPOS DINÁMICOS */}
+          {perfil && (
+            <div className="dynamic-fields">
+
+              {/* INTERESADO */}
+              {esInteresado && (
+                <fieldset className="profile-card fade-in">
+                  <legend>Lo que buscas</legend>
+
+                  <div className="profile-card__row">
+                    <div className="profile-card__group">
+                      <label htmlFor="tipoOperacion">Tipo de operación *</label>
+                      <select
+                        id="tipoOperacion"
+                        name="tipoOperacion"
+                        value={formData.tipoOperacion}
+                        onChange={handleChange}
+                        required
+                      >
+                        <option value="">Selecciona una opción...</option>
+                        <option value="VENTA">Compra</option>
+                        <option value="ALQUILER">Alquiler</option>
+                        <option value="CUALQUIERA">Compra o alquiler</option>
+                      </select>
+                    </div>
+
+                    <div className="profile-card__group">
+                      <label htmlFor="presupuestoMaximo">Presupuesto Máximo (€)</label>
+                      <input
+                        id="presupuestoMaximo"
+                        type="number"
+                        name="presupuestoMaximo"
+                        min="0"
+                        step="0.01"
+                        value={formData.presupuestoMaximo}
+                        onChange={handleChange}
+                        placeholder="Ej: 200000"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="profile-card__row">
+                    <div className="profile-card__group">
+                      <label htmlFor="zonaInteres">Zona de interés</label>
+                      <input
+                        id="zonaInteres"
+                        type="text"
+                        name="zonaInteres"
+                        value={formData.zonaInteres}
+                        onChange={handleChange}
+                        placeholder="Ej: Chapín, Centro, El Puerto..."
+                      />
+                    </div>
+
+                    <div className="profile-card__row" style={{ margin: 0, padding: 0 }}>
+                      <div className="profile-card__group">
+                        <label htmlFor="habitacionesMinimas">Habitaciones mín.</label>
+                        <input
+                          id="habitacionesMinimas"
+                          type="number"
+                          name="habitacionesMinimas"
+                          min="0"
+                          value={formData.habitacionesMinimas}
+                          onChange={handleChange}
+                        />
+                      </div>
+
+                      <div className="profile-card__group">
+                        <label htmlFor="banosMinimos">Baños mín.</label>
+                        <input
+                          id="banosMinimos"
+                          type="number"
+                          name="banosMinimos"
+                          min="0"
+                          value={formData.banosMinimos}
+                          onChange={handleChange}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="profile-card__row--full">
+                    <div className="profile-card__group">
+                      <label htmlFor="observacionesInteresado">Observaciones</label>
+                      <textarea
+                        id="observacionesInteresado"
+                        name="observacionesInteresado"
+                        value={formData.observacionesInteresado}
+                        onChange={handleChange}
+                        placeholder="Cualquier nota adicional sobre lo que buscas..."
+                      />
+                    </div>
+                  </div>
+                </fieldset>
+              )}
+
+              {/* PROPIETARIO */}
+              {esPropietario && (
+                <fieldset className="profile-card fade-in">
+                  <legend>Tu propiedad</legend>
+                  <div className="profile-card__row--full">
+                    <div className="profile-card__group">
+                      <label htmlFor="observacionesVendedor">Detalles de tu propiedad</label>
+                      <textarea
+                        id="observacionesVendedor"
+                        name="observacionesVendedor"
+                        value={formData.observacionesVendedor}
+                        onChange={handleChange}
+                        placeholder="Ej: Piso en el centro, 3 habitaciones, terraza..."
+                      />
+                    </div>
+                  </div>
+                </fieldset>
+              )}
             </div>
           )}
-        </section>
-      )}
 
-      <footer>
-        <button onClick={handleLogout}>Cerrar Sesion</button>{' '}
-        {!showDeleteConfirm ? (
-          <button onClick={() => setShowDeleteConfirm(true)}>Eliminar Cuenta</button>
-        ) : (
-          <span>
-            <strong>Estas seguro? Esta accion es irreversible.</strong>{' '}
-            <button onClick={handleDeleteAccount}>Si, eliminar mi cuenta</button>{' '}
-            <button onClick={() => setShowDeleteConfirm(false)}>No, cancelar</button>
-          </span>
-        )}
-      </footer>
-    </div>
+          {/* MENSAJES DE RESPUESTA */}
+          {submitError && (
+            <div className="form-message form-message--error">
+              <p>{submitError}</p>
+            </div>
+          )}
+
+          {submitSuccess && (
+            <div className="form-message form-message--success">
+              <p>{submitSuccess}</p>
+            </div>
+          )}
+
+          {/* BOTONES PRINCIPALES */}
+          <div className="profile-card__actions">
+            <button type="submit" className="btn btn--primary" disabled={submitting}>
+              {submitting ? 'Guardando...' : 'Guardar cambios'}
+            </button>
+          </div>
+        </form>
+
+        {/* ZONA DE PELIGRO */}
+        <div className="profile-card profile-danger">
+          <h2>Zona de Peligro</h2>
+          <div className="profile-danger__actions">
+            <button
+              type="button"
+              className="btn btn--secondary"
+              onClick={handleLogout}
+            >
+              Cerrar sesión
+            </button>
+
+            {!showDeleteConfirm ? (
+              <button
+                type="button"
+                className="btn btn--danger"
+                onClick={() => setShowDeleteConfirm(true)}
+              >
+                Eliminar cuenta
+              </button>
+            ) : (
+              <div className="delete-confirm-box">
+                <p>¿Estás seguro? Esta acción no se puede deshacer.</p>
+                <div className="confirm-actions">
+                  <button
+                    type="button"
+                    className="btn btn--danger btn--sm"
+                    onClick={handleDeleteAccount}
+                  >
+                    Sí, eliminar
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn--secondary btn--sm"
+                    onClick={() => setShowDeleteConfirm(false)}
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+      </div>
+    </main>
   );
-};
+}
 
-export default UserProfile;
+export default Profile;

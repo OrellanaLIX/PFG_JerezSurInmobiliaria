@@ -18,9 +18,6 @@ public interface OperacionRepository extends JpaRepository<Operacion, Long> {
     // Buscar operaciones abiertas para la gestión diaria
     List<Operacion> findByEstadoActual(EstadoOperacion estado);
 
-    // Buscar por el DNI del representante comprador (muy útil para el buscador)
-    List<Operacion> findByRepresentanteCompradorDni(String dni);
-
     // Consulta Polimórfica: Solo alquileres
     @Query("SELECT o FROM OperacionAlquiler o")
     List<Operacion> findAllAlquileres();

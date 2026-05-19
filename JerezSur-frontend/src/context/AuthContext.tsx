@@ -22,7 +22,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // Al cargar la app, miramos si ya había un usuario en el PC
   useEffect(() => {
-    const savedUser = localStorage.getItem('user_session');
+    const savedUser = localStorage.getItem('usuario');
     if (savedUser) {
       setUser(JSON.parse(savedUser));
     }
@@ -30,12 +30,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = (userData: User) => {
     setUser(userData);
-    localStorage.setItem('user_session', JSON.stringify(userData));
+    localStorage.setItem('usuario', JSON.stringify(userData));
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('user_session');
+    localStorage.removeItem('usuario');
   };
 
   return (

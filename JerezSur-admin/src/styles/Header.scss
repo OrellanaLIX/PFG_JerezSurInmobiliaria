@@ -1,0 +1,141 @@
+@use './globals/_Variables' as *;
+@use './components/_Buttons' as *;
+
+.site-header {
+  position: sticky;
+  top: 0;
+  width: 100%;
+  z-index: 1000;
+  background: rgba(white, 0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(black, 0.05);
+  transition: all 0.3s ease-in-out;
+
+  &--hidden {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  &--scrolled {
+    box-shadow: $shadow-sm;
+    background: white;
+    border-bottom-color: rgba(black, 0.1);
+  }
+
+  &__container {
+    width: min($container-max, calc(100% - 2rem));
+    margin-inline: auto;
+    height: 84px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &__logo img {
+    height: 50px;
+    display: block;
+  }
+
+  &__nav {
+    display: flex;
+    gap: 1.5rem;
+
+    &--desktop {
+      @media (max-width: $laptop) {
+        display: none;
+      }
+    }
+
+    a {
+      color: $color-text;
+      font-weight: 500;
+      padding-block: 0.5rem;
+
+      &.is-active {
+        color: $color-primary;
+        box-shadow: inset 0 -2px $color-primary; // Más limpio que el ::after
+      }
+    }
+  }
+
+  &__toggle {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    border: none;
+    background: none;
+    z-index: 1100;
+
+    @media (max-width: $laptop) {
+      display: flex;
+    }
+
+    span {
+      width: 24px;
+      height: 2px;
+      background: $color-text;
+      transition: 0.3s;
+    }
+
+    &.is-open {
+      span:nth-child(1) {
+        transform: translateY(7px) rotate(45deg);
+      }
+
+      span:nth-child(2) {
+        opacity: 0;
+      }
+
+      span:nth-child(3) {
+        transform: translateY(-7px) rotate(-45deg);
+      }
+    }
+  }
+
+  &__overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(black, 0.4);
+    opacity: 0;
+    pointer-events: none;
+    transition: 0.3s;
+    z-index: 1050;
+
+    &--open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+  }
+}
+
+.mobile-menu {
+  position: fixed;
+  inset: 0 0 0 auto; // Top, Right, Bottom, Left (auto)
+  width: 280px;
+  background: white;
+  z-index: 1060;
+  padding: 100px 2rem;
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+
+  &--open {
+    transform: translateX(0);
+  }
+
+  &__nav {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+
+    a {
+      font-size: 1.1rem;
+      color: $color-text;
+
+      &.is-active {
+        color: $color-primary;
+        font-weight: bold;
+      }
+    }
+  }
+}

@@ -1,0 +1,86 @@
+@use 'sass:color';
+@use '../globals/_Variables' as *;
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+  min-height: 48px;
+  padding: 0.9rem 1.5rem;
+  border-radius: $radius-sm;
+  border: 2px solid transparent;
+  font-family: $font-family-base;
+  font-size: $font-size-md;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+  transition:
+    transform $transition-fast,
+    box-shadow $transition-base,
+    background-color $transition-base,
+    border-color $transition-base,
+    color $transition-base;
+  user-select: none;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: $shadow-sm;
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  &--primary {
+    background-color: $color-primary;
+    color: $color-white;
+
+    &:hover {
+      background-color: $color-primary-dark;
+    }
+  }
+
+  &--secondary {
+    background-color: $color-secondary;
+    color: $color-white;
+
+    &:hover {
+      background-color: $color-secondary-dark;
+    }
+  }
+
+  &--outline {
+    background-color: transparent;
+    border-color: $color-primary;
+    color: $color-primary;
+
+    &:hover {
+      background-color: $color-primary;
+      color: $color-white;
+    }
+  }
+
+  &--white {
+    background-color: $color-white;
+    color: $color-primary-dark;
+
+    &:hover {
+      background-color: color.scale($color-white, $lightness: -4%);
+    }
+  }
+
+  &--ghost {
+    background-color: rgba(255, 255, 255, 0.08);
+    color: $color-white;
+    border-color: rgba(255, 255, 255, 0.22);
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.16);
+    }
+  }
+
+  &--full {
+    width: 100%;
+  }
+}

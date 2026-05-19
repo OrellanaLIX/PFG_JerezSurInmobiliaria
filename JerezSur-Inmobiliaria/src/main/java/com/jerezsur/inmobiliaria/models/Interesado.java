@@ -7,6 +7,7 @@ import java.util.List;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.jerezsur.inmobiliaria.models.enums.EstadoComprador;
 import com.jerezsur.inmobiliaria.models.enums.TipoOperacion;
 
@@ -68,11 +69,9 @@ public class Interesado {
 
     // --- RELACIONES ---
     @OneToMany(mappedBy = "comprador")
-    private List<Cita> citas;
-
-    @OneToMany(mappedBy = "comprador")
     private List<Operacion_Interesado> operaciones;
 
+    @JsonBackReference
     @OneToOne
     @JoinColumn(name = "usuario_id")
     private Usuario usuario;

@@ -6,6 +6,8 @@ import java.util.List;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -49,6 +51,7 @@ public class Vendedor {
     @OneToMany(mappedBy = "vendedor")
     private List<Operacion_Vendedor> contratosFirmados;
 
+    @JsonBackReference
     @OneToOne
     @JoinColumn(name = "usuario_id")
     private Usuario usuario;

@@ -14,9 +14,6 @@ import com.jerezsur.inmobiliaria.models.Usuario;
 @Repository
 public interface VendedorRepository extends JpaRepository<Vendedor, Long> {
 
-    // Encontramos al vendedor por DNI
-    Optional<Vendedor> findByDni(String dni);
-
     // Encontramos al vendedor por inmuebles que vende
     Optional<Vendedor> findByPropiedadesInmueble(Inmueble inmueble);
 

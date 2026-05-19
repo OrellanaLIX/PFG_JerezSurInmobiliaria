@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
@@ -16,6 +17,7 @@ import jakarta.persistence.EntityNotFoundException;
 
 import com.jerezsur.inmobiliaria.dto.LoginRequest;
 import com.jerezsur.inmobiliaria.dto.OnboardingRequest;
+import com.jerezsur.inmobiliaria.dto.UpdatePerfilRequest;
 import com.jerezsur.inmobiliaria.dto.UsuarioPerfilDTO;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
@@ -143,6 +145,7 @@ public class UsuarioController {
      * Solo el propio usuario debería poder acceder a sus datos.
      */
     @GetMapping("/{id}")
+    // @PreAuthorize("#id == authentication.principal.id")
     public ResponseEntity<?> obtenerPerfil(@PathVariable Long id) {
         try {
             UsuarioPerfilDTO dto = perfilService.obtenerPerfil(id);
@@ -156,6 +159,24 @@ public class UsuarioController {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Error al obtener el perfil: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * PUT /api/usuarios/{id}
+     * Actualiza el perfil del usuario.
+     * Solo el propio usuario debería poder actualizar sus datos.
+     */
+    @PutMapping("/{id}")
+    public ResponseEntity<?> actualizarPerfil(
+            @PathVariable Long id,
+            @RequestBody UpdatePerfilRequest request) {
+        try {
+            UsuarioPerfilDTO actualizado = perfilService.actualizarPerfil(id, request);
+            return ResponseEntity.ok(actualizado);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", e.getMessage()));
         }
     }
 

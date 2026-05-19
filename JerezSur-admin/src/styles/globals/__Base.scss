@@ -1,0 +1,39 @@
+@use '../globals/_Variables' as *;
+
+body {
+  overflow-x: hidden;
+  background-color: $color-surface-alt;
+}
+
+main {
+  min-height: 100vh;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: $color-primary-dark;
+  line-height: $line-height-tight;
+  font-weight: 700;
+}
+
+h1 { font-size: $font-size-h1; }
+h2 { font-size: $font-size-h2; }
+h3 { font-size: $font-size-h3; }
+
+p {
+  color: $color-text;
+}
+
+::selection {
+  background-color: $color-primary;
+  color: $color-white;
+}
+
+:focus-visible {
+  outline: 3px solid rgba($color-secondary, 0.35);
+  outline-offset: 3px;
+}

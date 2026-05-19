@@ -72,8 +72,5 @@ public class DataCleanupService {
 
         // CATÁLOGO DE INMUEBLES: Eliminar inmuebles retirados hace más de 1 año
         inmuebleRepository.borrarInmueblesRetiradosAntiguos(haceUnAño);
-
-        // CARTERA DE CLIENTES: Borrado de Leads/Interesados inactivos
-        interesadoRepository.borrarLeadsAntiguos(haceUnAño);
     }
 }

@@ -1,0 +1,19 @@
+@use '../globals/_Variables' as *;
+
+.section {
+  width: min($container-max, calc(100% - 2rem));
+  margin-inline: auto;
+  padding-block: $section-padding-y;
+
+  &--narrow {
+    width: min(900px, calc(100% - 2rem));
+  }
+
+  &--full {
+    width: 100%;
+  }
+
+  &--alt {
+    background-color: $color-surface-alt;
+  }
+}

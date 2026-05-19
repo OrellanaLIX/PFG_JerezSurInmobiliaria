@@ -1,0 +1,80 @@
+@use './globals/_Variables' as *;
+
+.site-footer {
+  background: linear-gradient(135deg, $color-primary-dark, $color-primary);
+  color: $color-white;
+  margin-top: $space-10;
+  
+  // Esta clase es para cuando el Footer existe pero se oculta por el Hero
+  &--hidden {
+    display: none; // Esto lo quita por completo cuando se activa la clase
+  }
+
+  &__top {
+    width: min($container-max, calc(100% - 2rem));
+    margin-inline: auto;
+    padding: 4rem 0 2.5rem;
+    display: grid;
+    grid-template-columns: 1.3fr 1fr 1fr 1.2fr;
+    gap: 2rem;
+
+    @media (max-width: $laptop) { grid-template-columns: repeat(2, 1fr); }
+    @media (max-width: $tablet) { grid-template-columns: 1fr; }
+  }
+
+  &__brand p {
+    color: rgba(255, 255, 255, 0.9);
+    max-width: 340px;
+    font-size: 0.95rem;
+  }
+
+  &__logo {
+    max-width: 220px;
+    margin-bottom: 1rem;
+    filter: brightness(0) invert(1);
+  }
+
+  h4 {
+    color: $color-white;
+    margin-bottom: 1rem;
+    font-size: 1.15rem;
+  }
+
+  ul {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    list-style: none;
+    padding: 0;
+  }
+
+  a, li {
+    color: rgba(255, 255, 255, 0.9);
+    transition: color $transition-base;
+    text-decoration: none;
+  }
+
+  a:hover { color: #dff3df; }
+
+  &__bottom {
+    width: min($container-max, calc(100% - 2rem));
+    margin-inline: auto;
+    padding: 1.25rem 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.14);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+
+    p {
+      color: rgba(255, 255, 255, 0.82);
+      font-size: $font-size-sm;
+    }
+  }
+
+  &__legal {
+    display: flex;
+    gap: 1.5rem;
+    a { font-size: $font-size-sm; }
+  }
+}

@@ -1,0 +1,206 @@
+@use '../globals/_Variables' as *;
+
+/* ==========================================================================
+   PERFIL DE USUARIO (ESTILO GLOBAL / CONTENEDOR)
+   ========================================================================= */
+.profile-section {
+  padding: 3rem 0;
+  background-color: $color-primary;
+
+  &__container {
+    max-width: 920px; // Alineado con el max-width de tus componentes del Home
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+}
+
+/* ==========================================================================
+   HEADER Y AVATAR (CORRECCIÓN DE TAMAÑO)
+   ========================================================================= */
+.profile-header {
+  background-color: $color-surface;
+  border-radius: $radius-lg;
+  padding: 2.5rem;
+  box-shadow: $shadow-sm;
+  border: 1px solid rgba(0, 67, 156, 0.06);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1rem;
+
+  &__avatar {
+    width: 130px; 
+    height: 130px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid $color-border;
+    background-color: $color-white;
+    box-shadow: $shadow-sm;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  &__info {
+    h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: $color-primary-dark;
+      margin-bottom: 0.25rem;
+    }
+
+    p {
+      color: $color-text-soft;
+      margin: 0;
+      font-size: 0.95rem;
+    }
+  }
+}
+
+/* ==========================================================================
+   BLOQUES DE FORMULARIO (GRID REPAIR)
+   ========================================================================= */
+.profile-card {
+  background-color: $color-surface;
+  border-radius: $radius-lg;
+  padding: 2.5rem;
+  box-shadow: $shadow-sm;
+  border: 1px solid rgba(0, 67, 156, 0.06);
+
+  h2 {
+    color: $color-primary-dark;
+    font-size: 1.4rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    padding-bottom: 0.5rem;
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 50px;
+      height: 3px;
+      background-color: $color-primary;
+      border-radius: $radius-sm;
+    }
+  }
+
+  /* Distribución en rejilla horizontal para que dejen de estirarse en vertical */
+  &__row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+    margin-bottom: 1.25rem;
+
+    &--full {
+      grid-template-columns: 1fr;
+    }
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  &__group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+
+    label {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: $color-text;
+    }
+
+    // Ajustes complementarios sobre tus inputs globales para asegurar cohesión
+    input, select, textarea {
+      background: $color-white;
+      border: 1px solid $color-border;
+      border-radius: $radius-sm;
+      color: $color-text;
+      transition: border-color 0.2s ease;
+
+      &:focus {
+        border-color: $color-primary;
+      }
+    }
+
+    textarea {
+      min-height: 110px;
+      resize: vertical;
+      padding: 0.75rem 1rem;
+    }
+  }
+
+  &__actions {
+    margin-top: 1.75rem;
+    display: flex;
+    justify-content: flex-end;
+
+    // Si tu botón global es .btn, esto lo adaptará perfectamente al ancho adecuado
+    .btn {
+      min-width: 200px;
+    }
+  }
+}
+
+/* ==========================================================================
+   ZONA DE PELIGRO (ESTILOS CONTEXTUALES)
+   ========================================================================= */
+.profile-danger {
+  border: 1px solid rgba($color-error, 0.2);
+  background-color: $color-surface;
+
+  h2 {
+    color: $color-error;
+    
+    &::after {
+      background-color: $color-error;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+}
+
+/* ==========================================================================
+   RESPONSIVE DESIGN (MEDIA QUERIES)
+   ========================================================================= */
+@media (max-width: $tablet) {
+  .profile-section {
+    padding: 1.5rem 1rem;
+  }
+
+  .profile-card {
+    padding: 1.5rem;
+
+    &__row {
+      grid-template-columns: 1fr; // Los inputs se apilan uno abajo del otro en móviles
+    }
+
+    &__actions {
+      .btn {
+        width: 100%;
+      }
+    }
+  }
+
+  .profile-danger {
+    &__actions {
+      .btn {
+        width: 100%;
+      }
+    }
+  }
+}

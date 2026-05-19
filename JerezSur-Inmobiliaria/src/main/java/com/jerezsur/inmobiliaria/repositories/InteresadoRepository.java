@@ -36,12 +36,6 @@ public interface InteresadoRepository extends JpaRepository<Interesado, Long> {
                         @Param("tipo") TipoOperacion tipo,
                         Pageable pageable);
 
-        // Query para limpieza de datos inutiles
-        @Modifying
-        @Query("DELETE FROM Interesado i WHERE i.usuario IS NULL AND " +
-                        "NOT EXISTS (SELECT c FROM Cita c WHERE c.comprador = i AND c.fechaHora > :fecha)")
-        void borrarLeadsAntiguos(@Param("fecha") LocalDateTime fecha);
-
         // Verificamos si el usuario ya tiene perfil de interesado o vendedor para
         // evitar duplicados
         boolean existsByUsuario(Usuario usuario);

@@ -11,6 +11,7 @@ import com.jerezsur.inmobiliaria.repositories.*;
 import jakarta.persistence.EntityNotFoundException;
 
 import com.jerezsur.inmobiliaria.dto.OnboardingRequest;
+import com.jerezsur.inmobiliaria.dto.UpdatePerfilRequest;
 import com.jerezsur.inmobiliaria.dto.UsuarioPerfilDTO;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -75,39 +76,29 @@ public class PerfilService {
         return dto;
     }
 
-    /**
-     * Completa el perfil del usuario.
-     * Solo actualiza campos que vienen con valor (no sobreescribe con null).
-     */
+    // ==========================================
+    // OBTENER PERFIL (ya lo tienes, OK)
+    // ==========================================
+    public UsuarioPerfilDTO obtenerPerfil(Long usuarioId) {
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Usuario no encontrado con ID: " + usuarioId));
+        return buildPerfilDTO(usuario);
+    }
+
+    // ==========================================
+    // 1️⃣ COMPLETAR PERFIL (Onboarding) - tu método actual ligeramente mejorado
+    // ==========================================
     @Transactional
     public void completarPerfil(OnboardingRequest request) {
         Usuario usuario = usuarioRepository.findById(request.getUsuarioId())
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-        // --- 1. ACTUALIZAR DATOS DEL USUARIO ---
+        // Actualizar datos básicos (solo si vienen rellenos)
+        actualizarDatosBasicos(usuario, request.getNombre(), request.getApellidos(),
+                request.getTelefono(), request.getEmail(), request.getDni(), null);
 
-        if (request.getNombre() != null && !request.getNombre().isBlank()) {
-            usuario.setNombre(request.getNombre().trim());
-        }
-
-        if (request.getApellidos() != null && !request.getApellidos().isBlank()) {
-            usuario.setApellidos(request.getApellidos().trim());
-        }
-
-        if (request.getTelefono() != null && !request.getTelefono().isBlank()) {
-            usuario.setTelefono(request.getTelefono().trim());
-        }
-
-        if (request.getEmail() != null && !request.getEmail().isBlank()) {
-            usuario.setEmail(request.getEmail().trim().toLowerCase());
-        }
-
-        if (request.getDni() != null && !request.getDni().isBlank()) {
-            usuario.setDni(request.getDni().trim().toUpperCase());
-        }
-
-        // --- 2. CAMBIO DE CONTRASEÑA ---
-
+        // Cambio de contraseña SIN validación (es primer acceso)
         if (request.getNuevaPassword() != null && !request.getNuevaPassword().isBlank()) {
             if (request.getNuevaPassword().length() < 8) {
                 throw new RuntimeException("La contraseña debe tener al menos 8 caracteres");
@@ -116,64 +107,200 @@ public class PerfilService {
             usuario.setCambiarPasswd(false);
         }
 
-        // --- 3. CREAR INTERESADO ---
-
-        boolean tieneInteresado = interesadoRepository.existsByUsuario(usuario);
-
+        // Crear Interesado SI NO existe
         if (request.getPerfil() != null
                 && (request.getPerfil().equals("interesado") || request.getPerfil().equals("ambos"))
-                && !tieneInteresado) {
-
-            Interesado interesado = new Interesado();
-            interesado.setUsuario(usuario);
-            interesado.setPresupuestoMaximo(request.getPresupuestoMaximo());
-            interesado.setZonaInteres(request.getZonaInteres());
-            interesado.setHabitacionesMinimas(request.getHabitacionesMinimas());
-            interesado.setBanosMinimos(request.getBanosMinimos());
-
-            // Mapear tipoOperacion al enum
-            if (request.getTipoOperacion() != null && !request.getTipoOperacion().isBlank()) {
-                try {
-                    interesado.setTipoBusqueda(TipoOperacion.valueOf(request.getTipoOperacion()));
-                } catch (IllegalArgumentException e) {
-                    throw new RuntimeException(
-                            "Tipo de operación no válido: " + request.getTipoOperacion()
-                                    + ". Valores permitidos: VENTA, ALQUILER, CUALQUIERA");
-                }
-            }
-
-            interesado.setObservaciones(request.getComentariosExtra());
-            interesadoRepository.save(interesado);
+                && !interesadoRepository.existsByUsuario(usuario)) {
+            crearInteresado(usuario, request);
         }
 
-        // --- 4. CREAR VENDEDOR ---
-
-        boolean tieneVendedor = vendedorRepository.existsByUsuario(usuario);
-
+        // Crear Vendedor SI NO existe
         if (request.getPerfil() != null
                 && (request.getPerfil().equals("propietario") || request.getPerfil().equals("ambos"))
-                && !tieneVendedor) {
-
-            Vendedor vendedor = new Vendedor();
-            vendedor.setUsuario(usuario);
-
-            // Construir observaciones sin nulls
-            StringBuilder obs = new StringBuilder();
-            if (request.getDetallesPropiedad() != null && !request.getDetallesPropiedad().isBlank()) {
-                obs.append(request.getDetallesPropiedad().trim());
-            }
-            if (request.getComentariosExtra() != null && !request.getComentariosExtra().isBlank()) {
-                if (obs.length() > 0)
-                    obs.append(". ");
-                obs.append(request.getComentariosExtra().trim());
-            }
-            vendedor.setObservaciones(obs.length() > 0 ? obs.toString() : null);
-
-            vendedorRepository.save(vendedor);
+                && !vendedorRepository.existsByUsuario(usuario)) {
+            crearVendedor(usuario, request);
         }
 
-        // --- 5. ASIGNAR ROL ---
+        // Asignar rol automáticamente
+        actualizarRolSegunPerfiles(usuario);
 
+        usuarioRepository.save(usuario);
+    }
+
+    // ==========================================
+    // 2️⃣ ACTUALIZAR PERFIL (Edición desde Profile) - NUEVO MÉTODO
+    // ==========================================
+    @Transactional
+    public UsuarioPerfilDTO actualizarPerfil(Long usuarioId, UpdatePerfilRequest request) {
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        // --- 1. ACTUALIZAR DATOS BÁSICOS ---
+        actualizarDatosBasicos(usuario, request.getNombre(), request.getApellidos(),
+                request.getTelefono(), request.getEmail(), request.getDni(),
+                request.getImagenPerfilUrl());
+
+        // --- 2. CAMBIO DE CONTRASEÑA (con validación de actual) ---
+        if (request.getNuevaPassword() != null && !request.getNuevaPassword().isBlank()) {
+            if (request.getPasswordActual() == null || request.getPasswordActual().isBlank()) {
+                throw new RuntimeException("Debes introducir tu contraseña actual");
+            }
+            if (!passwordEncoder.matches(request.getPasswordActual(), usuario.getPassword())) {
+                throw new RuntimeException("La contraseña actual no es correcta");
+            }
+            if (request.getNuevaPassword().length() < 8) {
+                throw new RuntimeException("La nueva contraseña debe tener al menos 8 caracteres");
+            }
+            usuario.setPassword(passwordEncoder.encode(request.getNuevaPassword()));
+            usuario.setCambiarPasswd(false);
+        }
+
+        // --- 3. GESTIONAR PERFIL DE INTERESADO ---
+        boolean quiereSerInteresado = request.getPerfil() != null
+                && (request.getPerfil().equals("interesado") || request.getPerfil().equals("ambos"));
+
+        Interesado interesadoExistente = interesadoRepository.findByUsuario(usuario).orElse(null);
+
+        if (quiereSerInteresado) {
+            if (interesadoExistente == null) {
+                // No tenía → crear
+                crearInteresadoDesdeUpdate(usuario, request);
+            } else {
+                // Ya tenía → actualizar
+                actualizarInteresado(interesadoExistente, request);
+            }
+        }
+        // OPCIONAL: Si NO quiere ser interesado y ya lo era, podemos eliminarlo
+        // Por seguridad, lo dejamos comentado (conserva histórico)
+        /*
+         * else if (interesadoExistente != null) {
+         * interesadoRepository.delete(interesadoExistente);
+         * }
+         */
+
+        // --- 4. GESTIONAR PERFIL DE VENDEDOR ---
+        boolean quiereSerVendedor = request.getPerfil() != null
+                && (request.getPerfil().equals("propietario") || request.getPerfil().equals("ambos"));
+
+        Vendedor vendedorExistente = vendedorRepository.findByUsuario(usuario).orElse(null);
+
+        if (quiereSerVendedor) {
+            if (vendedorExistente == null) {
+                crearVendedorDesdeUpdate(usuario, request);
+            } else {
+                actualizarVendedor(vendedorExistente, request);
+            }
+        }
+
+        // --- 5. ACTUALIZAR ROL ---
+        actualizarRolSegunPerfiles(usuario);
+
+        usuarioRepository.save(usuario);
+
+        return buildPerfilDTO(usuario);
+    }
+
+    // ==========================================
+    // MÉTODOS PRIVADOS REUTILIZABLES
+    // ==========================================
+
+    private void actualizarDatosBasicos(Usuario usuario, String nombre, String apellidos,
+            String telefono, String email, String dni,
+            String imagenPerfilUrl) {
+        if (nombre != null && !nombre.isBlank())
+            usuario.setNombre(nombre.trim());
+        if (apellidos != null && !apellidos.isBlank())
+            usuario.setApellidos(apellidos.trim());
+        if (telefono != null && !telefono.isBlank())
+            usuario.setTelefono(telefono.trim());
+        if (email != null && !email.isBlank())
+            usuario.setEmail(email.trim().toLowerCase());
+        if (dni != null && !dni.isBlank())
+            usuario.setDni(dni.trim().toUpperCase());
+        if (imagenPerfilUrl != null)
+            usuario.setImagenPerfilUrl(imagenPerfilUrl);
+    }
+
+    private void crearInteresado(Usuario usuario, OnboardingRequest request) {
+        Interesado interesado = new Interesado();
+        interesado.setUsuario(usuario);
+        interesado.setPresupuestoMaximo(request.getPresupuestoMaximo());
+        interesado.setZonaInteres(request.getZonaInteres());
+        interesado.setHabitacionesMinimas(request.getHabitacionesMinimas());
+        interesado.setBanosMinimos(request.getBanosMinimos());
+        setTipoBusqueda(interesado, request.getTipoOperacion());
+        interesado.setObservaciones(request.getComentariosExtra());
+        interesadoRepository.save(interesado);
+    }
+
+    private void crearInteresadoDesdeUpdate(Usuario usuario, UpdatePerfilRequest request) {
+        Interesado interesado = new Interesado();
+        interesado.setUsuario(usuario);
+        actualizarInteresado(interesado, request);
+        interesadoRepository.save(interesado);
+    }
+
+    private void actualizarInteresado(Interesado interesado, UpdatePerfilRequest request) {
+        if (request.getPresupuestoMaximo() != null)
+            interesado.setPresupuestoMaximo(request.getPresupuestoMaximo());
+        if (request.getZonaInteres() != null)
+            interesado.setZonaInteres(request.getZonaInteres());
+        if (request.getHabitacionesMinimas() != null)
+            interesado.setHabitacionesMinimas(request.getHabitacionesMinimas());
+        if (request.getBanosMinimos() != null)
+            interesado.setBanosMinimos(request.getBanosMinimos());
+        if (request.getTipoOperacion() != null)
+            setTipoBusqueda(interesado, request.getTipoOperacion());
+        if (request.getObservacionesInteresado() != null)
+            interesado.setObservaciones(request.getObservacionesInteresado());
+
+        interesadoRepository.save(interesado);
+    }
+
+    private void crearVendedor(Usuario usuario, OnboardingRequest request) {
+        Vendedor vendedor = new Vendedor();
+        vendedor.setUsuario(usuario);
+
+        StringBuilder obs = new StringBuilder();
+        if (request.getDetallesPropiedad() != null && !request.getDetallesPropiedad().isBlank()) {
+            obs.append(request.getDetallesPropiedad().trim());
+        }
+        if (request.getComentariosExtra() != null && !request.getComentariosExtra().isBlank()) {
+            if (obs.length() > 0)
+                obs.append(". ");
+            obs.append(request.getComentariosExtra().trim());
+        }
+        vendedor.setObservaciones(obs.length() > 0 ? obs.toString() : null);
+        vendedorRepository.save(vendedor);
+    }
+
+    private void crearVendedorDesdeUpdate(Usuario usuario, UpdatePerfilRequest request) {
+        Vendedor vendedor = new Vendedor();
+        vendedor.setUsuario(usuario);
+        actualizarVendedor(vendedor, request);
+        vendedorRepository.save(vendedor);
+    }
+
+    private void actualizarVendedor(Vendedor vendedor, UpdatePerfilRequest request) {
+        if (request.getObservacionesVendedor() != null) {
+            vendedor.setObservaciones(request.getObservacionesVendedor());
+        }
+        vendedorRepository.save(vendedor);
+    }
+
+    private void setTipoBusqueda(Interesado interesado, String tipoOperacion) {
+        if (tipoOperacion != null && !tipoOperacion.isBlank()) {
+            try {
+                interesado.setTipoBusqueda(TipoOperacion.valueOf(tipoOperacion));
+            } catch (IllegalArgumentException e) {
+                throw new RuntimeException(
+                        "Tipo de operación no válido: " + tipoOperacion
+                                + ". Valores permitidos: VENTA, ALQUILER, CUALQUIERA");
+            }
+        }
+    }
+
+    private void actualizarRolSegunPerfiles(Usuario usuario) {
         boolean esInteresado = interesadoRepository.existsByUsuario(usuario);
         boolean esVendedor = vendedorRepository.existsByUsuario(usuario);
 
@@ -184,19 +311,5 @@ public class PerfilService {
         } else if (esVendedor) {
             usuario.setRole(Role.ROLE_VENDEDOR);
         }
-
-        usuarioRepository.save(usuario);
-    }
-
-    /**
-     * Obtiene el perfil completo de un usuario por su ID.
-     * Lanza EntityNotFoundException si no existe.
-     */
-    public UsuarioPerfilDTO obtenerPerfil(Long usuarioId) {
-        Usuario usuario = usuarioRepository.findById(usuarioId)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Usuario no encontrado con ID: " + usuarioId));
-
-        return buildPerfilDTO(usuario);
     }
 }

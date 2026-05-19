@@ -154,19 +154,29 @@ public class UsuarioService {
             throw new BusinessValidationException("Es obligatorio registrar un email o un número de teléfono.");
         }
 
-        // 2. Validación de duplicados (Solo para nuevos usuarios)
+        // 2. Validación de duplicados (CAMBIADO PARA OAUTH2 / GOOGLE)
         if (usuario.getId() == null) {
-            if (tieneEmail && usuarioRepository.existePorEmailOTelefono(usuario.getEmail(), usuario.getTelefono())) {
-                throw new BusinessValidationException("El email " + usuario.getEmail() + "o el telefono"
-                        + usuario.getTelefono() + " ya está registrado.");
+            // Si es un registro normal (Local), comprobamos duplicados de forma estricta
+            if (usuario.getProvider() == null || usuario.getProvider() == AuthProvider.LOCAL) {
+                if (tieneEmail
+                        && usuarioRepository.existePorEmailOTelefono(usuario.getEmail(), usuario.getTelefono())) {
+                    throw new BusinessValidationException("El email " + usuario.getEmail() + " o el teléfono "
+                            + usuario.getTelefono() + " ya está registrado.");
+                }
+            }
+            // Si es de Google, solo debería saltar el error si el email ya existe PERO con
+            // proveedor 'local'
+            // (Evita que alguien se registre con contraseña usando el email de alguien de
+            // Google)
+            else if (usuario.getProvider() == AuthProvider.GOOGLE) {
+                // Aquí puedes permitir el flujo de login/registro de Google libremente
+                // ya que tu servicio se encargará de "mapear" o "recuperar" el usuario
+                // existente.
             }
         }
 
         // 3. Validación de Password (SOLO SI SE PROPORCIONA)
-        // Si es null, no pasa nada (escenarios 2 y 3). Pero si escribe algo, que sea
-        // seguro.
         if (usuario.getPassword() != null && !usuario.getPassword().isEmpty()) {
-            // Definimos el patrón de seguridad
             String regex = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$";
 
             if (!usuario.getPassword().matches(regex)) {

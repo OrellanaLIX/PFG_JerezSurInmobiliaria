@@ -1,10 +1,12 @@
 package com.jerezsur.inmobiliaria.models;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.jerezsur.inmobiliaria.models.enums.AuthProvider;
 import com.jerezsur.inmobiliaria.models.enums.Role;
 
@@ -15,6 +17,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
@@ -53,8 +56,8 @@ public class Usuario {
 
     private String apellidos;
 
-    //DATOS SENSIBLES
-    @Column(nullable = false)
+    // DATOS SENSIBLES
+    @Column(nullable = true)
     @Size(min = 8, message = "La contraseña debe tener al menos 8 caracteres")
     private String password;
 
@@ -86,16 +89,23 @@ public class Usuario {
     // --- RELACIONES DE PERFIL (1:1) ---
 
     // Perfil vinculado si el usuario es un empleado de la inmobiliaria
+    @JsonManagedReference
     @OneToOne(mappedBy = "usuario")
     private Trabajador trabajador;
 
     // Perfil vinculado si el usuario es un cliente buscando inmuebles
+    @JsonManagedReference
     @OneToOne(mappedBy = "usuario")
     private Interesado interesado;
 
     // Perfil vinculado si el usuario es un propietario vendiendo/alquilando
+    @JsonManagedReference
     @OneToOne(mappedBy = "usuario")
     private Vendedor vendedor;
+
+    // --- RELACIONES DE CITAS ---
+    @OneToMany(mappedBy = "usuario")
+    private List<Cita> citas;
 
     // --- AUDITORÍA ---
     @CreationTimestamp
