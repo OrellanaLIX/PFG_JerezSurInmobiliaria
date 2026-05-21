@@ -1,5 +1,6 @@
 package com.jerezsur.inmobiliaria.repositories;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -27,4 +28,18 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     Optional<Usuario> findByEmail(String email);
 
     Optional<Usuario> findByTelefono(String telefono);
+
+    /**
+     * Cuenta clientes (usuarios que NO son trabajadores) registrados
+     * después de una fecha concreta.
+     *
+     * Un cliente puede ser un Interesado, un Vendedor o ambos,
+     * pero nunca un Trabajador de la inmobiliaria.
+     */
+    @Query("""
+            SELECT COUNT(u) FROM Usuario u
+            WHERE u.trabajador IS NULL
+              AND u.fechaRegistro >= :desde
+            """)
+    long countClientesNuevosDesde(@Param("desde") LocalDateTime desde);
 }

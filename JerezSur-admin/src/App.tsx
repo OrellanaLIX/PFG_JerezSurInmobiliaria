@@ -1,22 +1,20 @@
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
+import ScrollToTop from './components/layout/ScrollToTop';
+import Header from './components/layout/Header';
+import DashboardResumen from './pages/DashboardResume';
+import { AuthProvider } from './context/AuthContext';
 
 function App() {
 
   return (
     <Router>
-      <ScrollToTop />
-      <Header />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/contacto" element={<Contact />} />
-        <Route path="/sobre-nosotros" element={<SobreNosotros />} />
-        <Route path="/propietarios" element={<Vender />} />
-        <Route path="/inmuebles" element={<Inmuebles />} />
-        <Route path="/acceder" element={<Auth />} />
-        <Route path="/onboarding" element={<Onboarding />} />
-        <Route path="/perfil" element={<Profile />} />
-      </Routes>
-      <Footer />
+      <AuthProvider>
+        <ScrollToTop />
+        <Header />
+        <Routes>
+          <Route path="/dashboard" element={<DashboardResumen />} />
+        </Routes>
+      </AuthProvider>
     </Router>
   );
 }

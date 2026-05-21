@@ -54,4 +54,6 @@ public interface InmuebleRepository extends JpaRepository<Inmueble, Long> {
         @Modifying
         @Query("DELETE FROM Inmueble i WHERE i.estado = 'RETIRADO' AND i.fechaRegistro < :fecha")
         void borrarInmueblesRetiradosAntiguos(LocalDateTime fecha);
+
+        long countByEstado(EstadoInmueble estado);
 }

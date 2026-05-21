@@ -33,4 +33,6 @@ public interface ContratoRepository extends JpaRepository<Contrato, Long> {
     @Modifying
     @Query("DELETE FROM Contrato c WHERE c.estado = 'CANCELADO' AND c.fechaRegistro < :fecha")
     void borrarContratosCanceladosAntiguos(LocalDateTime fecha);
+
+    long countByEstado(EstadoContrato estado);
 }

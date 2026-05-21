@@ -34,4 +34,6 @@ public interface CitaRepository extends JpaRepository<Cita, Long> {
     void borrarCitasCanceladasAntiguas(LocalDateTime fecha);
 
     List<Cita> findByTelefonoAnonimoAndUsuarioIsNull(String telefono);
+
+    long countByFechaHoraGreaterThanEqual(LocalDateTime fechaHora);
 }
