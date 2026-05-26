@@ -10,6 +10,7 @@ import java.util.Map;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.jerezsur.inmobiliaria.models.enums.EstadoInmueble;
 import com.jerezsur.inmobiliaria.models.enums.TipoOperacion;
 
@@ -37,6 +38,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import lombok.Builder.Default;
 
 @Entity
@@ -77,10 +79,9 @@ public class Inmueble {
     // --- CARACTERÍSTICAS DINÁMICAS ---
     // Esto crea una tabla hija que se borra si se borra el inmueble
     @ElementCollection
-    @CollectionTable(name = "inmueble_extras", 
-                    joinColumns = @JoinColumn(name = "inmueble_id"))
+    @CollectionTable(name = "inmueble_extras", joinColumns = @JoinColumn(name = "inmueble_id"))
     @MapKeyColumn(name = "clave") // "Muebles", "Orientación", etc.
-    @Column(name = "valor")      // "Sí", "Norte", etc.
+    @Column(name = "valor") // "Sí", "Norte", etc.
     @Default
     private Map<String, String> caracteristicasExtra = new HashMap<>();
 
@@ -134,6 +135,8 @@ public class Inmueble {
 
     @OneToMany(mappedBy = "inmueble", cascade = CascadeType.ALL, orphanRemoval = true)
     @Default
+    @ToString.Exclude
+    @JsonIgnore
     private List<Imagen> imagenes = new ArrayList<>();
 
     @OneToMany(mappedBy = "inmueble")

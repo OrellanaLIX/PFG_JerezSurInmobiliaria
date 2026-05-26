@@ -11,7 +11,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/operaciones")
-@CrossOrigin(origins = "*") // Ajustar según tu frontend React
+// Ajustar según tu frontend React
 public class OperacionController {
 
     @Autowired

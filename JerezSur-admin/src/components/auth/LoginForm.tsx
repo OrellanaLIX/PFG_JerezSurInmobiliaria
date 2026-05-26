@@ -41,7 +41,7 @@ const LoginForm = ({ onSwitchToRegister, onLoginSuccess }: LoginFormProps) => {
     setErrorMessage('');
 
     const loginPayload = {
-      username: formData.identifier.trim(),
+      email: formData.identifier.trim(),
       password: formData.password,
     };
 

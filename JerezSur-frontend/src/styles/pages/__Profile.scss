@@ -5,7 +5,7 @@
    ========================================================================= */
 .profile-section {
   padding: 3rem 0;
-  background-color: $color-primary;
+  background: linear-gradient(135deg, rgba($color-primary, 0.03) 0%, rgba($color-primary-dark, 0.05) 100%);
 
   &__container {
     max-width: 920px; // Alineado con el max-width de tus componentes del Home
@@ -20,16 +20,18 @@
    HEADER Y AVATAR (CORRECCIÓN DE TAMAÑO)
    ========================================================================= */
 .profile-header {
-  background-color: $color-surface;
+  background: linear-gradient(to bottom right, $color-surface, #fdfdfd);
   border-radius: $radius-lg;
   padding: 2.5rem;
   box-shadow: $shadow-sm;
   border: 1px solid rgba(0, 67, 156, 0.06);
+  border-top: 4px solid $color-primary; // Acento de marca
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
   gap: 1rem;
+  animation: fadeInUp 0.5s ease forwards;
 
   &__avatar {
     width: 130px; 
@@ -72,6 +74,14 @@
   padding: 2.5rem;
   box-shadow: $shadow-sm;
   border: 1px solid rgba(0, 67, 156, 0.06);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  animation: fadeInUp 0.6s ease forwards;
+  opacity: 0;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: $shadow-md;
+  }
 
   h2 {
     color: $color-primary-dark;
@@ -202,5 +212,19 @@
         width: 100%;
       }
     }
+  }
+}
+
+/* ==========================================================================
+   ANIMACIONES PREMIUN
+   ========================================================================= */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

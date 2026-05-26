@@ -3,25 +3,22 @@ package com.jerezsur.inmobiliaria.models;
 import java.time.LocalDateTime;
 
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
 import com.jerezsur.inmobiliaria.models.enums.EstadoCita;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Builder.Default;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -33,49 +30,38 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Cita {
 
-    // --- IDENTIFICADOR ---
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // --- DATOS DE LA CITA ---
-    @NotNull(message = "La fecha y hora son obligatorias")
-    @Future(message = "La cita debe ser en una fecha futura")
+    @NotNull
+    @Column(nullable = false)
     private LocalDateTime fechaHora;
 
-    @Enumerated(EnumType.STRING)
-    private EstadoCita estado; // PENDIENTE, CONFIRMADA, CANCELADA, REALIZADA
-
-    private String nombreAnonimo; // "Juan"
-    private String telefonoAnonimo; // "600123456" (verificado)
-    private String emailAnonimo; // opcional
-    private String mensajeSolicitud; // "Me interesa el piso de la calle..."
-
     @Column(columnDefinition = "TEXT")
-    private String notasTrabajador; // Comentarios tras la visita (ej: "Le ha gustado la cocina")
+    private String motivo;
 
-    // --- RELACIONES ---
+    @Enumerated(EnumType.STRING)
+    @Default
+    @Column(nullable = false, length = 25)
+    private EstadoCita estado = EstadoCita.PENDIENTE;
 
-    // La cita pertenece a un inmueble concreto
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "inmueble_id", nullable = true)
-    private Inmueble inmueble;
-
-    // Un solo trabajador es el responsable de la visita
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "trabajador_id", nullable = true)
-    private Trabajador trabajador;
-
-    // El comprador principal (titular de la cita)
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "usuario_id", nullable = true)
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "usuario_id", nullable = false)
     private Usuario usuario;
 
-    // --- AUDITORÍA ---
+    @ManyToOne
+    @JoinColumn(name = "trabajador_id")
+    private Trabajador trabajador;
+
+    @ManyToOne
+    @JoinColumn(name = "inmueble_id")
+    private Inmueble inmueble;
+
+    @Column(columnDefinition = "TEXT")
+    private String notas;
+
     @CreationTimestamp
     @Column(updatable = false)
-    private LocalDateTime fechaRegistro;
-
-    @UpdateTimestamp
-    private LocalDateTime fechaUltimaActualizacion;
+    private LocalDateTime fechaCreacion;
 }

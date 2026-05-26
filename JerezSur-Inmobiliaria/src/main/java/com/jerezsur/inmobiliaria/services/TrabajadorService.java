@@ -73,10 +73,6 @@ public class TrabajadorService {
     // METODOS DE APOYO PARA VALIDACIONES DE NEGOCIO
     // ------------------------------------------------------------------
 
-    private boolean isEmpty(String str) {
-        return str == null || str.trim().isEmpty();
-    }
-
     private void validarTrabajador(Trabajador trabajador) {
         // Validación: NIF/DNI (muy importante para la validez de contratos)
         if (trabajador.getDni() == null || trabajador.getDni().length() < 9) {

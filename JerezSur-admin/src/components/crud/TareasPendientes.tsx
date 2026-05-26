@@ -19,17 +19,37 @@ export const TareasPendientes = ({
   const [descripcion, setDescripcion] = useState('');
   const [fecha, setFecha] = useState(new Date().toISOString().split('T')[0]);
   const [prioridad, setPrioridad] = useState<'ALTA' | 'MEDIA' | 'BAJA'>('MEDIA');
+  const [enlace, setEnlace] = useState('');
+  const [etiquetaEnlace, setEtiquetaEnlace] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!titulo.trim()) return;
 
-    await onCrear({ titulo, descripcion, fecha, prioridad });
+    await onCrear({
+      titulo,
+      descripcion,
+      fecha,
+      prioridad,
+      enlace: enlace.trim() || undefined,
+      etiquetaEnlace: etiquetaEnlace.trim() || undefined,
+    });
+
     setTitulo('');
     setDescripcion('');
     setFecha(new Date().toISOString().split('T')[0]);
     setPrioridad('MEDIA');
+    setEnlace('');
+    setEtiquetaEnlace('');
     setMostrarForm(false);
+  };
+
+  const abrirEnlace = (url: string) => {
+    if (/^(https?:|mailto:|tel:|wa\.me)/.test(url)) {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } else {
+      window.location.href = url;
+    }
   };
 
   return (
@@ -64,12 +84,26 @@ export const TareasPendientes = ({
           />
           <select
             value={prioridad}
-            onChange={(e) => setPrioridad(e.target.value as 'ALTA' | 'MEDIA' | 'BAJA')}
+            onChange={(e) =>
+              setPrioridad(e.target.value as 'ALTA' | 'MEDIA' | 'BAJA')
+            }
           >
             <option value="ALTA">Alta</option>
             <option value="MEDIA">Media</option>
             <option value="BAJA">Baja</option>
           </select>
+          <input
+            type="text"
+            placeholder="Enlace (opcional)"
+            value={enlace}
+            onChange={(e) => setEnlace(e.target.value)}
+          />
+          <input
+            type="text"
+            placeholder="Texto del botón (opcional)"
+            value={etiquetaEnlace}
+            onChange={(e) => setEtiquetaEnlace(e.target.value)}
+          />
           <button type="submit">Guardar</button>
         </form>
       )}
@@ -87,7 +121,12 @@ export const TareasPendientes = ({
                 <small>{tarea.fecha}</small>
               </div>
               <div>
-                <button onClick={() => onCompletar(tarea.id)}>✓ Completar</button>
+                {tarea.enlace && (
+                  <button onClick={() => abrirEnlace(tarea.enlace!)}>
+                    {tarea.etiquetaEnlace || 'Abrir'}
+                  </button>
+                )}
+                <button onClick={() => onCompletar(tarea.id)}>✓ Hecho</button>
                 <button onClick={() => onEliminar(tarea.id)}>✕ Eliminar</button>
               </div>
             </li>

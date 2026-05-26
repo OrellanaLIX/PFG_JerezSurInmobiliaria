@@ -1,53 +1,68 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useMemo,
+  type ReactNode,
+} from 'react';
+import { authService } from '../services/authService';
+import type { AuthUser, LoginRequest } from '../types/auth';
 
-// Definimos qué datos del usuario vamos a guardar
-interface User {
-  id: number;
-  nombre: string;
-  email?: string;
-  telefono?: string;
-}
-
-interface AuthContextType {
-  user: User | null;
-  login: (userData: User) => void;
-  logout: () => void;
+interface AuthContextValue {
+  user: AuthUser | null;
   isAuthenticated: boolean;
+  isLoading: boolean;
+  login: (credentials: LoginRequest) => Promise<void>;
+  logout: () => void;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextValue | null>(null);
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
+interface AuthProviderProps {
+  children: ReactNode;
+}
 
-  // Al cargar la app, miramos si ya había un usuario en el PC
-  useEffect(() => {
-    const savedUser = localStorage.getItem('usuario');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
+export const AuthProvider = ({ children }: AuthProviderProps) => {
+  const [user, setUser] = useState<AuthUser | null>(() => authService.getUser());
+  const [isLoading, setIsLoading] = useState(false);
+
+  const login = useCallback(async (credentials: LoginRequest) => {
+    setIsLoading(true);
+    try {
+      const response = await authService.login(credentials);
+      setUser({
+        userId: response.userId,
+        nombre: response.nombre,
+        email: response.email,
+        role: response.role,
+      });
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 
-  const login = (userData: User) => {
-    setUser(userData);
-    localStorage.setItem('usuario', JSON.stringify(userData));
-  };
-
-  const logout = () => {
+  const logout = useCallback(() => {
+    authService.logout();
     setUser(null);
-    localStorage.removeItem('usuario');
-  };
+    window.location.href = '/dashboard/login';
+  }, []);
 
-  return (
-    <AuthContext.Provider value={{ user, login, logout, isAuthenticated: !!user }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  const value = useMemo<AuthContextValue>(() => ({
+    user,
+    isAuthenticated: !!user,
+    isLoading,
+    login,
+    logout,
+  }), [user, isLoading, login, logout]);
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-// Hook personalizado para usar el contexto fácilmente
-export const useAuth = () => {
+export const useAuth = (): AuthContextValue => {
   const context = useContext(AuthContext);
-  if (!context) throw new Error('useAuth debe usarse dentro de un AuthProvider');
+  if (!context) {
+    throw new Error('useAuth debe usarse dentro de AuthProvider');
+  }
   return context;
 };

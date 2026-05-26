@@ -1,179 +1,112 @@
 package com.jerezsur.inmobiliaria.services;
 
-import com.jerezsur.inmobiliaria.dto.CitaAnonimaRequest;
+import com.jerezsur.inmobiliaria.dto.CitaResponseDTO;
 import com.jerezsur.inmobiliaria.models.*;
 import com.jerezsur.inmobiliaria.models.enums.EstadoCita;
 import com.jerezsur.inmobiliaria.repositories.*;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.Random;
 
 @Service
+@RequiredArgsConstructor
+@Transactional
 public class CitaService {
 
-    @Autowired
-    private CitaRepository citaRepository;
-
-    @Autowired
-    private UsuarioRepository usuarioRepository;
-
-    @Autowired
-    private InmuebleRepository inmuebleRepository;
-
-    // Almacén temporal de códigos de verificación (en producción usar Redis)
-    private final Map<String, CodigoVerificacion> codigosVerificacion = new ConcurrentHashMap<>();
-
-    private static class CodigoVerificacion {
-        String codigo;
-        LocalDateTime expiracion;
-
-        CodigoVerificacion(String codigo) {
-            this.codigo = codigo;
-            this.expiracion = LocalDateTime.now().plusMinutes(10);
-        }
-
-        boolean esValido(String intentoCodigo) {
-            return this.codigo.equals(intentoCodigo)
-                    && LocalDateTime.now().isBefore(this.expiracion);
-        }
-    }
+    private final CitaRepository citaRepository;
+    private final TrabajadorRepository trabajadorRepository;
 
     /**
-     * Genera y "envía" un código de verificación al teléfono.
-     * En producción, aquí iría Twilio o similar.
+     * Un trabajador acepta una cita pendiente de asignación.
      */
-    public String enviarCodigoVerificacion(String telefono) {
-        if (telefono == null || telefono.isBlank()) {
-            throw new RuntimeException("El teléfono es obligatorio");
-        }
+    public CitaResponseDTO aceptarCita(Long citaId, Long trabajadorId) {
+        Cita cita = citaRepository.findById(citaId)
+                .orElseThrow(() -> new RuntimeException("Cita no encontrada"));
 
-        String telefonoNormalizado = telefono.trim().replaceAll("[\\s\\-()]", "");
-
-        // Generar código de 6 dígitos
-        String codigo = String.format("%06d", new Random().nextInt(999999));
-
-        codigosVerificacion.put(telefonoNormalizado, new CodigoVerificacion(codigo));
-
-        // SIMULACIÓN: En producción enviar SMS real
-        System.out.println("==============================================");
-        System.out.println("CÓDIGO DE VERIFICACIÓN para " + telefonoNormalizado);
-        System.out.println("Código: " + codigo);
-        System.out.println("Expira en 10 minutos");
-        System.out.println("==============================================");
-
-        return "Código enviado al teléfono " + telefonoNormalizado;
-    }
-
-    /**
-     * Verifica si el código es correcto para ese teléfono.
-     */
-    public boolean verificarCodigo(String telefono, String codigo) {
-        String telefonoNormalizado = telefono.trim().replaceAll("[\\s\\-()]", "");
-        CodigoVerificacion cv = codigosVerificacion.get(telefonoNormalizado);
-
-        if (cv == null) return false;
-
-        boolean valido = cv.esValido(codigo);
-
-        if (valido) {
-            codigosVerificacion.remove(telefonoNormalizado);
-        }
-
-        return valido;
-    }
-
-    /**
-     * Crea una cita anónima (o vinculada si el teléfono ya existe como usuario).
-     * Implementa la Opción C: busca usuario existente por teléfono.
-     */
-    @Transactional
-    public Cita crearCitaAnonima(CitaAnonimaRequest request) {
-        // Validaciones básicas
-        if (request.getNombre() == null || request.getNombre().isBlank()) {
-            throw new RuntimeException("El nombre es obligatorio");
-        }
-        if (request.getTelefono() == null || request.getTelefono().isBlank()) {
-            throw new RuntimeException("El teléfono es obligatorio");
-        }
-        if (request.getFechaHoraDeseada() == null) {
-            throw new RuntimeException("La fecha y hora son obligatorias");
-        }
-        if (request.getFechaHoraDeseada().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("La fecha debe ser futura");
-        }
-
-        // Verificar código
-        if (!verificarCodigo(request.getTelefono(), request.getCodigoVerificacion())) {
-            throw new RuntimeException("Código de verificación inválido o expirado");
-        }
-
-        String telefonoNormalizado = request.getTelefono().trim().replaceAll("[\\s\\-()]", "");
-
-        Cita cita = new Cita();
-        cita.setFechaHora(request.getFechaHoraDeseada());
-        cita.setEstado(EstadoCita.PENDIENTE);
-        cita.setMensajeSolicitud(request.getMensaje());
-
-        // OPCIÓN C: Buscar si ya existe un usuario con ese teléfono
-        Usuario usuarioExistente = usuarioRepository.findByTelefono(telefonoNormalizado).orElse(null);
-
-        if (usuarioExistente != null) {
-            // Vincular la cita al usuario existente
-            cita.setUsuario(usuarioExistente);
-            cita.setNombreAnonimo(null);
-            cita.setTelefonoAnonimo(null);
-            cita.setEmailAnonimo(null);
-        } else {
-            // Cita anónima: guardar datos de contacto
-            cita.setUsuario(null);
-            cita.setNombreAnonimo(request.getNombre().trim());
-            cita.setTelefonoAnonimo(telefonoNormalizado);
-            cita.setEmailAnonimo(
-                request.getEmail() != null && !request.getEmail().isBlank()
-                    ? request.getEmail().trim().toLowerCase()
-                    : null
+        if (cita.getEstado() != EstadoCita.PENDIENTE) {
+            throw new RuntimeException(
+                    "Esta cita ya fue aceptada por otro trabajador o está en otro estado"
             );
         }
 
-        // Vincular inmueble si se proporcionó
-        if (request.getInmuebleId() != null) {
-            Inmueble inmueble = inmuebleRepository.findById(request.getInmuebleId())
-                    .orElseThrow(() -> new RuntimeException(
-                        "Inmueble no encontrado con ID: " + request.getInmuebleId()
-                    ));
-            cita.setInmueble(inmueble);
-        }
+        Trabajador trabajador = trabajadorRepository.findById(trabajadorId)
+                .orElseThrow(() -> new RuntimeException("Trabajador no encontrado"));
 
-        // trabajador queda null hasta que un trabajador la apruebe
+        // Asignar trabajador y cambiar estado
+        cita.setTrabajador(trabajador);
+        cita.setEstado(EstadoCita.CONFIRMADA);
+        Cita actualizada = citaRepository.save(cita);
 
-        return citaRepository.save(cita);
+        // TODO: Enviar notificación al cliente (SMS, email, WhatsApp...)s
+
+        return mapearACitaResponse(actualizada);
     }
 
-    /**
-     * Vincula citas anónimas antiguas cuando un usuario se registra.
-     * Llamar desde el servicio de registro/onboarding.
-     */
-    @Transactional
-    public int vincularCitasAnonimas(Usuario usuario) {
-        if (usuario.getTelefono() == null) return 0;
+    public CitaResponseDTO completarCita(Long citaId) {
+        Cita cita = citaRepository.findById(citaId)
+                .orElseThrow(() -> new RuntimeException("Cita no encontrada"));
 
-        List<Cita> citasAnonimas = citaRepository
-                .findByTelefonoAnonimoAndUsuarioIsNull(usuario.getTelefono());
+        cita.setEstado(EstadoCita.REALIZADA);
+        return mapearACitaResponse(citaRepository.save(cita));
+    }
 
-        for (Cita cita : citasAnonimas) {
-            cita.setUsuario(usuario);
-            cita.setNombreAnonimo(null);
-            cita.setTelefonoAnonimo(null);
-            cita.setEmailAnonimo(null);
+    public CitaResponseDTO cancelarCita(Long citaId) {
+        Cita cita = citaRepository.findById(citaId)
+                .orElseThrow(() -> new RuntimeException("Cita no encontrada"));
+
+        cita.setEstado(EstadoCita.CANCELADA);
+        return mapearACitaResponse(citaRepository.save(cita));
+    }
+
+    public List<CitaResponseDTO> getCitasDelTrabajador(Long trabajadorId) {
+        return citaRepository.findByTrabajadorIdOrderByFechaHoraAsc(trabajadorId)
+                .stream()
+                .map(this::mapearACitaResponse)
+                .toList();
+    }
+
+    public List<CitaResponseDTO> getAllCitas() {
+        return citaRepository.findAll()
+                .stream()
+                .map(this::mapearACitaResponse)
+                .toList();
+    }
+
+    // ============================================================
+    // PRIVADOS
+    // ============================================================
+    private CitaResponseDTO mapearACitaResponse(Cita cita) {
+        String nombreCliente = "Desconocido";
+        String telefonoCliente = "Sin teléfono";
+        if (cita.getUsuario() != null) {
+            nombreCliente = cita.getUsuario().getNombre();
+            telefonoCliente = cita.getUsuario().getTelefono();
         }
 
-        citaRepository.saveAll(citasAnonimas);
-        return citasAnonimas.size();
+        String nombreTrabajador = null;
+        if (cita.getTrabajador() != null && cita.getTrabajador().getUsuario() != null) {
+            nombreTrabajador = cita.getTrabajador().getUsuario().getNombre();
+        }
+
+        String direccionInmueble = null;
+        Long inmuebleId = null;
+        if (cita.getInmueble() != null) {
+            direccionInmueble = cita.getInmueble().getDireccion();
+            inmuebleId = cita.getInmueble().getId();
+        }
+
+        return CitaResponseDTO.builder()
+                .id(cita.getId())
+                .nombreCliente(nombreCliente)
+                .telefonoCliente(telefonoCliente)
+                .fechaHora(cita.getFechaHora())
+                .motivo(cita.getMotivo())
+                .estado(cita.getEstado() != null ? cita.getEstado().name() : "PENDIENTE")
+                .nombreTrabajador(nombreTrabajador)
+                .direccionInmueble(direccionInmueble)
+                .inmuebleId(inmuebleId)
+                .build();
     }
 }

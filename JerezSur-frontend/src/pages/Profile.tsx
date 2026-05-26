@@ -219,6 +219,19 @@ const Profile: React.FC = () => {
         }
 
         const data: UsuarioPerfil = await res.json();
+        // Validar si falta información importante
+        const faltaNombre = !data.nombre || data.nombre.trim() === '';
+        const faltaApellidos = !data.apellidos || data.apellidos.trim() === '';
+        const faltaDni = !data.dni || data.dni.trim() === '';
+        const faltaTelefono = !data.telefono || data.telefono.trim() === '';
+        const faltaPerfil = data.role === 'ROLE_NOROL';
+        const faltaPassword = data.cambiarPasswd === true;
+
+        if (faltaNombre || faltaApellidos || faltaDni || faltaTelefono || faltaPerfil || faltaPassword) {
+            navigate('/onboarding');
+            return;
+        }
+
         setServerData(data);
 
         // Pre-rellenar el formulario con los datos actuales

@@ -15,7 +15,6 @@ import jakarta.validation.constraints.Min;
 
 @RestController
 @RequestMapping("/api/trabajadores")
-@CrossOrigin(origins = "http://localhost:3000")
 public class TrabajadorController {
 
     @Autowired

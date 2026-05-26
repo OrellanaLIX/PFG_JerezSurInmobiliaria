@@ -1,37 +1,30 @@
 package com.jerezsur.inmobiliaria.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
 
 import com.jerezsur.inmobiliaria.exceptions.BusinessValidationException;
 import com.jerezsur.inmobiliaria.models.Usuario;
 import com.jerezsur.inmobiliaria.services.PerfilService;
 import com.jerezsur.inmobiliaria.services.UsuarioService;
+import com.jerezsur.inmobiliaria.dto.RegistroRequest;
+import jakarta.validation.Valid;
 
 import jakarta.persistence.EntityNotFoundException;
 
 import com.jerezsur.inmobiliaria.dto.LoginRequest;
+import com.jerezsur.inmobiliaria.dto.LoginResponseDTO;
 import com.jerezsur.inmobiliaria.dto.OnboardingRequest;
 import com.jerezsur.inmobiliaria.dto.UpdatePerfilRequest;
 import com.jerezsur.inmobiliaria.dto.UsuarioPerfilDTO;
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
-import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.json.gson.GsonFactory;
+import com.jerezsur.inmobiliaria.services.AuthService;
 
-import java.util.Collections;
 import java.util.Map;
-
-import com.jerezsur.inmobiliaria.models.enums.AuthProvider;
 
 @RestController
 @RequestMapping("/api/usuarios")
-@CrossOrigin(origins = "http://localhost:5173")
 public class UsuarioController {
 
     @Autowired
@@ -40,15 +33,15 @@ public class UsuarioController {
     @Autowired
     private PerfilService perfilService;
 
-    @Value("${spring.security.oauth2.client.registration.google.client-id}")
-    private String googleClientId;
+    @Autowired
+    private AuthService authService;
 
     // --- REGISTRO Y LOGIN TRADICIONAL ---
 
     @PostMapping("/registro")
-    public ResponseEntity<?> registrar(@RequestBody Usuario usuario) {
+    public ResponseEntity<?> registrar(@Valid @RequestBody RegistroRequest request) {
         try {
-            Usuario guardado = usuarioService.registrarUsuario(usuario);
+            Usuario guardado = usuarioService.registrarUsuario(request);
             return ResponseEntity.ok(guardado);
         } catch (BusinessValidationException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -60,14 +53,21 @@ public class UsuarioController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
+        System.out.println("🔴 [AUTH LOG] Petición de login recibida.");
+        System.out.println("   -> Username/Email recibido: '" + loginRequest.getUsername() + "'");
+        System.out.println("   -> Password proporcionada: " + (loginRequest.getPassword() != null ? "SÍ" : "NO"));
         try {
-            Usuario usuario = usuarioService.login(
+            LoginResponseDTO response = authService.processLocalLogin(
                     loginRequest.getUsername(),
                     loginRequest.getPassword());
-            return ResponseEntity.ok(usuario);
+            System.out.println("🟢 [AUTH LOG] Login exitoso para el usuario: " + response.getEmail());
+            return ResponseEntity.ok(response);
         } catch (BusinessValidationException e) {
+            System.out.println("❌ [AUTH LOG] Error de validación de negocio en login: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         } catch (Exception e) {
+            System.out.println("💥 [AUTH LOG] Excepción inesperada durante el login:");
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al iniciar sesión.");
         }
     }
@@ -77,23 +77,10 @@ public class UsuarioController {
     @PostMapping("/auth/google")
     public ResponseEntity<?> googleLogin(@RequestBody Map<String, String> body) {
         try {
-            String token = body.get("token");
-            GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(),
-                    new GsonFactory())
-                    .setAudience(Collections.singletonList(googleClientId))
-                    .build();
-
-            GoogleIdToken idToken = verifier.verify(token);
-            if (idToken != null) {
-                GoogleIdToken.Payload payload = idToken.getPayload();
-                Usuario user = usuarioService.procesarLoginSocial(
-                        payload.getEmail(),
-                        (String) payload.get("name"),
-                        AuthProvider.GOOGLE,
-                        payload.getSubject());
-                return ResponseEntity.ok(user);
-            }
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token de Google inválido");
+            LoginResponseDTO user = authService.processGoogleAuth(body.get("token"));
+            return ResponseEntity.ok(user);
+        } catch (BusinessValidationException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Error en Google Auth: " + e.getMessage());
         }
@@ -102,21 +89,10 @@ public class UsuarioController {
     @PostMapping("/auth/facebook")
     public ResponseEntity<?> facebookLogin(@RequestBody Map<String, String> body) {
         try {
-            String token = body.get("token");
-            // Validamos contra la Graph API de Facebook
-            String url = "https://graph.facebook.com/me?fields=id,name,email&access_token=" + token;
-            RestTemplate restTemplate = new RestTemplate();
-            Map<String, Object> fbResponse = restTemplate.getForObject(url, Map.class);
-
-            if (fbResponse != null && fbResponse.containsKey("email")) {
-                Usuario user = usuarioService.procesarLoginSocial(
-                        (String) fbResponse.get("email"),
-                        (String) fbResponse.get("name"),
-                        AuthProvider.FACEBOOK,
-                        (String) fbResponse.get("id"));
-                return ResponseEntity.ok(user);
-            }
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token de Facebook inválido");
+            LoginResponseDTO user = authService.processFacebookAuth(body.get("token"));
+            return ResponseEntity.ok(user);
+        } catch (BusinessValidationException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Error en Facebook Auth");
         }
@@ -124,15 +100,12 @@ public class UsuarioController {
 
     @PostMapping("/auth/apple")
     public ResponseEntity<?> appleLogin(@RequestBody Map<String, String> body) {
-        // Nota: Apple requiere una validación de clave pública compleja o usar una
-        // librería JWT.
-        // Aquí simulamos la recepción del email que Apple envía en el primer login.
         try {
-            String email = body.get("email");
-            String name = body.get("name");
-            String appleId = body.get("token"); // Usamos el identificador único
-
-            Usuario user = usuarioService.procesarLoginSocial(email, name, AuthProvider.APPLE, appleId);
+            LoginResponseDTO user = authService.processAppleAuth(
+                body.get("email"), 
+                body.get("name"), 
+                body.get("token")
+            );
             return ResponseEntity.ok(user);
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Error en Apple Auth");

@@ -15,7 +15,6 @@ import jakarta.validation.constraints.Min;
 
 @RestController
 @RequestMapping("/api/vendedores")
-@CrossOrigin(origins = "http://localhost:3000")
 public class VendedorController {
 
     @Autowired

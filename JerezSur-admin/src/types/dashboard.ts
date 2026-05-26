@@ -4,7 +4,9 @@ export interface Tarea {
   descripcion?: string;
   fecha: string;
   prioridad: 'ALTA' | 'MEDIA' | 'BAJA';
-  completada: boolean;
+  enlace?: string;
+  etiquetaEnlace?: string;
+  fechaCreacion: string;
 }
 
 export interface Dashboard {
@@ -20,4 +22,6 @@ export interface NuevaTarea {
   descripcion?: string;
   fecha: string;
   prioridad: 'ALTA' | 'MEDIA' | 'BAJA';
+  enlace?: string;
+  etiquetaEnlace?: string;
 }

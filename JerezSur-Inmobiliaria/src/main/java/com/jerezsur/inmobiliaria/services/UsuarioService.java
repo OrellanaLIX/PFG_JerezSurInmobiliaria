@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import com.jerezsur.inmobiliaria.dto.RegistroRequest;
 
 @Service
 public class UsuarioService {
@@ -51,6 +52,7 @@ public class UsuarioService {
             nuevo.setRole(Role.ROLE_NOROL); // El rol base que creamos antes
             nuevo.setProvider(provider);
             nuevo.setProviderId(providerId);
+            nuevo.setTelefono("social_" + System.currentTimeMillis()); // Evitar constraint null
             nuevo.setCambiarPasswd(false); // No necesita cambiar pass porque entra por Google
 
             return usuarioRepository.save(nuevo);
@@ -93,7 +95,15 @@ public class UsuarioService {
      * 3. Alta por trabajador (sin password) -> Guarda null y activa flag.
      */
     @Transactional
-    public Usuario registrarUsuario(Usuario usuario) {
+    public Usuario registrarUsuario(RegistroRequest request) {
+        Usuario usuario = new Usuario();
+        usuario.setEmail(request.getEmail());
+        usuario.setTelefono(request.getTelefono());
+        usuario.setNombre(request.getNombre());
+        usuario.setApellidos(request.getApellidos());
+        usuario.setPassword(request.getPassword());
+        usuario.setDni(request.getDni());
+
         validarDatos(usuario);
 
         // Lógica de Contraseña
@@ -175,10 +185,11 @@ public class UsuarioService {
             }
         }
 
-        // 3. Validación de Password (SOLO SI SE PROPORCIONA)
-        if (usuario.getPassword() != null && !usuario.getPassword().isEmpty()) {
+        // 3. Validación de Password (removida porque se valida en el DTO RegistroRequest)
+        // Se deja para otros flujos si es necesario, pero idealmente migrar a DTOs
+        if (usuario.getPassword() != null && !usuario.getPassword().isEmpty() && !usuario.getPassword().startsWith("$2a$")) {
+            // Si no empieza por $2a$ asumimos que no está encriptada y validamos
             String regex = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$";
-
             if (!usuario.getPassword().matches(regex)) {
                 throw new BusinessValidationException(
                         "La contraseña es demasiado débil. Debe tener al menos 8 caracteres, incluyendo una mayúscula, una minúscula, un número y un carácter especial (@$!%*?&).");

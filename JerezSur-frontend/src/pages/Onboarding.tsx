@@ -191,7 +191,7 @@ const Onboarding: React.FC = () => {
     const loadProfile = async () => {
       const user = getStoredUser();
       if (!user?.id) {
-        navigate('/login');
+        navigate('/acceder');
         return;
       }
 
@@ -202,7 +202,7 @@ const Onboarding: React.FC = () => {
         });
 
         if (!res.ok) {
-          navigate('/login');
+          navigate('/acceder');
           return;
         }
 

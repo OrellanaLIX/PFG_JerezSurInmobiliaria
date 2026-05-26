@@ -1,18 +1,7 @@
-import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
-import Home from './pages/Home';
-import Contact from './pages/Contacto';
-import SobreNosotros from './pages/SobreNosotros';
-import Vender from './pages/Vender';
-import Header from './components/layout/Header';
-import Footer from './components/layout/Footer';
-import ScrollToTop from './components/ScrollToTop';
-import './styles/App.scss';
-import Inmuebles from './pages/Inmuebles';
-import Auth from './pages/Auth';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { useEffect } from 'react';
-import Onboarding from './pages/Onboarding';
-import Profile from './pages/Profile';
+import { AppRoutes } from './routes/AppRoutes';
+import './styles/App.scss';
 
 const clientGGId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 const clientFBId = import.meta.env.VITE_FACEBOOK_APP_ID;
@@ -43,21 +32,7 @@ function App() {
 
   return (
     <GoogleOAuthProvider clientId={clientGGId}>
-    <Router>
-      <ScrollToTop />
-      <Header />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/contacto" element={<Contact />} />
-        <Route path="/sobre-nosotros" element={<SobreNosotros />} />
-        <Route path="/propietarios" element={<Vender />} />
-        <Route path="/inmuebles" element={<Inmuebles />} />
-        <Route path="/acceder" element={<Auth />} />
-        <Route path="/onboarding" element={<Onboarding />} />
-        <Route path="/perfil" element={<Profile />} />
-      </Routes>
-      <Footer />
-    </Router>
+      <AppRoutes />
     </GoogleOAuthProvider>
   );
 }

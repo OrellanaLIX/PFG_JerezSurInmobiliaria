@@ -1,6 +1,7 @@
 package com.jerezsur.inmobiliaria.repositories;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -33,7 +34,7 @@ public interface CitaRepository extends JpaRepository<Cita, Long> {
     @Query("DELETE FROM Cita c WHERE c.estado = 'CANCELADA' AND c.fechaHora < :fecha")
     void borrarCitasCanceladasAntiguas(LocalDateTime fecha);
 
-    List<Cita> findByTelefonoAnonimoAndUsuarioIsNull(String telefono);
-
     long countByFechaHoraGreaterThanEqual(LocalDateTime fechaHora);
+
+    Optional<Cita> findByTrabajadorIdOrderByFechaHoraAsc(Long trabajadorId);
 }

@@ -18,8 +18,6 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -27,6 +25,7 @@ import lombok.Builder;
 import lombok.Builder.Default;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Entity
 @Table(name = "trabajadores")
@@ -64,6 +63,7 @@ public class Trabajador {
 
     // Histórico de citas y visitas gestionadas por el trabajador
     @OneToMany(mappedBy = "trabajador")
+    @ToString.Exclude
     private List<Cita> citas;
 
     // Contratos en los que el trabajador ha actuado como representante/testigo
@@ -73,6 +73,7 @@ public class Trabajador {
     // Vinculación con las credenciales de seguridad del sistema
     @JsonBackReference
     @OneToOne
+    @ToString.Exclude
     @JoinColumn(name = "usuario_id")
     private Usuario usuario;
 

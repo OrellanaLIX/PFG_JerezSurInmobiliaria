@@ -3,7 +3,7 @@ import { KpiCards } from '../components/crud/KpiCards';
 import { TareasPendientes } from '../components/crud/TareasPendientes';
 
 const DashboardResumen = () => {
-  const { data, loading, error, crearTarea, completarTarea, eliminarTarea } = useDashboard();
+  const { data, loading, error, crearTarea, eliminarTarea } = useDashboard();
 
   if (loading) return <p>Cargando...</p>;
   if (error) return <p>{error}</p>;
@@ -23,8 +23,7 @@ const DashboardResumen = () => {
       <TareasPendientes
         tareas={data.tareas}
         onCrear={crearTarea}
-        onCompletar={completarTarea}
-        onEliminar={eliminarTarea}
+        onCompletar={eliminarTarea}
       />
     </div>
   );

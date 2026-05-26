@@ -13,6 +13,8 @@ interface UserData {
   email: string;
   role: 'ROLE_ADMIN' | 'ROLE_TRABAJADOR' | 'ROLE_NOROL' | 'ROLE_INTERESADO' | 'ROLE_VENDEDOR' | 'ROLE_AMBOS';
   provider?: string;
+  token?: string;
+  userId?: number;
 }
 
 type AuthMode = 'login' | 'register';
@@ -30,10 +32,18 @@ const Auth: React.FC = () => {
 
   // 2. Función centralizada de redirección profesional
   const redirectByUserRole = (userData: UserData) => {
-    // Guardamos en LocalStorage para que el resto de la app sepa quién ha entrado
-    localStorage.setItem('usuario', JSON.stringify(userData));
+    // Compatibilidad entre LoginResponseDTO (userId) y el formato del frontend (id)
+    const normalizedUser = { ...userData, id: userData.id || userData.userId };
 
-    switch (userData.role) {
+    // Guardamos en LocalStorage para que el resto de la app sepa quién ha entrado
+    localStorage.setItem('usuario', JSON.stringify(normalizedUser));
+    
+    // GUARDAR EL TOKEN DE SEGURIDAD
+    if (userData.token) {
+      localStorage.setItem('token', userData.token);
+    }
+
+    switch (normalizedUser.role) {
       case 'ROLE_NOROL':
         // Si es nuevo, directos al onboarding que creamos antes
         navigate('/onboarding');

@@ -1,74 +1,62 @@
 package com.jerezsur.inmobiliaria.controllers;
 
-import com.jerezsur.inmobiliaria.dto.CitaAnonimaRequest;
-import com.jerezsur.inmobiliaria.models.Cita;
+import com.jerezsur.inmobiliaria.dto.CitaResponseDTO;
+import com.jerezsur.inmobiliaria.dto.SolicitudCitaPublicaDTO;
+import com.jerezsur.inmobiliaria.services.CitaPublicaService;
 import com.jerezsur.inmobiliaria.services.CitaService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/citas")
+@RequiredArgsConstructor
 public class CitaController {
 
-    @Autowired
-    private CitaService citaService;
+    private final CitaService citaService;
 
-    /**
-     * POST /api/citas/verificar-telefono
-     * Envía código de verificación al teléfono.
-     * Endpoint público (no requiere autenticación).
-     */
-    @PostMapping("/verificar-telefono")
-    public ResponseEntity<?> enviarCodigo(@RequestBody Map<String, String> body) {
-        try {
-            String telefono = body.get("telefono");
+    private final CitaPublicaService citaPublicaService;
 
-            if (telefono == null || telefono.isBlank()) {
-                return ResponseEntity.badRequest()
-                        .body(Map.of("error", "El teléfono es obligatorio"));
-            }
+    @GetMapping("/trabajador/{trabajadorId}")
+    public ResponseEntity<List<CitaResponseDTO>> misCitas(@PathVariable Long trabajadorId) {
+        return ResponseEntity.ok(citaService.getCitasDelTrabajador(trabajadorId));
+    }
 
-            String mensaje = citaService.enviarCodigoVerificacion(telefono);
-            return ResponseEntity.ok(Map.of("message", mensaje));
-
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", e.getMessage()));
-        }
+    @GetMapping("/todas")
+    public ResponseEntity<List<CitaResponseDTO>> todasLasCitas() {
+        return ResponseEntity.ok(citaService.getAllCitas());
     }
 
     /**
-     * POST /api/citas/anonima
-     * Crea una cita anónima tras verificación de teléfono.
-     * Endpoint público (no requiere autenticación).
+     * Acepta una cita pendiente. El trabajador que la acepta queda asignado.
+     * TODO: extraer trabajadorId del usuario logueado (JWT) en lugar de
+     * PathVariable.
      */
-    @PostMapping("/anonima")
-    public ResponseEntity<?> crearCitaAnonima(@RequestBody CitaAnonimaRequest request) {
-        try {
-            Cita cita = citaService.crearCitaAnonima(request);
+    @PatchMapping("/{citaId}/aceptar")
+    public ResponseEntity<CitaResponseDTO> aceptarCita(
+            @PathVariable Long citaId,
+            @RequestParam Long trabajadorId) {
+        return ResponseEntity.ok(citaService.aceptarCita(citaId, trabajadorId));
+    }
 
-            String lugarTexto = cita.getInmueble() != null
-                    ? "en el inmueble seleccionado"
-                    : "en nuestra oficina";
+    @PatchMapping("/{citaId}/completar")
+    public ResponseEntity<CitaResponseDTO> completarCita(@PathVariable Long citaId) {
+        return ResponseEntity.ok(citaService.completarCita(citaId));
+    }
 
-            return ResponseEntity.status(HttpStatus.CREATED)
-                    .body(Map.of(
-                        "message", "Cita solicitada correctamente " + lugarTexto
-                                + ". Un trabajador se pondrá en contacto contigo para confirmarla.",
-                        "citaId", cita.getId()
-                    ));
+    @PatchMapping("/{citaId}/cancelar")
+    public ResponseEntity<CitaResponseDTO> cancelarCita(@PathVariable Long citaId) {
+        return ResponseEntity.ok(citaService.cancelarCita(citaId));
+    }
 
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest()
-                    .body(Map.of("error", e.getMessage()));
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "Error al crear la cita: " + e.getMessage()));
-        }
+    @PostMapping("/solicitar")
+    public ResponseEntity<CitaResponseDTO> solicitarCita(
+            @Valid @RequestBody SolicitudCitaPublicaDTO dto) {
+        return ResponseEntity.ok(citaPublicaService.solicitarCitaAnonima(dto));
     }
 }

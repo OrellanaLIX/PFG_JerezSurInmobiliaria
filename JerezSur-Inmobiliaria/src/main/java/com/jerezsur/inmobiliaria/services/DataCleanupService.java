@@ -10,7 +10,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.jerezsur.inmobiliaria.repositories.CitaRepository;
 import com.jerezsur.inmobiliaria.repositories.ContratoRepository;
 import com.jerezsur.inmobiliaria.repositories.InmuebleRepository;
-import com.jerezsur.inmobiliaria.repositories.InteresadoRepository;
 import com.jerezsur.inmobiliaria.repositories.OperacionRepository;
 
 import lombok.extern.slf4j.Slf4j;
@@ -18,9 +17,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Component
 public class DataCleanupService {
-
-    @Autowired
-    private InteresadoRepository interesadoRepository;
 
     @Autowired
     private CitaRepository citaRepository;
