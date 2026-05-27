@@ -1,4 +1,4 @@
-import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { LayoutDashboard, Calendar, LogOut, Home } from 'lucide-react';
 import '../../styles/layout/AdminLayout.scss';
@@ -23,21 +23,48 @@ export const AdminLayout = () => {
         </div>
 
         <nav className="admin-layout__nav">
-          <NavLink 
-            to="/resumen" 
+          <NavLink
+            to="/resumen"
             className={({ isActive }) => `admin-layout__nav-link ${isActive ? 'active' : ''}`}
           >
             <LayoutDashboard size={20} />
             Dashboard
           </NavLink>
-          <NavLink 
-            to="/citas" 
+          <NavLink
+            to="/citas"
             className={({ isActive }) => `admin-layout__nav-link ${isActive ? 'active' : ''}`}
           >
             <Calendar size={20} />
             Citas
           </NavLink>
-          {/* Añadir más módulos en el futuro */}
+          <NavLink
+            to="/usuarios"
+            className={({ isActive }) => `admin-layout__nav-link ${isActive ? 'active' : ''}`}
+          >
+            <Calendar size={20} />
+            Usuarios
+          </NavLink>
+          <NavLink
+            to="/contactos"
+            className={({ isActive }) => `admin-layout__nav-link ${isActive ? 'active' : ''}`}
+          >
+            <Calendar size={20} />
+            Contactos
+          </NavLink>
+          <NavLink
+            to="/inmuebles"
+            className={({ isActive }) => `admin-layout__nav-link ${isActive ? 'active' : ''}`}
+          >
+            <Calendar size={20} />
+            Inmuebles
+          </NavLink>
+          <NavLink
+            to="/contratos"
+            className={({ isActive }) => `admin-layout__nav-link ${isActive ? 'active' : ''}`}
+          >
+            <Calendar size={20} />
+            Contratos
+          </NavLink>
         </nav>
       </aside>
 

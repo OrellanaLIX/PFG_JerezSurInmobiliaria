@@ -91,12 +91,15 @@ public class Usuario {
     // --- RELACIONES DE PERFIL ---
     @OneToOne(mappedBy = "usuario")
     @ToString.Exclude
+    @JsonIgnore
     private Trabajador trabajador;
 
     @OneToOne(mappedBy = "usuario")
+    @JsonIgnore
     private Interesado interesado;
 
     @OneToOne(mappedBy = "usuario")
+    @JsonIgnore
     private Vendedor vendedor;
 
     @OneToMany(mappedBy = "usuario")

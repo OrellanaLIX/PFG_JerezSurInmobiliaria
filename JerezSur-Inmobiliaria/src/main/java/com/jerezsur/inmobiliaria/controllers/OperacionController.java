@@ -30,6 +30,12 @@ public class OperacionController {
         return ResponseEntity.ok(operacionService.buscarPorId(id));
     }
 
+    // LISTAR TODAS LAS OPERACIONES
+    @GetMapping
+    public ResponseEntity<List<Operacion>> listarTodas() {
+        return ResponseEntity.ok(operacionService.listarTodas());
+    }
+
     // LISTAR POR INMUEBLE (Para ver el historial de un piso)
     @GetMapping("/inmueble/{inmuebleId}")
     public ResponseEntity<List<Operacion>> listarPorInmueble(@PathVariable Long inmuebleId) {

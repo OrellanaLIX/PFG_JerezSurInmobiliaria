@@ -1,8 +1,18 @@
-Header por defecto en todas las paginas,
+HORARIO:
+27/05 -> CRUD de todas las entidades completo
+28/05 -> Implementación de APIs y estilos (admin)
+29/05 -> Últimos retoques y limpiar código basura
+30/05 -> Documentación
+31/05 -> Github y comentarios
+01/06 -> Enviar y comenzar con mini mejoras
+Hasta el 08/06 - 12/06 -> Presentación, aprender código, seguir con mini mejoras
+
+
+MINIMEJORAS:
 Cambiar form inicio sesion por form de venta como el de compra
 Cambiar telefono etc de contacto, ponerlo debajo del form como cta
 
-Si sobra tiempo:
-Componente para los form
-Componente para los hero
-Pasar por la IA para mejorar la estética
+TODO:
+Quitar cosas para mapa interactivo de búsqueda de inmueble
+Quitar campos de contrato, solo subir PDF y añadir inmueble e interesado
+Mejorar botón de tareas para no tener que poner enlace

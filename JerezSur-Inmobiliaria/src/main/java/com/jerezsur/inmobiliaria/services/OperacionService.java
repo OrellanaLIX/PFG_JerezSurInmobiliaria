@@ -50,6 +50,11 @@ public class OperacionService {
     }
 
     @Transactional(readOnly = true)
+    public List<Operacion> listarTodas() {
+        return operacionRepository.findAll();
+    }
+
+    @Transactional(readOnly = true)
     public List<Operacion> listarPorInmueble(Long id) {
         return operacionRepository.findByInmuebleId(id);
     }

@@ -52,6 +52,27 @@ public class MensajeContactoService {
         mensajeRepository.save(mensaje);
     }
 
+    @Transactional(readOnly = true)
+    public MensajeContacto obtenerPorId(Long id) {
+        return mensajeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Mensaje no encontrado"));
+    }
+
+    @Transactional
+    public MensajeContacto actualizarMensaje(Long id, MensajeContacto mensajeActualizado) {
+        MensajeContacto mensajeExistente = mensajeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Mensaje no encontrado"));
+
+        mensajeExistente.setNombre(mensajeActualizado.getNombre());
+        mensajeExistente.setEmail(mensajeActualizado.getEmail());
+        mensajeExistente.setTelefono(mensajeActualizado.getTelefono());
+        mensajeExistente.setMensaje(mensajeActualizado.getMensaje());
+        mensajeExistente.setInmueble(mensajeActualizado.getInmueble());
+        mensajeExistente.setLeido(mensajeActualizado.isLeido());
+
+        return mensajeRepository.save(mensajeExistente);
+    }
+
     // ELIMINAR MENSAJE
     @Transactional
     public void eliminarMensaje(Long id) {

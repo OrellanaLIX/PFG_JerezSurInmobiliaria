@@ -4,7 +4,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -42,5 +46,21 @@ public class MensajeContactoController {
     public ResponseEntity<Void> recibirMensaje(@RequestBody MensajeContacto mensaje) {
         mensajeService.enviarMensaje(mensaje);
         return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<MensajeContacto> obtenerMensaje(@PathVariable Long id) {
+        return ResponseEntity.ok(mensajeService.obtenerPorId(id));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<MensajeContacto> actualizarMensaje(@PathVariable Long id, @RequestBody MensajeContacto mensaje) {
+        return ResponseEntity.ok(mensajeService.actualizarMensaje(id, mensaje));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> eliminarMensaje(@PathVariable Long id) {
+        mensajeService.eliminarMensaje(id);
+        return ResponseEntity.noContent().build();
     }
 }

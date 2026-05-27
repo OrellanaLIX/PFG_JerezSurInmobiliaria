@@ -48,6 +48,7 @@ public class Cita {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "usuario_id", nullable = false)
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties({"usuario", "trabajador", "interesado", "vendedor", "citas"})
     private Usuario usuario;
 
     @ManyToOne

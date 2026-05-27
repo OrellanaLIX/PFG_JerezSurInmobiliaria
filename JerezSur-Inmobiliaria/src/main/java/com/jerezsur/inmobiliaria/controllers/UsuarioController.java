@@ -36,6 +36,17 @@ public class UsuarioController {
     @Autowired
     private AuthService authService;
 
+    @GetMapping
+    public ResponseEntity<?> listarUsuarios() {
+        try {
+            return ResponseEntity.ok(usuarioService.listarTodos());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Error al listar usuarios: " + e.getMessage()));
+        }
+    }
+
     // --- REGISTRO Y LOGIN TRADICIONAL ---
 
     @PostMapping("/registro")
@@ -102,10 +113,9 @@ public class UsuarioController {
     public ResponseEntity<?> appleLogin(@RequestBody Map<String, String> body) {
         try {
             LoginResponseDTO user = authService.processAppleAuth(
-                body.get("email"), 
-                body.get("name"), 
-                body.get("token")
-            );
+                    body.get("email"),
+                    body.get("name"),
+                    body.get("token"));
             return ResponseEntity.ok(user);
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Error en Apple Auth");
