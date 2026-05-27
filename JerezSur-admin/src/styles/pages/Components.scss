@@ -1,0 +1,337 @@
+@use '../../styles/globals/_Variables' as *;
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   PROPERTY CARDS
+═══════════════════════════════════════════════════════════════════════════════ */
+
+.property-card {
+  background-color: $color-surface;
+  border-radius: $radius-lg;
+  overflow: hidden;
+  box-shadow: $shadow-sm;
+  transition: all $transition-base;
+
+  &:hover {
+    box-shadow: $shadow-md;
+    transform: translateY(-4px);
+  }
+
+  &__image {
+    width: 100%;
+    height: 200px;
+    background-color: $color-surface-alt;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .badge {
+      position: absolute;
+      top: $space-3;
+      right: $space-3;
+      background-color: $color-primary;
+      color: $color-white;
+      padding: $space-2 $space-3;
+      border-radius: $radius-sm;
+      font-weight: 600;
+      font-size: $font-size-xs;
+    }
+  }
+
+  &__content {
+    padding: $space-5;
+  }
+
+  &__title {
+    font-size: $font-size-lg;
+    font-weight: 700;
+    color: $color-primary-dark;
+    margin-bottom: $space-2;
+    line-height: $line-height-tight;
+
+    @media (max-width: $tablet) {
+      font-size: $font-size-md;
+    }
+  }
+
+  &__description {
+    color: $color-text-soft;
+    font-size: $font-size-sm;
+    margin-bottom: $space-3;
+    line-height: $line-height-normal;
+  }
+
+  &__price {
+    font-size: $font-size-2xl;
+    font-weight: 700;
+    color: $color-secondary;
+    margin-bottom: $space-4;
+  }
+
+  &__features {
+    display: flex;
+    gap: $space-3;
+    margin-bottom: $space-4;
+    flex-wrap: wrap;
+    padding-bottom: $space-4;
+    border-bottom: 1px solid $color-border;
+
+    .feature {
+      display: flex;
+      align-items: center;
+      gap: $space-1;
+      color: $color-text-soft;
+      font-size: $font-size-sm;
+
+      svg {
+        color: $color-primary;
+      }
+    }
+  }
+
+  &__actions {
+    display: flex;
+    gap: $space-2;
+
+    button {
+      flex: 1;
+      padding: $space-2 $space-3;
+      border: 1px solid $color-border;
+      background-color: $color-surface-alt;
+      border-radius: $radius-sm;
+      cursor: pointer;
+      transition: all $transition-base;
+      font-size: $font-size-sm;
+      font-weight: 600;
+
+      &:hover {
+        background-color: $color-primary;
+        color: $color-white;
+        border-color: $color-primary;
+      }
+
+      &.primary {
+        background-color: $color-primary;
+        color: $color-white;
+        border-color: $color-primary;
+
+        &:hover {
+          background-color: $color-primary-dark;
+        }
+      }
+    }
+  }
+}
+
+.property-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: $space-6;
+
+  @media (max-width: $tablet) {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: $space-4;
+  }
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   LIST ITEMS - Para contactos, citas, etc
+═══════════════════════════════════════════════════════════════════════════════ */
+
+.list-item {
+  display: flex;
+  align-items: center;
+  gap: $space-4;
+  padding: $space-4 $space-5;
+  background-color: $color-surface;
+  border-radius: $radius-md;
+  border: 1px solid $color-border;
+  transition: all $transition-base;
+  cursor: pointer;
+
+  &:hover {
+    background-color: $color-primary-light;
+    border-color: $color-primary;
+    transform: translateX(4px);
+  }
+
+  @media (max-width: $tablet) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: $space-3;
+  }
+
+  &__avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, $color-primary, $color-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: $color-white;
+    font-weight: 700;
+    flex-shrink: 0;
+    font-size: $font-size-lg;
+  }
+
+  &__content {
+    flex: 1;
+    min-width: 0;
+
+    .item-title {
+      font-weight: 600;
+      color: $color-text;
+      margin-bottom: $space-1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .item-subtitle {
+      font-size: $font-size-sm;
+      color: $color-text-soft;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+
+  &__badge {
+    padding: $space-2 $space-3;
+    background-color: $color-primary-light;
+    color: $color-primary;
+    border-radius: $radius-pill;
+    font-size: $font-size-xs;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  &__actions {
+    display: flex;
+    gap: $space-2;
+
+    button {
+      padding: $space-2;
+      background-color: transparent;
+      border: 1px solid $color-border;
+      border-radius: $radius-xs;
+      cursor: pointer;
+      transition: all $transition-base;
+
+      &:hover {
+        background-color: $color-primary;
+        color: $color-white;
+        border-color: $color-primary;
+      }
+    }
+  }
+}
+
+.list-container {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   STEP INDICATORS - Para workflows
+═══════════════════════════════════════════════════════════════════════════════ */
+
+.steps {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: $space-8;
+  position: relative;
+
+  @media (max-width: $tablet) {
+    gap: $space-4;
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 20px;
+    left: 10%;
+    right: 10%;
+    height: 2px;
+    background-color: $color-border;
+    z-index: 0;
+  }
+
+  &__item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+
+    &-number {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: $color-surface;
+      border: 2px solid $color-border;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: $color-text-soft;
+      transition: all $transition-base;
+      margin-bottom: $space-2;
+
+      @media (max-width: $tablet) {
+        width: 36px;
+        height: 36px;
+      }
+    }
+
+    &-label {
+      font-size: $font-size-sm;
+      color: $color-text-soft;
+      text-align: center;
+      font-weight: 500;
+
+      @media (max-width: $tablet) {
+        font-size: $font-size-xs;
+      }
+    }
+
+    &.active {
+      .steps__item-number {
+        background-color: $color-primary;
+        border-color: $color-primary;
+        color: $color-white;
+      }
+
+      .steps__item-label {
+        color: $color-primary;
+        font-weight: 600;
+      }
+    }
+
+    &.completed {
+      .steps__item-number {
+        background-color: $color-success;
+        border-color: $color-success;
+        color: $color-white;
+      }
+
+      .steps__item-label {
+        color: $color-success;
+      }
+    }
+  }
+}

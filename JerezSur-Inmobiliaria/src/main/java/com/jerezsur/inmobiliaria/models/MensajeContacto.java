@@ -38,9 +38,9 @@ public class MensajeContacto {
     private String nombre;
 
     @Email(message = "El formato del email no es válido")
-    @NotNull(message = "El email es obligatorio")
     private String email;
 
+    @NotNull(message = "El teléfono es obligatorio")
     private String telefono;
 
     // --- CONTENIDO DEL MENSAJE ---

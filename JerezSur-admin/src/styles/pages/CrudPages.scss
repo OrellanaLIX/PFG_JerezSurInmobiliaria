@@ -1,0 +1,453 @@
+@use '../../styles/globals/_Variables' as *;
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   CRUD PAGES - ESTILOS GENERALES
+═══════════════════════════════════════════════════════════════════════════════ */
+
+.crud-page {
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: $space-8;
+    gap: $space-4;
+
+    @media (max-width: $tablet) {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    h1 {
+      font-size: $font-size-3xl;
+      color: $color-primary-dark;
+      margin: 0;
+    }
+
+    .actions {
+      display: flex;
+      gap: $space-3;
+      flex-wrap: wrap;
+
+      @media (max-width: $tablet) {
+        width: 100%;
+      }
+    }
+  }
+
+  &__filters {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: $space-4;
+    margin-bottom: $space-6;
+    background-color: $color-surface;
+    padding: $space-5;
+    border-radius: $radius-md;
+    box-shadow: $shadow-xs;
+
+    @media (max-width: $tablet) {
+      grid-template-columns: 1fr;
+    }
+
+    label {
+      display: flex;
+      flex-direction: column;
+      gap: $space-2;
+      font-weight: 600;
+      font-size: $font-size-sm;
+      color: $color-text;
+    }
+
+    input,
+    select {
+      padding: $space-3 $space-4;
+      border: 1px solid $color-border;
+      border-radius: $radius-sm;
+      font-size: $font-size-sm;
+      transition: all $transition-base;
+
+      &:focus {
+        border-color: $color-primary;
+        box-shadow: 0 0 0 3px rgba($color-primary, 0.1);
+      }
+    }
+  }
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: $space-6;
+  }
+
+  &__loading {
+    text-align: center;
+    padding: $space-8;
+    color: $color-text-soft;
+
+    .spinner {
+      margin-bottom: $space-4;
+    }
+  }
+
+  &__empty {
+    text-align: center;
+    padding: $space-8;
+    background-color: $color-surface;
+    border-radius: $radius-md;
+    color: $color-text-soft;
+
+    p {
+      font-size: $font-size-lg;
+      margin-bottom: $space-2;
+    }
+  }
+
+  &__error {
+    @extend .alert;
+    @extend .alert-error;
+    margin-bottom: $space-4;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   TABLAS RESPONSIVAS
+═══════════════════════════════════════════════════════════════════════════════ */
+
+.data-table {
+  background-color: $color-surface;
+  border-radius: $radius-md;
+  box-shadow: $shadow-xs;
+  overflow: hidden;
+
+  @media (max-width: $tablet) {
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+
+    @media (max-width: $tablet) {
+      font-size: $font-size-sm;
+    }
+
+    thead tr {
+      background-color: $color-surface-alt;
+      border-bottom: 2px solid $color-border;
+    }
+
+    th {
+      padding: $space-4;
+      text-align: left;
+      font-weight: 600;
+      color: $color-text;
+      user-select: none;
+
+      &.sortable {
+        cursor: pointer;
+        user-select: none;
+
+        &:hover {
+          color: $color-primary;
+        }
+      }
+    }
+
+    tbody tr {
+      border-bottom: 1px solid $color-border;
+      transition: background-color $transition-base;
+
+      &:hover {
+        background-color: $color-primary-light;
+      }
+
+      &:last-child {
+        border-bottom: none;
+      }
+    }
+
+    td {
+      padding: $space-4;
+      color: $color-text;
+
+      @media (max-width: $tablet) {
+        padding: $space-3 $space-2;
+      }
+    }
+
+    .cell-actions {
+      display: flex;
+      gap: $space-2;
+      white-space: nowrap;
+
+      button {
+        padding: $space-2 $space-3;
+        font-size: $font-size-xs;
+        border: 1px solid $color-border;
+        background-color: $color-surface;
+        border-radius: $radius-xs;
+        cursor: pointer;
+        transition: all $transition-base;
+
+        &:hover {
+          background-color: $color-primary-light;
+          border-color: $color-primary;
+          color: $color-primary;
+        }
+
+        &.btn-delete {
+          &:hover {
+            background-color: rgba($color-error, 0.1);
+            border-color: $color-error;
+            color: $color-error;
+          }
+        }
+
+        &.btn-edit {
+          &:hover {
+            background-color: rgba($color-primary, 0.1);
+            border-color: $color-primary;
+            color: $color-primary;
+          }
+        }
+
+        &.btn-view {
+          &:hover {
+            background-color: rgba($color-secondary, 0.1);
+            border-color: $color-secondary;
+            color: $color-secondary;
+          }
+        }
+      }
+    }
+  }
+}
+
+.table-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: $space-3;
+  padding: $space-5;
+  border-top: 1px solid $color-border;
+  font-size: $font-size-sm;
+
+  button {
+    padding: $space-2 $space-3;
+    border: 1px solid $color-border;
+    background-color: $color-surface;
+    border-radius: $radius-xs;
+    cursor: pointer;
+    transition: all $transition-base;
+
+    &:hover:not(:disabled) {
+      background-color: $color-primary;
+      border-color: $color-primary;
+      color: $color-white;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   MODALES Y FORMULARIOS
+═══════════════════════════════════════════════════════════════════════════════ */
+
+.form-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  padding: $space-4;
+
+  &.show {
+    display: flex;
+  }
+
+  &__content {
+    background-color: $color-surface;
+    border-radius: $radius-lg;
+    padding: $space-8;
+    max-width: 600px;
+    width: 100%;
+    box-shadow: $shadow-lg;
+    animation: slideUp 0.3s ease-out;
+    max-height: 90vh;
+    overflow-y: auto;
+
+    @media (max-width: $tablet) {
+      padding: $space-6;
+      max-height: 95vh;
+    }
+  }
+
+  &__header {
+    margin-bottom: $space-6;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    h2 {
+      font-size: $font-size-2xl;
+      color: $color-primary-dark;
+      margin: 0;
+    }
+
+    .close-btn {
+      background-color: transparent;
+      border: none;
+      color: $color-text-soft;
+      cursor: pointer;
+      font-size: $font-size-xl;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all $transition-base;
+
+      &:hover {
+        color: $color-error;
+      }
+    }
+  }
+
+  &__body {
+    margin-bottom: $space-6;
+  }
+
+  &__footer {
+    display: flex;
+    gap: $space-4;
+    justify-content: flex-end;
+    border-top: 1px solid $color-border;
+    padding-top: $space-6;
+
+    @media (max-width: $tablet) {
+      flex-direction: column-reverse;
+    }
+
+    button {
+      min-width: 120px;
+    }
+  }
+}
+
+/* Formulario genérico */
+.form-group {
+  margin-bottom: $space-6;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  label {
+    display: block;
+    margin-bottom: $space-2;
+    font-weight: 600;
+    font-size: $font-size-sm;
+    color: $color-text;
+
+    .required {
+      color: $color-error;
+      margin-left: 3px;
+    }
+  }
+
+  input,
+  textarea,
+  select {
+    width: 100%;
+    padding: $space-3 $space-4;
+    border: 1px solid $color-border;
+    border-radius: $radius-sm;
+    font-size: $font-size-sm;
+    transition: all $transition-base;
+    font-family: $font-family-base;
+
+    &:focus {
+      border-color: $color-primary;
+      box-shadow: 0 0 0 3px rgba($color-primary, 0.1);
+      outline: none;
+    }
+
+    &:disabled {
+      background-color: $color-surface-alt;
+      color: $color-text-muted;
+      cursor: not-allowed;
+    }
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 100px;
+  }
+
+  .error-message {
+    color: $color-error;
+    font-size: $font-size-xs;
+    margin-top: $space-2;
+  }
+
+  .help-text {
+    color: $color-text-soft;
+    font-size: $font-size-xs;
+    margin-top: $space-1;
+  }
+}
+
+/* Campos en fila */
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: $space-4;
+
+  @media (max-width: $tablet) {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   ANIMACIONES
+═══════════════════════════════════════════════════════════════════════════════ */
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

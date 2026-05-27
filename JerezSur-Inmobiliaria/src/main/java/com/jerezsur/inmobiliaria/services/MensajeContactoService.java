@@ -2,7 +2,12 @@ package com.jerezsur.inmobiliaria.services;
 
 import com.jerezsur.inmobiliaria.exceptions.ResourceNotFoundException;
 import com.jerezsur.inmobiliaria.models.MensajeContacto;
+import com.jerezsur.inmobiliaria.models.Tarea;
 import com.jerezsur.inmobiliaria.repositories.MensajeContactoRepository;
+import com.jerezsur.inmobiliaria.repositories.TareaRepository;
+
+import java.time.LocalDate;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -16,9 +21,34 @@ public class MensajeContactoService {
     @Autowired
     private MensajeContactoRepository mensajeRepository;
 
+    @Autowired
+    private TareaRepository tareaRepository;
+
     // ENVIAR MENSAJE (Público)
     @Transactional
     public MensajeContacto enviarMensaje(MensajeContacto mensaje) {
+
+        String titulo = "🆕 Nuevo mensaje de contacto de " + mensaje.getNombre() + ":";
+
+        StringBuilder descripcion = new StringBuilder();
+        descripcion.append("Teléfono: ").append(mensaje.getTelefono()).append("\n");
+
+        if (mensaje.getMensaje() != null && !mensaje.getMensaje().isBlank()) {
+            descripcion.append("Mensaje: ").append(mensaje.getMensaje());
+        }
+
+        Tarea tarea = Tarea.builder()
+                .titulo(titulo)
+                .descripcion(descripcion.toString())
+                .fecha(LocalDate.now().plusDays(3))
+                .prioridad("MEDIA")
+                .enlace("/dashboard/mensajes/" + mensaje.getId())
+                .etiquetaEnlace("Ver mensaje")
+                .fechaCreacion(LocalDate.now())
+                .build();
+
+        tareaRepository.save(tarea);
+
         return mensajeRepository.save(mensaje);
     }
 

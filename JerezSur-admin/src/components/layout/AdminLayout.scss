@@ -1,0 +1,184 @@
+@use '../../styles/globals/_Variables' as *;
+
+.admin-layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  min-height: 100vh;
+  background-color: $color-bg;
+
+  &__sidebar {
+    background-color: $color-primary;
+    color: $color-white;
+    padding: $space-6;
+    position: fixed;
+    height: 100vh;
+    overflow-y: auto;
+    box-shadow: $shadow-md;
+    z-index: 100;
+
+    @media (max-width: $tablet) {
+      width: 100%;
+      height: auto;
+      position: relative;
+      padding: $space-4;
+    }
+  }
+
+  &__brand {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+    padding-bottom: $space-6;
+    margin-bottom: $space-6;
+    border-bottom: 1px solid rgba($color-white, 0.2);
+    cursor: pointer;
+    font-size: $font-size-lg;
+    font-weight: 600;
+    transition: all $transition-base;
+
+    &:hover {
+      opacity: 0.8;
+    }
+
+    svg {
+      color: $color-secondary;
+    }
+  }
+
+  &__nav {
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+
+    @media (max-width: $tablet) {
+      flex-direction: row;
+      flex-wrap: wrap;
+    }
+  }
+
+  &__nav-link {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+    padding: $space-3 $space-4;
+    color: rgba($color-white, 0.7);
+    border-radius: $radius-sm;
+    transition: all $transition-base;
+    font-size: $font-size-sm;
+    font-weight: 500;
+
+    &:hover {
+      background-color: rgba($color-white, 0.1);
+      color: $color-white;
+    }
+
+    &.active {
+      background-color: $color-secondary;
+      color: $color-white;
+      font-weight: 600;
+    }
+
+    @media (max-width: $tablet) {
+      flex: 1 0 auto;
+      justify-content: center;
+      gap: $space-2;
+      padding: $space-2 $space-3;
+      font-size: $font-size-xs;
+    }
+  }
+
+  &__content-wrapper {
+    grid-column: 2;
+    display: flex;
+    flex-direction: column;
+    margin-left: 0;
+
+    @media (max-width: $tablet) {
+      grid-column: 1;
+      margin-left: 0;
+    }
+  }
+
+  &__header {
+    background-color: $color-surface;
+    border-bottom: 1px solid $color-border;
+    padding: $space-5 $space-6;
+    box-shadow: $shadow-xs;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+
+    @media (max-width: $tablet) {
+      padding: $space-4;
+    }
+  }
+
+  &__user-menu {
+    display: flex;
+    align-items: center;
+    gap: $space-4;
+  }
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+
+  .name {
+    font-weight: 600;
+    color: $color-text;
+    font-size: $font-size-sm;
+  }
+
+  .role {
+    font-size: $font-size-xs;
+    color: $color-text-soft;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+}
+
+.logout-btn {
+  padding: $space-3;
+  background-color: transparent;
+  border: 1px solid $color-border;
+  border-radius: $radius-sm;
+  color: $color-error;
+  cursor: pointer;
+  transition: all $transition-base;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background-color: rgba($color-error, 0.1);
+    border-color: $color-error;
+  }
+}
+
+.admin-layout__main {
+  flex: 1;
+  padding: $space-8;
+  background-color: $color-bg;
+  overflow-y: auto;
+
+  @media (max-width: $tablet) {
+    padding: $space-4;
+  }
+
+  header {
+    margin-bottom: $space-6;
+
+    h1 {
+      color: $color-primary-dark;
+      margin-bottom: $space-2;
+      font-size: $font-size-2xl;
+    }
+
+    p {
+      color: $color-text-soft;
+      font-size: $font-size-sm;
+    }
+  }
+}

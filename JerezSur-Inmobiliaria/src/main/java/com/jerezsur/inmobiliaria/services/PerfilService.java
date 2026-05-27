@@ -1,5 +1,7 @@
 package com.jerezsur.inmobiliaria.services;
 
+import java.time.LocalDate;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,6 +36,9 @@ public class PerfilService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private TareaRepository tareaRepository;
 
     // ==========================================
     // BUILD DTO — ahora incluye trabajador
@@ -278,6 +283,7 @@ public class PerfilService {
         if (interesado == null) {
             interesado = new Interesado();
             interesado.setUsuario(usuario);
+            crearTareaRevisionUsuario(usuario, "interesado");
         }
         actualizarInteresado(interesado, request);
     }
@@ -298,6 +304,7 @@ public class PerfilService {
         if (vendedor == null) {
             vendedor = new Vendedor();
             vendedor.setUsuario(usuario);
+            crearTareaRevisionUsuario(usuario, "vendedor");
         }
         actualizarVendedor(vendedor, request);
     }
@@ -397,5 +404,32 @@ public class PerfilService {
         } else if (esVendedor) {
             usuario.setRole(Role.ROLE_VENDEDOR);
         }
+    }
+
+    private void crearTareaRevisionUsuario(Usuario usuario, String motivo) {
+        String nombreCompleto = usuario.getNombre()
+                + (usuario.getApellidos() != null ? " " + usuario.getApellidos() : "");
+
+        String titulo = "👤 Revisar nuevo " + motivo + ": " + nombreCompleto;
+
+        StringBuilder descripcion = new StringBuilder();
+        if (usuario.getEmail() != null)
+            descripcion.append("Email: ").append(usuario.getEmail()).append("\n");
+        if (usuario.getTelefono() != null)
+            descripcion.append("Teléfono: ").append(usuario.getTelefono()).append("\n");
+        descripcion.append("Origen: ").append(usuario.getOrigen()).append("\n");
+        descripcion.append("Motivo: ").append(motivo);
+
+        Tarea tarea = Tarea.builder()
+                .titulo(titulo)
+                .descripcion(descripcion.toString())
+                .fecha(LocalDate.now().plusDays(2))
+                .prioridad("MEDIA")
+                .enlace("/dashboard/usuarios/" + usuario.getId() + "/ver")
+                .etiquetaEnlace("Ver usuario")
+                .fechaCreacion(LocalDate.now())
+                .build();
+
+        tareaRepository.save(tarea);
     }
 }
