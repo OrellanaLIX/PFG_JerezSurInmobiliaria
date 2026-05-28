@@ -4,6 +4,7 @@ import type { TipoOperacionInmueble, EstadoInmueble, Inmueble } from '../types/i
 import { TablaInmuebles } from '../components/crud/Inmuebles/TablaInmuebles';
 import { DetalleInmuebleModal } from '../components/crud/Inmuebles/DetallesInmuebleModal';
 import { FormInmuebleModal } from '../components/crud/Inmuebles/FormInmuebleModal';
+import '../styles/pages/CrudPages.scss';
 
 const AdminInmuebles = () => {
   const {
@@ -41,17 +42,19 @@ const AdminInmuebles = () => {
   });
 
   if (loading) return <p>Cargando catálogo de propiedades...</p>;
-  if (error) return <p style={{ color: 'red' }}>{error}</p>;
+  if (error) return <p className="error-text">{error}</p>;
 
   return (
     <div>
-      <header style={{ display: 'flex', justifyContent: 'space-between', margin: '20px 0' }}>
+      <header className="crud-page__header">
         <h1>Gestión de Inmuebles (JerezSur)</h1>
-        <button onClick={() => setMostrarForm(true)}>+ Añadir Propiedad</button>
+        <div className="actions">
+          <button onClick={() => setMostrarForm(true)}>+ Añadir Propiedad</button>
+        </div>
       </header>
 
       {/* Controles de Búsqueda */}
-      <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+      <div className="crud-page__filters">
         <input 
           type="text" 
           placeholder="Buscar por Ref, Ciudad o Título..." 
@@ -83,7 +86,6 @@ const AdminInmuebles = () => {
           inmueble={inmuebleSeleccionado}
           loading={loadingDetalle}
           onCerrar={limpiarSeleccionado}
-          onActualizar={actualizar}
           onEliminar={eliminar}
         />
       )}

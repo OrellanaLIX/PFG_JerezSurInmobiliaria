@@ -1,5 +1,6 @@
 import type { Cita, EstadoCita } from '../../../types/cita';
 import { formatearFechaHora, traducirEstado, citaYaPasada } from '../../../utils/calendario';
+import '../../../styles/App.scss';
 
 interface ListaCitasProps {
   citas: Cita[];

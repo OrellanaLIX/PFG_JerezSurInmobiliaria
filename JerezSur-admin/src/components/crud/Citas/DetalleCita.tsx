@@ -4,6 +4,7 @@ import {
   citaYaPasada,
   traducirEstado,
 } from '../../../utils/calendario';
+import '../../../styles/App.scss';
 
 interface DetalleCitaProps {
   cita: Cita;

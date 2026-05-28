@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { NuevoMensajeContacto } from '../../../types/contacto';
+import '../../../styles/App.scss';
 
 interface Props {
   onCrear: (contacto: NuevoMensajeContacto) => Promise<void>;
@@ -23,15 +24,16 @@ export const FormContactoModal = ({ onCrear, onCancelar }: Props) => {
   };
 
   return (
-    <div className="modal-backdrop" style={{ background: 'rgba(0,0,0,0.4)', position: 'fixed', inset: 0, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-      <form onSubmit={handleSubmit} style={{ background: '#fff', padding: '25px', borderRadius: '8px', width: '400px' }}>
+    <div className="form-modal">
+      <div className="form-modal__backdrop" onClick={onCancelar} />
+      <form onSubmit={handleSubmit} className="form-modal__content" onClick={(e) => e.stopPropagation()}>
         <h3>Registrar Entrada Manual (Lead de llamada/oficina)</h3>
-        
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', margin: '15px 0' }}>
+
+        <div className="form-group">
           <input type="text" placeholder="Nombre completo del cliente *" required value={form.nombre} onChange={e => setForm({...form, nombre: e.target.value})} />
           <input type="email" placeholder="Email de contacto *" required value={form.email} onChange={e => setForm({...form, email: e.target.value})} />
           <input type="tel" placeholder="Teléfono" value={form.telefono} onChange={e => setForm({...form, telefono: e.target.value})} />
-          
+
           <input 
             type="number" 
             placeholder="ID Inmueble de interés (Opcional)" 
@@ -44,13 +46,13 @@ export const FormContactoModal = ({ onCrear, onCancelar }: Props) => {
             required 
             value={form.mensaje} 
             onChange={e => setForm({...form, mensaje: e.target.value})}
-            style={{ height: '100px' }}
+            className="textarea-large"
           />
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '20px' }}>
-          <button type="button" onClick={onCancelar}>Cancelar</button>
-          <button type="submit" style={{ background: '#007bff', color: '#fff' }}>Guardar Mensaje</button>
+        <div className="form-actions">
+          <button type="button" className="btn btn-ghost" onClick={onCancelar}>Cancelar</button>
+          <button type="submit" className="btn btn-primary">Guardar Mensaje</button>
         </div>
       </form>
     </div>

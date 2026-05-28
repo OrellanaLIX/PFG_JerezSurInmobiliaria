@@ -1,6 +1,7 @@
 import { useDashboard } from '../hooks/useDashboard';
 import { KpiCards } from '../components/crud/KpiCards';
 import { TareasPendientes } from '../components/crud/TareasPendientes';
+import '../styles/pages/CrudPages.scss';
 
 const DashboardResumen = () => {
   const { data, loading, error, crearTarea, eliminarTarea } = useDashboard();

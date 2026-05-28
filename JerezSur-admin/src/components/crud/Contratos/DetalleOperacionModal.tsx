@@ -1,4 +1,5 @@
 import type { OperacionDetalle, EstadoOperacion } from '../../../types/operacion';
+import '../../../styles/App.scss';
 
 interface Props {
   operacion: OperacionDetalle;
@@ -18,15 +19,15 @@ export const DetalleOperacionModal = ({ operacion, loading, onCerrar, onActualiz
   };
 
   return (
-    <div className="modal-backdrop" style={{ background: 'rgba(0,0,0,0.4)', position: 'fixed', inset: 0, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-      <div style={{ background: '#fff', padding: '25px', borderRadius: '8px', maxWidth: '600px', width: '100%', maxHeight: '85vh', overflowY: 'auto' }}>
-        
-        <header style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #ddd', paddingBottom: '10px' }}>
+    <div className="form-modal">
+      <div className="form-modal__backdrop" onClick={onCerrar} />
+      <div className="form-modal__content" onClick={(e) => e.stopPropagation()}>
+        <header className="modal-header">
           <h2>Expediente Jurídico: EXP-{operacion.id}</h2>
-          <button onClick={onCerrar}>❌</button>
+          <button className="btn btn-ghost" onClick={onCerrar}>❌</button>
         </header>
 
-        <section style={{ margin: '15px 0' }}>
+        <section className="modal-body">
           <p><strong>Inmueble Vinculado:</strong> Propiedad con Ref {operacion.inmuebleReferencia}</p>
           <p><strong>Precio en Contrato:</strong> {operacion.precioAcordado.toLocaleString('es-ES')} €</p>
           <p><strong>Tipo de Negocio:</strong> {operacion.tipo}</p>
@@ -40,46 +41,44 @@ export const DetalleOperacionModal = ({ operacion, loading, onCerrar, onActualiz
           </select>
         </section>
 
-        {/* --- RENDERIZADO CONDICIONAL DE HERENCIA --- */}
         {operacion.categoria_operacion === 'VENTA' ? (
-          <fieldset style={{ borderColor: '#007bff', marginBottom: '15px' }}>
-            <legend style={{ color: '#007bff', fontWeight: 'bold' }}>✍️ Detalles Específicos de Compraventa</legend>
+          <fieldset className="inmueble-fieldset">
+            <legend>✍️ Detalles Específicos de Compraventa</legend>
             <p>Maneja cláusulas específicas de liquidación patrimonial y escrituras.</p>
             {operacion.importeArras && <p><strong>Depósito de Arras:</strong> {operacion.importeArras} €</p>}
           </fieldset>
         ) : (
-          <fieldset style={{ borderColor: '#28a745', marginBottom: '15px' }}>
-            <legend style={{ color: '#28a745', fontWeight: 'bold' }}>🔑 Detalles Específicos de Arrendamiento</legend>
+          <fieldset className="inmueble-fieldset">
+            <legend>🔑 Detalles Específicos de Arrendamiento</legend>
             <p><strong>Garantías (Meses de Fianza):</strong> {operacion.fianzaMeses} meses</p>
             <p><strong>Comunidad incluida en mensualidad:</strong> {operacion.incluyeGastosComunidad ? 'Sí' : 'No'}</p>
           </fieldset>
         )}
 
-        {/* Listado de Documentos Digitalizados */}
-        <fieldset style={{ marginBottom: '15px' }}>
+        <fieldset className="doc-list">
           <legend>📁 Contratos, Anexos y Avales Firmados</legend>
           {operacion.documentos && operacion.documentos.length > 0 ? (
             <ul>
               {operacion.documentos.map((doc) => (
-                <li key={doc.id} style={{ margin: '5px 0' }}>
-                  <strong>{doc.tipoDocumento}:</strong> <a href={doc.urlArchivo} target="_blank" rel="noreferrer">📥 Descargar documento</a> 
-                  <span style={{ color: '#888' }}> ({doc.fechaFirma})</span>
+                <li key={doc.id} className="doc-item">
+                  <strong>{doc.tipoDocumento}:</strong> <a href={doc.urlArchivo} target="_blank" rel="noreferrer">📥 Descargar documento</a>
+                  <span className="text-soft"> ({doc.fechaFirma})</span>
                 </li>
               ))}
             </ul>
           ) : (
-            <p style={{ color: '#e67e22' }}>⚠️ No hay contratos PDFs cargados para este expediente todavía.</p>
+            <p className="text-warning">⚠️ No hay contratos PDFs cargados para este expediente todavía.</p>
           )}
         </fieldset>
 
-        <footer style={{ marginTop: '20px', display: 'flex', justifyContent: 'space-between' }}>
+        <footer className="modal-footer">
           <button 
+            className="btn btn-danger"
             onClick={async () => { if(confirm('¿Archivar y eliminar este expediente permanentemente?')) { await onEliminar(operacion.id); onCerrar(); } }} 
-            style={{ background: 'red', color: 'white' }}
           >
             Eliminar Expediente
           </button>
-          <button onClick={onCerrar}>Cerrar</button>
+          <button className="btn btn-ghost" onClick={onCerrar}>Cerrar</button>
         </footer>
       </div>
     </div>

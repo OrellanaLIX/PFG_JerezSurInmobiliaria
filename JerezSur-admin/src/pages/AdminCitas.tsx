@@ -5,6 +5,7 @@ import { ListaCitas } from '../components/crud/Citas/ListaCitas';
 import { DetalleCita } from '../components/crud/Citas/DetalleCita';
 import { FormCita } from '../components/crud/Citas/FormCita';
 import type { Cita, EstadoCita } from '../types/cita';
+import '../styles/pages/CrudPages.scss';
 
 type Vista = 'calendario' | 'lista';
 

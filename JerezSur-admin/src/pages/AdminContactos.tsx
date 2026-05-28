@@ -4,6 +4,7 @@ import type { MensajeContacto } from '../types/contacto';
 import { TablaContactos } from '../components/crud/Contactos/TablaContactos';
 import { DetalleContactoModal } from '../components/crud/Contactos/DetallesContactosModal';
 import { FormContactoModal } from '../components/crud/Contactos/FormContactoModal';
+import '../styles/pages/CrudPages.scss';
 
 const AdminContactos = () => {
   const {
@@ -42,22 +43,24 @@ const AdminContactos = () => {
   });
 
   if (loading) return <p>Cargando bandeja de entrada...</p>;
-  if (error) return <p style={{ color: 'red' }}>{error}</p>;
+  if (error) return <p className="error-text">{error}</p>;
 
   return (
     <div>
-      <header style={{ display: 'flex', justifyContent: 'space-between', margin: '20px 0' }}>
+      <header className="crud-page__header">
         <h1>📥 Bandeja de Contactos y Leads</h1>
-        <button onClick={() => setMostrarForm(true)}>+ Registrar Lead Manual</button>
+        <div className="actions">
+          <button onClick={() => setMostrarForm(true)}>+ Registrar Lead Manual</button>
+        </div>
       </header>
 
-      <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+      <div className="crud-page__filters">
         <input 
           type="text" 
           placeholder="Buscar por nombre o email del remitente..." 
           value={busqueda} 
           onChange={e => setBusqueda(e.target.value)} 
-          style={{ width: '300px' }}
+          className="w-300"
         />
         <select value={filtroLeido} onChange={e => setFiltroLeido(e.target.value as any)}>
           <option value="TODOS">Todas las consultas</option>

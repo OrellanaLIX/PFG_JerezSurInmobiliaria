@@ -24,6 +24,9 @@ public class UsuarioService {
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
 
+    @Autowired
+    private NotificacionService notificacionService;
+
     // ------------------------------------------------------------------
     // CRUD BASICO
     // ------------------------------------------------------------------
@@ -55,6 +58,7 @@ public class UsuarioService {
             nuevo.setTelefono("social_" + System.currentTimeMillis()); // Evitar constraint null
             nuevo.setCambiarPasswd(false); // No necesita cambiar pass porque entra por Google
 
+            notificacionService.notificarNuevoUsuario(nuevo, providerId);
             return usuarioRepository.save(nuevo);
         } else {
             // Si ya existe, lo buscamos y actualizamos su provider info por si ha cambiado
@@ -122,6 +126,7 @@ public class UsuarioService {
 
         usuario.setRole(Role.ROLE_NOROL);
 
+        notificacionService.notificarNuevoUsuario(usuario, null);
         return usuarioRepository.save(usuario);
     }
 
@@ -185,9 +190,11 @@ public class UsuarioService {
             }
         }
 
-        // 3. Validación de Password (removida porque se valida en el DTO RegistroRequest)
+        // 3. Validación de Password (removida porque se valida en el DTO
+        // RegistroRequest)
         // Se deja para otros flujos si es necesario, pero idealmente migrar a DTOs
-        if (usuario.getPassword() != null && !usuario.getPassword().isEmpty() && !usuario.getPassword().startsWith("$2a$")) {
+        if (usuario.getPassword() != null && !usuario.getPassword().isEmpty()
+                && !usuario.getPassword().startsWith("$2a$")) {
             // Si no empieza por $2a$ asumimos que no está encriptada y validamos
             String regex = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$";
             if (!usuario.getPassword().matches(regex)) {

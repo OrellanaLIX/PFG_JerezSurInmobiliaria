@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { NuevaOperacion } from '../../../types/operacion';
+import '../../../styles/App.scss';
 
 interface Props {
   onCrear: (operacion: NuevaOperacion) => Promise<void>;
@@ -41,11 +42,12 @@ export const FormOperacionModal = ({ onCrear, onCancelar }: Props) => {
   };
 
   return (
-    <div className="modal-backdrop" style={{ background: 'rgba(0,0,0,0.4)', position: 'fixed', inset: 0, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-      <form onSubmit={handleSubmit} style={{ background: '#fff', padding: '25px', borderRadius: '8px', width: '400px' }}>
+    <div className="form-modal">
+      <div className="form-modal__backdrop" onClick={onCancelar} />
+      <form onSubmit={handleSubmit} className="form-modal__content" onClick={(e) => e.stopPropagation()}>
         <h3>Apertura de Expediente de Contrato</h3>
-        
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', margin: '15px 0' }}>
+
+        <div className="form-group">
           <label>Categoría Legal (Discriminador Backend):</label>
           <select 
             value={form.categoria_operacion} 
@@ -136,9 +138,9 @@ export const FormOperacionModal = ({ onCrear, onCancelar }: Props) => {
           )}
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '20px' }}>
-          <button type="button" onClick={onCancelar}>Cancelar</button>
-          <button type="submit" style={{ background: '#007bff', color: '#fff' }}>Generar Expediente</button>
+        <div className="form-actions">
+          <button type="button" onClick={onCancelar} className="btn btn-ghost">Cancelar</button>
+          <button type="submit" className="btn btn-primary">Generar Expediente</button>
         </div>
       </form>
     </div>

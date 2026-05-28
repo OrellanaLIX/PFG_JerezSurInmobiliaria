@@ -5,14 +5,12 @@ interface TareasPendientesProps {
   tareas: Tarea[];
   onCrear: (tarea: NuevaTarea) => Promise<void>;
   onCompletar: (id: number) => Promise<void>;
-  onEliminar: (id: number) => Promise<void>;
 }
 
 export const TareasPendientes = ({
   tareas,
   onCrear,
   onCompletar,
-  onEliminar,
 }: TareasPendientesProps) => {
   const [mostrarForm, setMostrarForm] = useState(false);
   const [titulo, setTitulo] = useState('');
@@ -127,7 +125,6 @@ export const TareasPendientes = ({
                   </button>
                 )}
                 <button onClick={() => onCompletar(tarea.id)}>✓ Hecho</button>
-                <button onClick={() => onEliminar(tarea.id)}>✕ Eliminar</button>
               </div>
             </li>
           ))}

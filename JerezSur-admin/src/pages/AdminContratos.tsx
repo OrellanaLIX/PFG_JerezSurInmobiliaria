@@ -4,6 +4,7 @@ import type { EstadoOperacion, CategoriaOperacion, OperacionBase } from '../type
 import { TablaOperaciones } from '../components/crud/Contratos/TablaOperaciones';
 import { DetalleOperacionModal } from '../components/crud/Contratos/DetalleOperacionModal';
 import { FormOperacionModal } from '../components/crud/Contratos/FormOperacionModal';
+import '../styles/pages/CrudPages.scss';
 
 const AdminContratos = () => {
   const {
@@ -40,16 +41,18 @@ const AdminContratos = () => {
   });
 
   if (loading) return <p>Cargando operaciones inmobiliarias...</p>;
-  if (error) return <p style={{ color: 'red' }}>{error}</p>;
+  if (error) return <p className="error-text">{error}</p>;
 
   return (
     <div>
-      <header style={{ display: 'flex', justifyContent: 'space-between', margin: '20px 0' }}>
+      <header className="crud-page__header">
         <h1>Expedientes y Contratos Comerciales</h1>
-        <button onClick={() => setMostrarForm(true)}>+ Abrir Nueva Operación</button>
+        <div className="actions">
+          <button onClick={() => setMostrarForm(true)}>+ Abrir Nueva Operación</button>
+        </div>
       </header>
 
-      <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+      <div className="crud-page__filters">
         <input 
           type="text" 
           placeholder="Buscar por Ref Inmueble, Cliente..." 

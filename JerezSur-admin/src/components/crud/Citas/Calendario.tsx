@@ -7,6 +7,7 @@ import {
   formatearHora,
   traducirEstado,
 } from '../../../utils/calendario';
+import '../../../styles/App.scss';
 
 interface CalendarioProps {
   año: number;
@@ -33,42 +34,31 @@ export const Calendario = ({
   );
 
   return (
-    <div>
-      {/* Header del calendario */}
-      <header>
-        <button onClick={() => onCambiarMes(-1)}>← Anterior</button>
-        <h3>
-          {NOMBRES_MES[mes]} {año}
-        </h3>
-        <button onClick={() => onCambiarMes(1)}>Siguiente →</button>
-        <button onClick={onIrHoy}>Hoy</button>
+    <div className="calendar">
+      <header className="calendar-header">
+        <div className="calendar-controls">
+          <button onClick={() => onCambiarMes(-1)}>← Anterior</button>
+          <button onClick={() => onCambiarMes(1)}>Siguiente →</button>
+          <button onClick={onIrHoy}>Hoy</button>
+        </div>
+        <h3 className="calendar-title">{NOMBRES_MES[mes]} {año}</h3>
       </header>
 
-      {/* Cabecera de días de la semana */}
-      <div role="row">
+      <div className="calendar-weekdays" role="row">
         {NOMBRES_DIA.map((nombre) => (
-          <div key={nombre} role="columnheader">
-            {nombre}
-          </div>
+          <div key={nombre} role="columnheader" className="calendar-weekday">{nombre}</div>
         ))}
       </div>
 
-      {/* Cuadrícula de días */}
-      <div role="grid">
+      <div className="calendar-grid" role="grid">
         {dias.map((dia, idx) => (
           <div
             key={idx}
             role="gridcell"
             onClick={() => onClickDia(dia.fecha)}
-            style={{
-              cursor: 'pointer',
-              opacity: dia.esMesActual ? 1 : 0.4,
-              border: dia.esHoy ? '2px solid blue' : '1px solid #ccc',
-              padding: '4px',
-              minHeight: '80px',
-            }}
+            className={`calendar-cell ${dia.esMesActual ? '' : 'calendar-cell--muted'} ${dia.esHoy ? 'calendar-cell--today' : ''}`}
           >
-            <div>
+            <div className="calendar-cell__header">
               <strong>{dia.diaMes}</strong>
             </div>
 
@@ -76,19 +66,16 @@ export const Calendario = ({
             {dia.citas.slice(0, 3).map((cita) => (
               <div
                 key={cita.id}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onClickCita(cita);
-                }}
+                onClick={(e) => { e.stopPropagation(); onClickCita(cita); }}
                 title={`${cita.nombreCliente} - ${traducirEstado(cita.estado)}`}
-                style={{ fontSize: '0.8em', cursor: 'pointer' }}
+                className="calendar-event"
               >
                 {formatearHora(cita.fechaHora)} {cita.nombreCliente}
               </div>
             ))}
 
             {dia.citas.length > 3 && (
-              <small>+{dia.citas.length - 3} más</small>
+              <small className="text-soft">+{dia.citas.length - 3} más</small>
             )}
           </div>
         ))}

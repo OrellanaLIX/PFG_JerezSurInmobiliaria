@@ -31,15 +31,16 @@ export const FormInmuebleModal = ({ onCrear, onCancelar }: Props) => {
   };
 
   return (
-    <div className="modal-backdrop" style={{ background: 'rgba(0,0,0,0.4)', position: 'fixed', inset: 0, display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
-      <form onSubmit={handleSubmit} style={{ background: '#fff', padding: '25px', borderRadius: '8px', width: '450px', maxHeight: '90vh', overflowY: 'auto' }}>
+    <div className="form-modal">
+      <div className="form-modal__backdrop" onClick={onCancelar} />
+      <form onSubmit={handleSubmit} className="form-modal__content" onClick={(e) => e.stopPropagation()}>
         <h3>Alta de Inmueble</h3>
-        
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', margin: '15px 0' }}>
+
+        <div className="form-group">
           <input type="text" placeholder="Código Referencia (ej: P-101) *" required value={form.referencia} onChange={e => setForm({...form, referencia: e.target.value})} />
           <input type="text" placeholder="Título Comercial *" required value={form.titulo} onChange={e => setForm({...form, titulo: e.target.value})} />
           <input type="number" placeholder="Precio (€) *" required value={form.precio || ''} onChange={e => setForm({...form, precio: Number(e.target.value)})} />
-          
+
           <label>Operación:</label>
           <select value={form.operacion} onChange={e => setForm({...form, operacion: e.target.value as any})}>
             <option value="VENTA">VENTA</option>
@@ -47,14 +48,14 @@ export const FormInmuebleModal = ({ onCrear, onCancelar }: Props) => {
             <option value="AMBOS">AMBOS (Venta o Alquiler)</option>
           </select>
 
-          <div style={{ display: 'flex', gap: '10px' }}>
+          <div className="form-row">
             <input type="number" placeholder="M² Útiles" value={form.superficieUtil || ''} onChange={e => setForm({...form, superficieUtil: Number(e.target.value)})} />
             <input type="number" placeholder="M² Const." value={form.mConstruidos || ''} onChange={e => setForm({...form, mConstruidos: Number(e.target.value)})} />
           </div>
 
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <input type="number" placeholder="Habitaciones" min="1" value={form.habitaciones} onChange={e => setForm({...form, habitaciones: Number(e.target.value)})} />
-            <input type="number" placeholder="Baños" min="1" value={form.banos} onChange={e => setForm({...form, banos: Number(e.target.value)})} />
+          <div className="form-row">
+            <input type="number" placeholder="Habitaciones" min={1} value={form.habitaciones} onChange={e => setForm({...form, habitaciones: Number(e.target.value)})} />
+            <input type="number" placeholder="Baños" min={1} value={form.banos} onChange={e => setForm({...form, banos: Number(e.target.value)})} />
           </div>
 
           <input type="text" placeholder="Dirección *" required value={form.direccion} onChange={e => setForm({...form, direccion: e.target.value})} />
@@ -63,9 +64,9 @@ export const FormInmuebleModal = ({ onCrear, onCancelar }: Props) => {
           <textarea placeholder="Descripción larga de la propiedad" value={form.descripcion} onChange={e => setForm({...form, descripcion: e.target.value})} />
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '20px' }}>
-          <button type="button" onClick={onCancelar}>Cancelar</button>
-          <button type="submit" style={{ background: '#28a745', color: '#fff' }}>Dar de Alta</button>
+        <div className="form-actions">
+          <button type="button" onClick={onCancelar} className="btn btn-ghost">Cancelar</button>
+          <button type="submit" className="btn btn-primary">Dar de Alta</button>
         </div>
       </form>
     </div>

@@ -122,6 +122,16 @@ button {
   }
 }
 
+.btn-danger {
+  background-color: $color-error;
+  color: $color-white;
+
+  &:hover:not(:disabled) {
+    background-color: darken($color-error, 6%);
+    box-shadow: $shadow-md;
+  }
+}
+
 .btn-sm {
   padding: $space-2 $space-3;
   font-size: $font-size-xs;

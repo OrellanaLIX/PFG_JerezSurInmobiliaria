@@ -4,6 +4,7 @@ import { TablaUsuarios } from '../components/crud/Usuarios/TablaUsuarios';
 import { DetalleUsuarioModal } from '../components/crud/Usuarios/DetalleUsuarioModal';
 import { FormUsuarioModal } from '../components/crud/Usuarios/FormUsuarioModal';
 import type { Role, Usuario } from '../types/usuario';
+import '../styles/pages/CrudPages.scss';
 
 const AdminUsuarios = () => {
   const {
@@ -40,27 +41,25 @@ const AdminUsuarios = () => {
   });
 
   if (loading) return <p>Cargando usuarios...</p>;
-  if (error) return <p>{error}</p>;
-
-  return (
+  if (error) return <p className="error-text">{error}</p>;
+  return(
     <div>
-      <header style={{ display: 'flex', justifyContent: 'space-between', margin: '20px 0' }}>
+      <header className="crud-page__header">
         <h1>Gestión de Usuarios (Modo PUT Unificado)</h1>
-        <button onClick={() => setMostrarFormCrear(true)}>+ Registrar Usuario</button>
+        <div className="actions">
+          <button onClick={() => setMostrarFormCrear(true)}>+ Registrar Usuario</button>
+        </div>
       </header>
-
-      <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
-        <input 
-          type="text" 
-          placeholder="Buscar..." 
-          value={busqueda} 
-          onChange={e => setBusqueda(e.target.value)} 
-        />
-        <select value={filtroRol} onChange={e => setFiltroRol(e.target.value as Role | 'TODOS')}>
-          <option value="TODOS">Todos los roles</option>
-          <option value="ROLE_NOROL">ROLE_NOROL</option>
-          <option value="ROLE_USER">ROLE_USER</option>
-          <option value="ROLE_ADMIN">ROLE_ADMIN</option>
+      
+      <div className="crud-page__filters">
+        <input value={busqueda} onChange={e => setBusqueda(e.target.value)} placeholder="Buscar usuarios..." />
+        <select value={filtroRol} onChange={e => setFiltroRol(e.target.value as any)}>
+          <option value="TODOS">Todos</option>
+          <option value="ROLE_ADMIN">ADMIN</option>
+          <option value="ROLE_TRABAJADOR">TRABAJADOR</option>
+          <option value="ROLE_INTERESADO">INTERESADO</option>
+          <option value="ROLE_VENDEDOR">VENDEDOR</option>
+          <option value="ROLE_AMBOS">AMBOS</option>
         </select>
       </div>
 
@@ -84,7 +83,7 @@ const AdminUsuarios = () => {
         <FormUsuarioModal onCrear={crear} onCancelar={() => setMostrarFormCrear(false)} />
       )}
     </div>
-  );
+  )
 };
 
 export default AdminUsuarios;

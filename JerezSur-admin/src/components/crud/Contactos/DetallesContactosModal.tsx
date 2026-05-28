@@ -1,4 +1,5 @@
 import type { MensajeContactoDetalle } from '../../../types/contacto';
+import '../../../styles/App.scss';
 
 interface Props {
   contacto: MensajeContactoDetalle;
@@ -11,46 +12,44 @@ export const DetalleContactoModal = ({ contacto, loading, onCerrar, onEliminar }
   if (loading) return <div className="modal"><p>Abriendo buzón de entrada...</p></div>;
 
   return (
-    <div className="modal-backdrop" style={{ background: 'rgba(0,0,0,0.4)', position: 'fixed', inset: 0, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-      <div style={{ background: '#fff', padding: '25px', borderRadius: '8px', maxWidth: '550px', width: '100%' }}>
-        
-        <header style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #ddd', paddingBottom: '10px' }}>
+    <div className="form-modal">
+      <div className="form-modal__backdrop" onClick={onCerrar} />
+      <div className="form-modal__content" onClick={(e) => e.stopPropagation()}>
+        <header className="modal-header">
           <h2>Consulta de {contacto.nombre}</h2>
-          <button onClick={onCerrar}>❌</button>
+          <button className="btn btn-ghost" onClick={onCerrar}>❌</button>
         </header>
 
-        <section style={{ margin: '15px 0' }}>
+        <section className="modal-body">
           <p><strong>Email:</strong> <a href={`mailto:${contacto.email}`}>{contacto.email}</a></p>
           {contacto.telefono && <p><strong>Teléfono:</strong> {contacto.telefono}</p>}
-          <p style={{ color: '#888' }}><small>Recibido el: {new Date(contacto.fechaEnvio).toLocaleString('es-ES')}</small></p>
+          <p className="text-soft"><small>Recibido el: {new Date(contacto.fechaEnvio).toLocaleString('es-ES')}</small></p>
+
+          <div className="message-box">
+            <strong>Mensaje original:</strong>
+            <p className="message-text">"{contacto.mensaje}"</p>
+          </div>
+
+          {contacto.inmueble ? (
+            <fieldset className="inmueble-fieldset">
+              <legend>🏠 Inmueble Solicitado</legend>
+              <p><strong>Referencia:</strong> <code>{contacto.inmueble.referencia}</code></p>
+              <p><strong>Propiedad:</strong> {contacto.inmueble.titulo}</p>
+              <p><strong>Precio del Catálogo:</strong> {contacto.inmueble.precio.toLocaleString('es-ES')} €</p>
+            </fieldset>
+          ) : (
+            <p className="text-soft italic">ℹ️ Consulta de tipo general (No asociada a ningún inmueble específico).</p>
+          )}
         </section>
 
-        {/* Mensaje o consulta real de la BD */}
-        <div style={{ background: '#f8f9fa', padding: '15px', borderRadius: '6px', borderLeft: '4px solid #007bff', margin: '20px 0', whiteSpace: 'pre-line' }}>
-          <strong>Mensaje original:</strong>
-          <p style={{ marginTop: '10px', fontStyle: 'italic', color: '#333' }}>"{contacto.mensaje}"</p>
-        </div>
-
-        {/* Renderizado condicional si pregunta por un Inmueble concreto */}
-        {contacto.inmueble ? (
-          <fieldset style={{ borderColor: '#28a745', background: '#f6fff8' }}>
-            <legend style={{ color: '#28a745', fontWeight: 'bold' }}>🏠 Inmueble Solicitado</legend>
-            <p><strong>Referencia:</strong> <code>{contacto.inmueble.referencia}</code></p>
-            <p><strong>Propiedad:</strong> {contacto.inmueble.titulo}</p>
-            <p><strong>Precio del Catálogo:</strong> {contacto.inmueble.precio.toLocaleString('es-ES')} €</p>
-          </fieldset>
-        ) : (
-          <p style={{ color: '#666', fontStyle: 'italic' }}>ℹ️ Consulta de tipo general (No asociada a ningún inmueble específico).</p>
-        )}
-
-        <footer style={{ marginTop: '20px', display: 'flex', justifyContent: 'space-between' }}>
+        <footer className="modal-footer">
           <button 
-            onClick={async () => { if(confirm('¿Eliminar esta consulta permanentemente?')) { await onEliminar(contacto.id); onCerrar(); } }} 
-            style={{ background: 'red', color: 'white' }}
+            className="btn btn-danger"
+            onClick={async () => { if(confirm('¿Eliminar esta consulta permanentemente?')) { await onEliminar(contacto.id); onCerrar(); } }}
           >
             🗑️ Eliminar Mensaje
           </button>
-          <button onClick={onCerrar}>Cerrar Ventana</button>
+          <button className="btn btn-ghost" onClick={onCerrar}>Cerrar Ventana</button>
         </footer>
       </div>
     </div>

@@ -1,4 +1,5 @@
 import type { Usuario } from '../../../types/usuario';
+import '../../../styles/App.scss';
 
 interface Props {
   usuarios: Usuario[];
@@ -8,34 +9,33 @@ interface Props {
 
 export const TablaUsuarios = ({ usuarios, onVerDetalle, onToggleActivo }: Props) => {
   return (
-    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-      <thead>
-        <tr style={{ borderBottom: '2px solid #ccc', textAlign: 'left' }}>
-          <th>Nombre</th>
-          <th>Rol</th>
-          <th>Estado</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        {usuarios.map((u) => (
-          <tr key={u.id} style={{ borderBottom: '1px solid #eee', height: '45px' }}>
-            <td>{u.nombre} {u.apellidos}</td>
-            <td>{u.role}</td>
-            <td>
-              <button 
-                onClick={() => onToggleActivo(u)} // Enviamos todo el objeto usuario
-                style={{ backgroundColor: u.cuentaActivada ? '#d4edda' : '#f8d7da' }}
-              >
-                {u.cuentaActivada ? '🟢 Activo' : '🔴 Suspendido'}
-              </button>
-            </td>
-            <td>
-              <button onClick={() => onVerDetalle(u.id)}>🔍 Ver Detalles</button>
-            </td>
+    <div className="data-table">
+      <table>
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Rol</th>
+            <th>Estado</th>
+            <th>Acciones</th>
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {usuarios.map((u) => (
+            <tr key={u.id} className={u.cuentaActivada ? 'row-active' : 'row-inactive'}>
+              <td>{u.nombre} {u.apellidos}</td>
+              <td>{u.role}</td>
+              <td>
+                <button onClick={() => onToggleActivo(u)} className={`badge ${u.cuentaActivada ? 'badge-success' : 'badge-error'}`}>
+                  {u.cuentaActivada ? '🟢 Activo' : '🔴 Suspendido'}
+                </button>
+              </td>
+              <td>
+                <button className="btn btn-ghost" onClick={() => onVerDetalle(u.id)}>🔍 Ver Detalles</button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 };

@@ -40,6 +40,9 @@ public class PerfilService {
     @Autowired
     private TareaRepository tareaRepository;
 
+    @Autowired
+    private NotificacionService notificacionService;
+
     // ==========================================
     // BUILD DTO — ahora incluye trabajador
     // ==========================================
@@ -284,6 +287,7 @@ public class PerfilService {
             interesado = new Interesado();
             interesado.setUsuario(usuario);
             crearTareaRevisionUsuario(usuario, "interesado");
+            notificacionService.notificarNuevoInteresado(usuario);
         }
         actualizarInteresado(interesado, request);
     }
@@ -305,6 +309,7 @@ public class PerfilService {
             vendedor = new Vendedor();
             vendedor.setUsuario(usuario);
             crearTareaRevisionUsuario(usuario, "vendedor");
+            notificacionService.notificarNuevoVendedor(usuario);
         }
         actualizarVendedor(vendedor, request);
     }

@@ -6,6 +6,7 @@ interface FormCitaProps {
   onCrear: (cita: NuevaCita) => Promise<void>;
   onCancelar: () => void;
 }
+import '../../../styles/App.scss';
 
 export const FormCita = ({ fechaInicial, onCrear, onCancelar }: FormCitaProps) => {
   const [telefono, setTelefono] = useState('');

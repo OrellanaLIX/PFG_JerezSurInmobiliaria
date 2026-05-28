@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import type { UsuarioDetalle, Role, Usuario, TrabajadorPerfil, InteresadoPerfil, VendedorPerfil } from '../../../types/usuario';
+import type { UsuarioDetalle, Role, TrabajadorPerfil, InteresadoPerfil, VendedorPerfil } from '../../../types/usuario';
+import '../../../styles/App.scss';
 
 type Seccion = 'datos' | 'perfiles' | 'acceso';
 
@@ -33,8 +34,10 @@ export const DetalleUsuarioModal = ({ usuario, loading, onCerrar, onActualizar, 
   });
 
   if (loading) return (
-    <div style={styles.backdrop}>
-      <div style={styles.modal}><p style={{ padding: '40px', textAlign: 'center', color: '#888' }}>Cargando...</p></div>
+    <div className="form-modal show">
+      <div className="form-modal__content">
+        <p className="text-soft">Cargando...</p>
+      </div>
     </div>
   );
 
@@ -73,16 +76,16 @@ export const DetalleUsuarioModal = ({ usuario, loading, onCerrar, onActualizar, 
   };
 
   return (
-    <div style={styles.backdrop}>
-      <div style={styles.modal}>
+    <div className="form-modal show">
+      <div className="form-modal__content">
 
         {/* Header */}
-        <div style={styles.header}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={styles.avatar}>{initiales}</div>
+        <div className="modal-header">
+          <div className="modal-header__left">
+            <div className="avatar avatar--user">{initiales}</div>
             <div>
-              <h2 style={styles.title}>{usuario.nombre} {usuario.apellidos}</h2>
-              <div style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
+              <h2 className="modal-title">{usuario.nombre} {usuario.apellidos}</h2>
+              <div className="modal-badges">
                 <Badge text={usuario.role} color="blue" />
                 {usuario.cuentaActivada
                   ? <Badge text="Activa" color="green" />
@@ -90,37 +93,36 @@ export const DetalleUsuarioModal = ({ usuario, loading, onCerrar, onActualizar, 
               </div>
             </div>
           </div>
-          <button onClick={onCerrar} style={styles.btnIcon}>✕</button>
+          <button onClick={onCerrar} className="btn btn-ghost btn-icon">✕</button>
         </div>
 
         {/* Nav por secciones */}
-        <div style={{ padding: '12px 24px 0', display: 'flex', gap: '4px', borderBottom: '1px solid #f0f0f0' }}>
+        <div className="tabs" role="tablist">
           {(['datos', 'perfiles', 'acceso'] as Seccion[]).map(s => (
-            <button key={s} onClick={() => setSeccion(s)}
-              style={{ ...styles.tab, ...(seccion === s ? styles.tabActive : {}) }}>
+            <button key={s} onClick={() => setSeccion(s)} className={`tab ${seccion === s ? 'active' : ''}`}>
               {{ datos: 'Datos básicos', perfiles: 'Perfiles asociados', acceso: 'Acceso y rol' }[s]}
             </button>
           ))}
         </div>
 
         {/* Body */}
-        <div style={styles.body}>
+        <div className="form-modal__body">
 
           {/* ── Datos básicos ── */}
           {seccion === 'datos' && (
             <>
-              <div style={styles.row2}>
-                <Field label="Nombre"><input value={datosBase.nombre ?? ''} onChange={e => setDatosBase(p => ({ ...p, nombre: e.target.value }))} style={styles.input} /></Field>
-                <Field label="Apellidos"><input value={datosBase.apellidos ?? ''} onChange={e => setDatosBase(p => ({ ...p, apellidos: e.target.value }))} style={styles.input} /></Field>
+              <div className="form-row">
+                <Field label="Nombre"><input value={datosBase.nombre ?? ''} onChange={e => setDatosBase(p => ({ ...p, nombre: e.target.value }))} /></Field>
+                <Field label="Apellidos"><input value={datosBase.apellidos ?? ''} onChange={e => setDatosBase(p => ({ ...p, apellidos: e.target.value }))} /></Field>
               </div>
-              <div style={styles.row2}>
-                <Field label="Email"><input type="email" value={datosBase.email ?? ''} onChange={e => setDatosBase(p => ({ ...p, email: e.target.value }))} style={styles.input} /></Field>
-                <Field label="Teléfono"><input value={datosBase.telefono ?? ''} onChange={e => setDatosBase(p => ({ ...p, telefono: e.target.value }))} style={styles.input} /></Field>
+              <div className="form-row">
+                <Field label="Email"><input type="email" value={datosBase.email ?? ''} onChange={e => setDatosBase(p => ({ ...p, email: e.target.value }))} /></Field>
+                <Field label="Teléfono"><input value={datosBase.telefono ?? ''} onChange={e => setDatosBase(p => ({ ...p, telefono: e.target.value }))} /></Field>
               </div>
-              <div style={styles.row2}>
-                <Field label="DNI"><input value={datosBase.dni ?? ''} onChange={e => setDatosBase(p => ({ ...p, dni: e.target.value }))} style={styles.input} /></Field>
+              <div className="form-row">
+                <Field label="DNI"><input value={datosBase.dni ?? ''} onChange={e => setDatosBase(p => ({ ...p, dni: e.target.value }))} /></Field>
                 <Field label="Origen">
-                  <select value={datosBase.origen} onChange={e => setDatosBase(p => ({ ...p, origen: e.target.value as any }))} style={styles.input}>
+                  <select value={datosBase.origen} onChange={e => setDatosBase(p => ({ ...p, origen: e.target.value as any }))}>
                     <option value="AUTOREGISTRO">Autoregistro</option>
                     <option value="OAUTH">OAuth (Social)</option>
                     <option value="CRM_TRABAJADOR">CRM Trabajador</option>
@@ -129,8 +131,8 @@ export const DetalleUsuarioModal = ({ usuario, loading, onCerrar, onActualizar, 
                   </select>
                 </Field>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
-                <button onClick={guardarDatosBase} disabled={guardando} style={styles.btnPrimary}>
+              <div className="form-actions">
+                <button onClick={guardarDatosBase} disabled={guardando} className="btn btn-primary">
                   {guardando ? 'Guardando...' : 'Guardar cambios'}
                 </button>
               </div>
@@ -149,25 +151,25 @@ export const DetalleUsuarioModal = ({ usuario, loading, onCerrar, onActualizar, 
                 onGuardar={() => guardarPerfil('trabajador')}
                 guardando={guardando}
               >
-                <div style={styles.row2}>
-                  <Field label="Cargo"><input value={trabajador.cargo ?? ''} onChange={e => setTrabajador(p => ({ ...p, cargo: e.target.value }))} style={styles.input} /></Field>
-                  <Field label="DNI corporativo"><input value={trabajador.dni ?? ''} onChange={e => setTrabajador(p => ({ ...p, dni: e.target.value }))} style={styles.input} /></Field>
+                <div className="form-row">
+                  <Field label="Cargo"><input value={trabajador.cargo ?? ''} onChange={e => setTrabajador(p => ({ ...p, cargo: e.target.value }))} /></Field>
+                  <Field label="DNI corporativo"><input value={trabajador.dni ?? ''} onChange={e => setTrabajador(p => ({ ...p, dni: e.target.value }))} /></Field>
                 </div>
-                <div style={styles.row2}>
+                <div className="form-row">
                   <Field label="Fecha inicio">
-                    <input type="date" value={trabajador.fechaInicioContrato ?? ''} onChange={e => setTrabajador(p => ({ ...p, fechaInicioContrato: e.target.value }))} style={styles.input} />
+                    <input type="date" value={trabajador.fechaInicioContrato ?? ''} onChange={e => setTrabajador(p => ({ ...p, fechaInicioContrato: e.target.value }))} />
                   </Field>
                   <Field label="Fecha fin">
-                    <input type="date" value={trabajador.fechaFinContrato ?? ''} onChange={e => setTrabajador(p => ({ ...p, fechaFinContrato: e.target.value }))} style={styles.input} />
+                    <input type="date" value={trabajador.fechaFinContrato ?? ''} onChange={e => setTrabajador(p => ({ ...p, fechaFinContrato: e.target.value }))} />
                   </Field>
                 </div>
                 <Field label="Activo">
-                  <select value={trabajador.activo ? 'si' : 'no'} onChange={e => setTrabajador(p => ({ ...p, activo: e.target.value === 'si' }))} style={styles.input}>
+                  <select value={trabajador.activo ? 'si' : 'no'} onChange={e => setTrabajador(p => ({ ...p, activo: e.target.value === 'si' }))}>
                     <option value="si">Sí</option><option value="no">No</option>
                   </select>
                 </Field>
                 <Field label="Observaciones laborales">
-                  <textarea value={trabajador.observacionesLaborales ?? ''} onChange={e => setTrabajador(p => ({ ...p, observacionesLaborales: e.target.value }))} style={{ ...styles.input, minHeight: '70px', resize: 'vertical' }} />
+                  <textarea value={trabajador.observacionesLaborales ?? ''} onChange={e => setTrabajador(p => ({ ...p, observacionesLaborales: e.target.value }))} className="textarea-large" />
                 </Field>
               </PerfilBlock>
 
@@ -181,32 +183,32 @@ export const DetalleUsuarioModal = ({ usuario, loading, onCerrar, onActualizar, 
                 guardando={guardando}
               >
                 {(!usuario.interesadoId && !usuario.interesado) && (
-                  <div style={styles.infoBox}>
+                  <div className="info-box">
                     Este usuario no tiene perfil de interesado. Al guardar se creará el registro.
                   </div>
                 )}
-                <div style={styles.row2}>
-                  <Field label="Presupuesto máximo (€)"><input type="number" value={interesado.presupuestoMaximo ?? ''} onChange={e => setInteresado(p => ({ ...p, presupuestoMaximo: Number(e.target.value) }))} style={styles.input} /></Field>
-                  <Field label="Zona de interés"><input value={interesado.zonaInteres ?? ''} onChange={e => setInteresado(p => ({ ...p, zonaInteres: e.target.value }))} style={styles.input} /></Field>
+                <div className="form-row">
+                  <Field label="Presupuesto máximo (€)"><input type="number" value={interesado.presupuestoMaximo ?? ''} onChange={e => setInteresado(p => ({ ...p, presupuestoMaximo: Number(e.target.value) }))} /></Field>
+                  <Field label="Zona de interés"><input value={interesado.zonaInteres ?? ''} onChange={e => setInteresado(p => ({ ...p, zonaInteres: e.target.value }))} /></Field>
                 </div>
-                <div style={styles.row2}>
-                  <Field label="Habitaciones mín."><input type="number" min={0} value={interesado.habitacionesMinimas ?? ''} onChange={e => setInteresado(p => ({ ...p, habitacionesMinimas: Number(e.target.value) }))} style={styles.input} /></Field>
-                  <Field label="Baños mín."><input type="number" min={0} value={interesado.banosMinimos ?? ''} onChange={e => setInteresado(p => ({ ...p, banosMinimos: Number(e.target.value) }))} style={styles.input} /></Field>
+                <div className="form-row">
+                  <Field label="Habitaciones mín."><input type="number" min={0} value={interesado.habitacionesMinimas ?? ''} onChange={e => setInteresado(p => ({ ...p, habitacionesMinimas: Number(e.target.value) }))} /></Field>
+                  <Field label="Baños mín."><input type="number" min={0} value={interesado.banosMinimos ?? ''} onChange={e => setInteresado(p => ({ ...p, banosMinimos: Number(e.target.value) }))} /></Field>
                 </div>
-                <div style={styles.row2}>
+                <div className="form-row">
                   <Field label="Tipo búsqueda">
-                    <select value={interesado.tipoBusqueda ?? 'VENTA'} onChange={e => setInteresado(p => ({ ...p, tipoBusqueda: e.target.value as any }))} style={styles.input}>
+                    <select value={interesado.tipoBusqueda ?? 'VENTA'} onChange={e => setInteresado(p => ({ ...p, tipoBusqueda: e.target.value as any }))}>
                       <option value="VENTA">Venta</option><option value="ALQUILER">Alquiler</option><option value="CUALQUIERA">Cualquiera</option>
                     </select>
                   </Field>
                   <Field label="Requiere hipoteca">
-                    <select value={interesado.requiereHipoteca ? 'si' : 'no'} onChange={e => setInteresado(p => ({ ...p, requiereHipoteca: e.target.value === 'si' }))} style={styles.input}>
+                    <select value={interesado.requiereHipoteca ? 'si' : 'no'} onChange={e => setInteresado(p => ({ ...p, requiereHipoteca: e.target.value === 'si' }))}>
                       <option value="no">No</option><option value="si">Sí</option>
                     </select>
                   </Field>
                 </div>
                 <Field label="Observaciones">
-                  <textarea value={interesado.observaciones ?? ''} onChange={e => setInteresado(p => ({ ...p, observaciones: e.target.value }))} style={{ ...styles.input, minHeight: '60px', resize: 'vertical' }} />
+                  <textarea value={interesado.observaciones ?? ''} onChange={e => setInteresado(p => ({ ...p, observaciones: e.target.value }))} className="textarea-large" />
                 </Field>
               </PerfilBlock>
 
@@ -220,12 +222,12 @@ export const DetalleUsuarioModal = ({ usuario, loading, onCerrar, onActualizar, 
                 guardando={guardando}
               >
                 {(!usuario.vendedorId && !usuario.vendedor) && (
-                  <div style={styles.infoBox}>
+                  <div className="info-box">
                     Este usuario no tiene perfil de vendedor. Al guardar se creará el registro.
                   </div>
                 )}
                 <Field label="Observaciones">
-                  <textarea value={vendedor.observaciones ?? ''} onChange={e => setVendedor({ observaciones: e.target.value })} style={{ ...styles.input, minHeight: '80px', resize: 'vertical' }} />
+                  <textarea value={vendedor.observaciones ?? ''} onChange={e => setVendedor({ observaciones: e.target.value })} className="textarea-large" />
                 </Field>
               </PerfilBlock>
             </>
@@ -235,7 +237,7 @@ export const DetalleUsuarioModal = ({ usuario, loading, onCerrar, onActualizar, 
           {seccion === 'acceso' && (
             <>
               <Field label="Rol de sistema">
-                <select value={acceso.role} onChange={e => setAcceso(p => ({ ...p, role: e.target.value as Role }))} style={styles.input}>
+                <select value={acceso.role} onChange={e => setAcceso(p => ({ ...p, role: e.target.value as Role }))}>
                   <option value="ROLE_NOROL">Sin rol</option>
                   <option value="ROLE_TRABAJADOR">Trabajador</option>
                   <option value="ROLE_INTERESADO">Interesado</option>
@@ -244,23 +246,23 @@ export const DetalleUsuarioModal = ({ usuario, loading, onCerrar, onActualizar, 
                   <option value="ROLE_ADMIN">Admin</option>
                 </select>
               </Field>
-              <div style={styles.row2}>
+              <div className="form-row">
                 <Field label="Cuenta activada">
-                  <select value={acceso.cuentaActivada ? 'si' : 'no'} onChange={e => setAcceso(p => ({ ...p, cuentaActivada: e.target.value === 'si' }))} style={styles.input}>
+                  <select value={acceso.cuentaActivada ? 'si' : 'no'} onChange={e => setAcceso(p => ({ ...p, cuentaActivada: e.target.value === 'si' }))}>
                     <option value="si">Sí</option><option value="no">No</option>
                   </select>
                 </Field>
                 <Field label="Forzar cambio de contraseña">
-                  <select value={acceso.cambiarPasswd ? 'si' : 'no'} onChange={e => setAcceso(p => ({ ...p, cambiarPasswd: e.target.value === 'si' }))} style={styles.input}>
+                  <select value={acceso.cambiarPasswd ? 'si' : 'no'} onChange={e => setAcceso(p => ({ ...p, cambiarPasswd: e.target.value === 'si' }))}>
                     <option value="no">No</option><option value="si">Sí</option>
                   </select>
                 </Field>
               </div>
-              <div style={{ background: '#FAEEDA', borderRadius: '8px', padding: '10px 14px', fontSize: '12px', color: '#854F0B', marginTop: '8px' }}>
+              <div className="alert alert-warning">
                 ⚠️ Cambiar el rol no crea ni elimina los sub-perfiles. Usa la pestaña "Perfiles asociados" para gestionar los registros en las tablas trabajador, interesado y vendedor.
               </div>
-              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '12px' }}>
-                <button onClick={guardarAcceso} disabled={guardando} style={styles.btnPrimary}>
+              <div className="form-actions">
+                <button onClick={guardarAcceso} disabled={guardando} className="btn btn-primary">
                   {guardando ? 'Guardando...' : 'Guardar cambios'}
                 </button>
               </div>
@@ -269,16 +271,15 @@ export const DetalleUsuarioModal = ({ usuario, loading, onCerrar, onActualizar, 
         </div>
 
         {/* Footer */}
-        <div style={styles.footer}>
-          <button onClick={async () => { if (confirm('¿Eliminar este usuario permanentemente?')) { await onEliminar(usuario.id); onCerrar(); } }} style={styles.btnDanger}>
+        <div className="modal-footer">
+          <button onClick={async () => { if (confirm('¿Eliminar este usuario permanentemente?')) { await onEliminar(usuario.id); onCerrar(); } }} className="btn btn-danger">
             🗑 Eliminar usuario
           </button>
-          <button onClick={onCerrar} style={styles.btn}>Cerrar</button>
+          <button onClick={onCerrar} className="btn btn-ghost">Cerrar</button>
         </div>
       </div>
     </div>
-  );
-};
+)};
 
 // --- Componente reutilizable de bloque de perfil ---
 interface PerfilBlockProps {
@@ -289,22 +290,22 @@ interface PerfilBlockProps {
 }
 
 const PerfilBlock = ({ titulo, icon, asignado, abierto, onToggle, onDesasignar, onGuardar, guardando, children }: PerfilBlockProps) => (
-  <div style={styles.perfilBlock}>
-    <div onClick={onToggle} style={styles.perfilHeader}>
-      <span style={{ fontWeight: 500, fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+  <div className="perfil-block">
+    <div onClick={onToggle} className="perfil-header">
+      <span className="perfil-header__title">
         {icon} {titulo}
         <Badge text={asignado ? 'Asignado' : 'No asignado'} color={asignado ? 'blue' : 'gray'} />
       </span>
-      <span style={{ fontSize: '12px', color: '#999', transform: abierto ? 'rotate(180deg)' : 'rotate(0deg)', display: 'inline-block', transition: 'transform 0.15s' }}>▾</span>
+      <span className={`perfil-toggle ${abierto ? 'open' : ''}`}>▾</span>
     </div>
     {abierto && (
-      <div style={styles.perfilBody}>
+      <div className="perfil-body">
         {children}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px' }}>
+        <div className="perfil-actions">
           {asignado
-            ? <span onClick={onDesasignar} style={{ fontSize: '12px', color: '#A32D2D', cursor: 'pointer', textDecoration: 'underline' }}>Desvincular perfil</span>
+            ? <span onClick={onDesasignar} className="perfil-desasignar">Desvincular perfil</span>
             : <span />}
-          <button onClick={onGuardar} disabled={guardando} style={styles.btnPrimarySmall}>
+          <button onClick={onGuardar} disabled={guardando} className="btn btn-primary btn-sm">
             {guardando ? 'Guardando...' : asignado ? 'Guardar cambios' : `Crear perfil ${titulo.toLowerCase()}`}
           </button>
         </div>
@@ -320,36 +321,12 @@ const Badge = ({ text, color }: { text: string; color: 'blue' | 'green' | 'amber
     amber: { background: '#FAEEDA', color: '#854F0B' },
     gray: { background: '#F1EFE8', color: '#5F5E5A' },
   };
-  return <span style={{ ...colors[color], padding: '2px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 500 }}>{text}</span>;
+  return <span className={`badge badge--${color}`}>{text}</span>;
 };
 
 const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
-  <div style={{ marginBottom: '12px' }}>
-    <label style={styles.label}>{label}</label>
+  <div className="form-field">
+    <label className="form-field__label">{label}</label>
     {children}
   </div>
 );
-
-const styles: Record<string, React.CSSProperties> = {
-  backdrop: { background: 'rgba(0,0,0,0.4)', position: 'fixed', inset: 0, display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 },
-  modal: { background: '#fff', borderRadius: '12px', width: '560px', maxHeight: '90vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 8px 32px rgba(0,0,0,0.18)' },
-  header: { padding: '20px 24px 16px', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
-  title: { fontSize: '15px', fontWeight: 600, margin: 0 },
-  body: { padding: '20px 24px', overflowY: 'auto', flex: 1 },
-  footer: { padding: '16px 24px', borderTop: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
-  tab: { padding: '8px 14px', fontSize: '13px', background: 'transparent', border: 'none', cursor: 'pointer', color: '#888', borderBottom: '2px solid transparent', marginBottom: '-1px' },
-  tabActive: { color: '#111', borderBottomColor: '#111', fontWeight: 500 },
-  avatar: { width: '40px', height: '40px', borderRadius: '50%', background: '#E6F1FB', color: '#185FA5', fontSize: '14px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-  row2: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' },
-  label: { display: 'block', fontSize: '12px', color: '#666', marginBottom: '5px', fontWeight: 500 },
-  input: { width: '100%', padding: '8px 10px', border: '1px solid #e0e0e0', borderRadius: '8px', fontSize: '13px', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' as const },
-  perfilBlock: { border: '1px solid #eee', borderRadius: '8px', overflow: 'hidden', marginBottom: '12px' },
-  perfilHeader: { padding: '12px 16px', background: '#fafafa', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' },
-  perfilBody: { padding: '16px', borderTop: '1px solid #eee' },
-  infoBox: { background: '#f8f8f8', borderRadius: '8px', padding: '10px 14px', fontSize: '12px', color: '#888', marginBottom: '14px' },
-  btn: { padding: '8px 18px', borderRadius: '8px', border: '1px solid #e0e0e0', background: '#fff', cursor: 'pointer', fontSize: '13px' },
-  btnPrimary: { padding: '8px 18px', borderRadius: '8px', border: 'none', background: '#111', color: '#fff', cursor: 'pointer', fontSize: '13px', fontWeight: 500 },
-  btnPrimarySmall: { padding: '6px 14px', borderRadius: '8px', border: 'none', background: '#111', color: '#fff', cursor: 'pointer', fontSize: '12px', fontWeight: 500 },
-  btnDanger: { padding: '8px 14px', borderRadius: '8px', border: '1px solid #F7C1C1', background: '#FCEBEB', color: '#A32D2D', cursor: 'pointer', fontSize: '13px' },
-  btnIcon: { background: 'none', border: 'none', fontSize: '16px', cursor: 'pointer', color: '#666', padding: '4px' },
-};
