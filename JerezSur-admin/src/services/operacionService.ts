@@ -3,47 +3,89 @@ import type { OperacionBase, NuevaOperacion, OperacionDetalle } from '../types/o
 
 export const operacionService = {
   getTodas: async (): Promise<OperacionBase[]> => {
-    const { data } = await api.get<OperacionBase[]>('/operaciones');
-    return Array.isArray(data) ? data : (data as any).content || [];
+    try {
+      const { data } = await api.get<OperacionBase[]>('/operaciones');
+      return Array.isArray(data) ? data : (data as any).content || [];
+    } catch (error) {
+      console.error('Error al obtener operaciones:', error);
+      throw new Error('No se pudieron cargar las operaciones.');
+    }
   },
 
   getPorId: async (id: number): Promise<OperacionDetalle> => {
-    const { data } = await api.get<OperacionDetalle>(`/operaciones/${id}`);
-    return data;
+    try {
+      const { data } = await api.get<OperacionDetalle>(`/operaciones/${id}`);
+      return data;
+    } catch (error) {
+      console.error(`Error al obtener operación ${id}:`, error);
+      throw new Error('No se pudo cargar la operación.');
+    }
   },
 
   crear: async (operacion: NuevaOperacion): Promise<OperacionBase> => {
-    const payload: any = {
-      categoria_operacion: operacion.categoria_operacion,
-      precioAcordado: Number(operacion.precioAcordado),
-      tipo: operacion.tipo,
-      inmueble: { id: operacion.inmuebleId },
-      representanteVendedor: { id: operacion.vendedorId },
-      representanteComprador: { id: operacion.interesadoId }
-    };
+    try {
+      const payload: any = {
+        categoria_operacion: operacion.categoria_operacion,
+        precioAcordado: Number(operacion.precioAcordado),
+        tipo: operacion.tipo,
+        inmueble: { id: operacion.inmuebleId },
+        representanteVendedor: { id: operacion.vendedorId },
+        representanteComprador: { id: operacion.interesadoId }
+      };
 
-    if (operacion.categoria_operacion === 'VENTA') {
-      payload.depositoArras = operacion.depositoArras ?? 0;
-      payload.fechaLimiteEscritura = operacion.fechaLimiteEscritura || undefined;
-      payload.incluyeMobiliario = !!operacion.incluyeMobiliario;
+      if (operacion.categoria_operacion === 'VENTA') {
+        payload.depositoArras = operacion.depositoArras ?? 0;
+        payload.fechaLimiteEscritura = operacion.fechaLimiteEscritura || undefined;
+        payload.incluyeMobiliario = !!operacion.incluyeMobiliario;
+      }
+
+      if (operacion.categoria_operacion === 'ALQUILER') {
+        payload.fianza = operacion.fianza ?? 0;
+        payload.duracionMeses = operacion.duracionMeses ?? 12;
+        payload.admiteMascotas = !!operacion.admiteMascotas;
+      }
+
+      const { data } = await api.post<OperacionBase>('/operaciones', payload);
+      return data;
+    } catch (error) {
+      console.error('Error al crear operación:', error);
+      if ((error as any)?.response?.data?.message) {
+        throw new Error((error as any).response.data.message);
+      }
+      throw new Error('No se pudo crear la operación.');
     }
-
-    if (operacion.categoria_operacion === 'ALQUILER') {
-      payload.fianza = operacion.fianza ?? 0;
-      payload.duracionMeses = operacion.duracionMeses ?? 12;
-      payload.admiteMascotas = !!operacion.admiteMascotas;
-    }
-
-    const { data } = await api.post<OperacionBase>('/operaciones', payload);
-    return data;
   },
 
   actualizar: async (id: number, operacionData: Partial<OperacionDetalle>): Promise<OperacionBase> => {
-    const { data } = await api.put<OperacionBase>(`/operaciones/${id}`, operacionData);
-    return data;
+    try {
+      const { data } = await api.put<OperacionBase>(`/operaciones/${id}`, operacionData);
+      return data;
+    } catch (error) {
+      console.error(`Error al actualizar operación ${id}:`, error);
+      throw new Error('No se pudo actualizar la operación.');
+    }
   },
 
   eliminar: async (id: number): Promise<void> => {
-    await api.delete(`/operaciones/${id}`);
+    try {
+      await api.delete(`/operaciones/${id}`);
+    } catch (error) {
+      console.error(`Error al eliminar operación ${id}:`, error);
+      throw new Error('No se pudo eliminar la operación.');
+    }
+  },
+
+  subirContratoPdf: async (contratoId: number, archivo: File) => {
+    try {
+      const form = new FormData();
+      form.append('archivo', archivo);
+      const { data } = await api.post(`/media/contrato/${contratoId}/documento`, form, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      return data;
+    } catch (error) {
+      console.error('Error al subir contrato:', error);
+      throw new Error('No se pudo subir el archivo del contrato.');
+    }
   }
 };

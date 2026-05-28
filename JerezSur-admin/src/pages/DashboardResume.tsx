@@ -14,12 +14,7 @@ const DashboardResumen = () => {
     <div>
       <h1>Dashboard</h1>
 
-      <KpiCards
-        inmuebles={data.inmueblesActivos}
-        clientes={data.clientesNuevos}
-        visitas={data.visitasProgramadas}
-        contratos={data.contratosPendientes}
-      />
+      <KpiCards />
 
       <TareasPendientes
         tareas={data.tareas}

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useInmuebles } from '../hooks/useInmuebles';
-import type { TipoOperacionInmueble, EstadoInmueble, Inmueble } from '../types/inmueble';
+import type { TipoOperacion, EstadoInmueble, Inmueble } from '../types/inmueble';
 import { TablaInmuebles } from '../components/crud/Inmuebles/TablaInmuebles';
 import { DetalleInmuebleModal } from '../components/crud/Inmuebles/DetallesInmuebleModal';
 import { FormInmuebleModal } from '../components/crud/Inmuebles/FormInmuebleModal';
@@ -21,11 +21,10 @@ const AdminInmuebles = () => {
   } = useInmuebles();
 
   const [busqueda, setBusqueda] = useState('');
-  const [filtroOperacion, setFiltroOperacion] = useState<TipoOperacionInmueble | 'TODOS'>('TODOS');
+  const [filtroOperacion, setFiltroOperacion] = useState<TipoOperacion | 'TODOS'>('TODOS');
   const [filtroEstado, setFiltroEstado] = useState<EstadoInmueble | 'TODOS'>('TODOS');
   const [mostrarForm, setMostrarForm] = useState(false);
 
-  // Cambio rápido de disponibilidad desde la tabla mediante PUT unificado
   const handleCambiarEstadoRapido = async (inmueble: Inmueble, nuevoEstado: EstadoInmueble) => {
     await actualizar(inmueble.id, { ...inmueble, estado: nuevoEstado });
   };
@@ -49,11 +48,12 @@ const AdminInmuebles = () => {
       <header className="crud-page__header">
         <h1>Gestión de Inmuebles (JerezSur)</h1>
         <div className="actions">
-          <button onClick={() => setMostrarForm(true)}>+ Añadir Propiedad</button>
+          <button className="btn btn-primary" onClick={() => setMostrarForm(true)}>
+            + Añadir Propiedad
+          </button>
         </div>
       </header>
 
-      {/* Controles de Búsqueda */}
       <div className="crud-page__filters">
         <input 
           type="text" 
@@ -65,7 +65,7 @@ const AdminInmuebles = () => {
           <option value="TODOS">Todas las Operaciones</option>
           <option value="VENTA">En Venta</option>
           <option value="ALQUILER">En Alquiler</option>
-          <option value="AMBOS">Ambos</option>
+          <option value="CUALQUIERA">Ambos (Venta y Alquiler)</option>
         </select>
         <select value={filtroEstado} onChange={e => setFiltroEstado(e.target.value as any)}>
           <option value="TODOS">Todos los Estados</option>
@@ -91,7 +91,7 @@ const AdminInmuebles = () => {
       )}
 
       {mostrarForm && (
-        <FormInmuebleModal onCrear={crear} onCancelar={() => setMostrarForm(false)} />
+        <FormInmuebleModal onCrear={crear} onCancelar={() => setMostrarForm(false)} error={error} />
       )}
     </div>
   );

@@ -12,6 +12,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.jerezsur.inmobiliaria.models.enums.EstadoInmueble;
+import com.jerezsur.inmobiliaria.models.enums.TipoInmueble;
 import com.jerezsur.inmobiliaria.models.enums.TipoOperacion;
 
 import jakarta.persistence.CascadeType;
@@ -76,8 +77,10 @@ public class Inmueble {
     @Enumerated(EnumType.STRING)
     private EstadoInmueble estado; // DISPONIBLE, VENDIDO, RESERVADO
 
+    @Enumerated(EnumType.STRING)
+    private TipoInmueble tipo; // PISO, CASA, CHALET, etc.
+
     // --- CARACTERÍSTICAS DINÁMICAS ---
-    // Esto crea una tabla hija que se borra si se borra el inmueble
     @ElementCollection
     @CollectionTable(name = "inmueble_extras", joinColumns = @JoinColumn(name = "inmueble_id"))
     @MapKeyColumn(name = "clave") // "Muebles", "Orientación", etc.
@@ -139,11 +142,24 @@ public class Inmueble {
     @JsonIgnore
     private List<Imagen> imagenes = new ArrayList<>();
 
-    @OneToMany(mappedBy = "inmueble")
-    private List<Inmueble_Vendedor> propietarios;
+    // 🌟 AQUÍ ESTABA EL ERROR EXPLICADO: Ahora es una colección correcta 🌟
+    @OneToMany(mappedBy = "inmueble", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Default
+    @ToString.Exclude
+    @JsonIgnore
+    private List<Inmueble_Vendedor> propietarios = new ArrayList<>();
 
     @OneToMany(mappedBy = "inmueble")
-    private List<Operacion> operaciones;
+    @Default
+    @ToString.Exclude
+    @JsonIgnore
+    private List<Operacion> operaciones = new ArrayList<>();
+
+    @OneToMany(mappedBy = "inmueble")
+    @Default
+    @ToString.Exclude
+    @JsonIgnore
+    private List<Cita> citas = new ArrayList<>();
 
     // --- AUDITORÍA ---
     @CreationTimestamp

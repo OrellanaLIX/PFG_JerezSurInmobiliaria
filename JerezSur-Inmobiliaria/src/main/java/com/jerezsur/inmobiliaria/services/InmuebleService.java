@@ -6,6 +6,7 @@ import com.jerezsur.inmobiliaria.models.Inmueble;
 import com.jerezsur.inmobiliaria.models.Inmueble_Vendedor;
 import com.jerezsur.inmobiliaria.models.Vendedor;
 import com.jerezsur.inmobiliaria.models.enums.EstadoInmueble;
+import com.jerezsur.inmobiliaria.models.enums.TipoInmueble;
 import com.jerezsur.inmobiliaria.models.enums.TipoOperacion;
 import com.jerezsur.inmobiliaria.repositories.InmuebleRepository;
 import com.jerezsur.inmobiliaria.repositories.Inmueble_VendedorRepository;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.Map;
 
 @Service
 public class InmuebleService {
@@ -36,7 +38,7 @@ public class InmuebleService {
     // LISTAR TODOS CON FILTRADO
     @Transactional(readOnly = true)
     public Page<Inmueble> buscarConFiltros(String ref, String tit, String desc, TipoOperacion op, EstadoInmueble est,
-            BigDecimal pMin, BigDecimal pMax, Integer hab, Integer ban, Double sMin, String ciu, String cp, 
+            BigDecimal pMin, BigDecimal pMax, Integer hab, Integer ban, Double sMin, String ciu, String cp,
             int page, int size, String sortBy, String sortDir) {
 
         Sort sort = Sort.by(Sort.Direction.fromString(sortDir), sortBy);
@@ -62,6 +64,8 @@ public class InmuebleService {
     // GUARDAR
     @Transactional
     public Inmueble guardar(Inmueble inmueble) {
+        String referencia = generarReferencia(inmueble.getTipo(), inmueble.getId());
+        inmueble.setReferencia(referencia);
         validarInmueble(inmueble); // Extraemos las validaciones a un método privado
         return inmuebleRepository.save(inmueble);
     }
@@ -105,5 +109,24 @@ public class InmuebleService {
         if (inmueble.getCaracteristicasExtra() != null && inmueble.getCaracteristicasExtra().size() > 50) {
             throw new BusinessValidationException("No se pueden añadir más de 50 características extra.");
         }
+    }
+
+    // En tu servicio, al crear un inmueble:
+    private String generarReferencia(TipoInmueble tipo, Long id) {
+        Map<TipoInmueble, String> prefijos = Map.of(
+                TipoInmueble.PISO, "PI",
+                TipoInmueble.CASA, "CA",
+                TipoInmueble.CHALET, "CH",
+                TipoInmueble.ADOSADO, "AD",
+                TipoInmueble.APARTAMENTO, "AP",
+                TipoInmueble.ESTUDIO, "ES",
+                TipoInmueble.DUPLEX, "DX",
+                TipoInmueble.ATICO, "AT",
+                TipoInmueble.LOCAL_COMERCIAL, "LC",
+                TipoInmueble.OFICINA, "OF"
+        // Map.of admite máx 10 entradas, para más usa Map.ofEntries(...)
+        );
+        String prefijo = prefijos.getOrDefault(tipo, "IN");
+        return prefijo + "-" + String.format("%03d", id);
     }
 }

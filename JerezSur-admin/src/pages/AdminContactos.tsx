@@ -3,7 +3,6 @@ import { useContactos } from '../hooks/useContactos';
 import type { MensajeContacto } from '../types/contacto';
 import { TablaContactos } from '../components/crud/Contactos/TablaContactos';
 import { DetalleContactoModal } from '../components/crud/Contactos/DetallesContactosModal';
-import { FormContactoModal } from '../components/crud/Contactos/FormContactoModal';
 import '../styles/pages/CrudPages.scss';
 
 const AdminContactos = () => {
@@ -13,7 +12,6 @@ const AdminContactos = () => {
     loading,
     loadingDetalle,
     error,
-    crear,
     actualizar,
     eliminar,
     cargarDetalle,
@@ -22,9 +20,7 @@ const AdminContactos = () => {
 
   const [busqueda, setBusqueda] = useState('');
   const [filtroLeido, setFiltroLeido] = useState<'TODOS' | 'LEIDOS' | 'PENDIENTES'>('TODOS');
-  const [mostrarForm, setMostrarForm] = useState(false); // Para simular leads manualmente
 
-  // Marcar/Desmarcar rápido desde la tabla con el PUT
   const handleToggleLeido = async (contacto: MensajeContacto) => {
     await actualizar(contacto.id, { leido: !contacto.leido });
   };
@@ -49,9 +45,6 @@ const AdminContactos = () => {
     <div>
       <header className="crud-page__header">
         <h1>📥 Bandeja de Contactos y Leads</h1>
-        <div className="actions">
-          <button onClick={() => setMostrarForm(true)}>+ Registrar Lead Manual</button>
-        </div>
       </header>
 
       <div className="crud-page__filters">
@@ -82,10 +75,6 @@ const AdminContactos = () => {
           onCerrar={limpiarSeleccionado}
           onEliminar={eliminar}
         />
-      )}
-
-      {mostrarForm && (
-        <FormContactoModal onCrear={crear} onCancelar={() => setMostrarForm(false)} />
       )}
     </div>
   );

@@ -1,18 +1,26 @@
 HORARIO:
-27/05 -> CRUD de todas las entidades completo
-28/05 -> Implementación de APIs y estilos (admin)
 29/05 -> Últimos retoques y limpiar código basura
-30/05 -> Documentación
-31/05 -> Github y comentarios
+30/05 -> Terminar ultimos retoques, comprobar que todo funcione
+31/05 -> Documentación
 01/06 -> Enviar y comenzar con mini mejoras
-Hasta el 08/06 - 12/06 -> Presentación, aprender código, seguir con mini mejoras
+Hasta el 08/06 -> Presentación, aprender código, seguir con mini mejoras
+¡¡¡¡¡¡CREAR ARQUITECTURA (DOCKER)!!!!!
 
-
-MINIMEJORAS:
+MINIMEJORAS POSTENTREGA:
 Cambiar form inicio sesion por form de venta como el de compra
 Cambiar telefono etc de contacto, ponerlo debajo del form como cta
+Cambiar textos
 
-TODO:
+SECUNDARIAS:
 Quitar cosas para mapa interactivo de búsqueda de inmueble
 Quitar campos de contrato, solo subir PDF y añadir inmueble e interesado
 Mejorar botón de tareas para no tener que poner enlace
+
+FIXES:
+Crea usuario pero mal
+Se ve mal los detalles de las citas
+Quitar boton de crear contacto
+Cambiar contratos por operacion y crear cotratos para cada operacion
+Revisr Filtros de busqueda
+Revisar relaciones y types del front
+Repaso general

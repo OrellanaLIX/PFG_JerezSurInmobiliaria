@@ -18,6 +18,7 @@ const AdminContratos = () => {
     eliminar,
     cargarDetalle,
     limpiarSeleccionada,
+    subirDocumentoContrato,
   } = useOperaciones();
 
   const [busqueda, setBusqueda] = useState('');
@@ -48,7 +49,9 @@ const AdminContratos = () => {
       <header className="crud-page__header">
         <h1>Expedientes y Contratos Comerciales</h1>
         <div className="actions">
-          <button onClick={() => setMostrarForm(true)}>+ Abrir Nueva Operación</button>
+          <button className="btn btn-primary" onClick={() => setMostrarForm(true)}>
+            + Abrir Nueva Operación
+          </button>
         </div>
       </header>
 
@@ -86,6 +89,7 @@ const AdminContratos = () => {
           onCerrar={limpiarSeleccionada}
           onActualizar={actualizar}
           onEliminar={eliminar}
+          onSubirDocumento={subirDocumentoContrato}
         />
       )}
 

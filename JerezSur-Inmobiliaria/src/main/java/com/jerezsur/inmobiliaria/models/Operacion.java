@@ -1,7 +1,11 @@
 package com.jerezsur.inmobiliaria.models;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
+
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -9,6 +13,7 @@ import com.jerezsur.inmobiliaria.models.enums.EstadoOperacion;
 import com.jerezsur.inmobiliaria.models.enums.TipoOperacion;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorColumn;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -34,61 +39,53 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "categoria_operacion")
-@JsonTypeInfo(
-  use = JsonTypeInfo.Id.NAME, 
-  include = JsonTypeInfo.As.PROPERTY, 
-  property = "categoria_operacion"
-)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "categoria_operacion")
 @JsonSubTypes({
-  @JsonSubTypes.Type(value = OperacionAlquiler.class, name = "ALQUILER"),
-  @JsonSubTypes.Type(value = OperacionVenta.class, name = "VENTA")
+    @JsonSubTypes.Type(value = OperacionAlquiler.class, name = "ALQUILER"),
+    @JsonSubTypes.Type(value = OperacionVenta.class, name = "VENTA")
 })
 public abstract class Operacion {
 
-    // --- IDENTIFICADOR ---
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  // --- IDENTIFICADOR ---
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    // --- DATOS ECONÓMICOS Y ESTADO ---
-    private BigDecimal precioAcordado;
+  // --- DATOS ECONÓMICOS Y ESTADO ---
+  private BigDecimal precioAcordado;
 
-    @Enumerated(EnumType.STRING)
-    private TipoOperacion tipo; // VENTA, ALQUILER, TRASPASO
+  @Enumerated(EnumType.STRING)
+  private TipoOperacion tipo; // VENTA, ALQUILER, CUALQUIERA
 
-    @Enumerated(EnumType.STRING)
-    private EstadoOperacion estadoActual = EstadoOperacion.ABIERTA; // ABIERTA, EN_TRAMITE, CERRADA, CANCELADA
+  @Enumerated(EnumType.STRING)
+  private EstadoOperacion estadoActual = EstadoOperacion.ABIERTA; // ABIERTA, EN_TRAMITE, CERRADA, CANCELADA
 
-    // --- RELACIONES PRINCIPALES ---
+  // --- RELACIONES PRINCIPALES ---
 
-    // El inmueble objeto de la transacción
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "inmueble_id")
-    private Inmueble inmueble;
+  // El inmueble objeto de la transacción
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "inmueble_id")
+  private Inmueble inmueble;
 
-    // Representante principal de la parte vendedora/arrendadora
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "vendedor_id")
-    private Vendedor representanteVendedor;
+  // --- DOCUMENTACIÓN Y SEGUIMIENTO ---
 
-    // Representante principal de la parte compradora/arrendataria
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "interesado_id")
-    private Interesado representanteComprador;
+  // Listado de contratos y anexos generados durante la operación
+  @OneToMany(mappedBy = "operacion", cascade = CascadeType.ALL)
+  private List<Contrato> documentos;
 
-    // --- DOCUMENTACIÓN Y SEGUIMIENTO ---
+  // Relación con todos los vendedores que intervienen en la firma
+  @OneToMany(mappedBy = "operacion", cascade = CascadeType.ALL)
+  private List<Operacion_Vendedor> vendedores;
 
-    // Listado de contratos y anexos generados durante la operación
-    @OneToMany(mappedBy = "operacion", cascade = CascadeType.ALL)
-    private List<Contrato> documentos;
+  // Relación con todos los interesados/compradores que intervienen
+  @OneToMany(mappedBy = "operacion", cascade = CascadeType.ALL)
+  private List<Operacion_Interesado> compradores;
 
-    // --- PARTICIPANTES (MULTI-PROPIEDAD / CO-COMPRADORES) ---
+  // --- AUDITORÍA ---
+  @CreationTimestamp
+  @Column(updatable = false)
+  private LocalDateTime fechaRegistro;
 
-    // Relación con todos los vendedores que intervienen en la firma
-    @OneToMany(mappedBy = "operacion", cascade = CascadeType.ALL)
-    private List<Operacion_Vendedor> vendedores;
-
-    // Relación con todos los interesados/compradores que intervienen
-    @OneToMany(mappedBy = "operacion", cascade = CascadeType.ALL)
-    private List<Operacion_Interesado> compradores;
+  @UpdateTimestamp
+  private LocalDateTime fechaUltimaActualizacion;
 }

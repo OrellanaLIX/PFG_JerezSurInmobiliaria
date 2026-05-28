@@ -58,6 +58,13 @@ export const useOperaciones = () => {
     await cargar();
   };
 
+  const subirDocumentoContrato = async (contratoId: number, archivo: File) => {
+    await operacionService.subirContratoPdf(contratoId, archivo);
+    // refrescar detalles si el contrato pertenece a la operación seleccionada
+    if (operacionSeleccionada) await cargarDetalle(operacionSeleccionada.id);
+    await cargar();
+  };
+
   return {
     operaciones,
     operacionSeleccionada,
@@ -70,5 +77,6 @@ export const useOperaciones = () => {
     crear,
     actualizar,
     eliminar,
+    subirDocumentoContrato,
   };
 };

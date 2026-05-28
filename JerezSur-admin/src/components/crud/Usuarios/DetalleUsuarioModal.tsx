@@ -41,8 +41,6 @@ export const DetalleUsuarioModal = ({ usuario, loading, onCerrar, onActualizar, 
     </div>
   );
 
-  const initiales = `${usuario.nombre?.[0] ?? ''}${usuario.apellidos?.[0] ?? ''}`.toUpperCase();
-
   const togglePerfil = (key: string) =>
     setPerfilesAbiertos(p => ({ ...p, [key]: !p[key] }));
 
@@ -81,19 +79,13 @@ export const DetalleUsuarioModal = ({ usuario, loading, onCerrar, onActualizar, 
 
         {/* Header */}
         <div className="modal-header">
-          <div className="modal-header__left">
-            <div className="avatar avatar--user">{initiales}</div>
-            <div>
-              <h2 className="modal-title">{usuario.nombre} {usuario.apellidos}</h2>
-              <div className="modal-badges">
-                <Badge text={usuario.role} color="blue" />
-                {usuario.cuentaActivada
-                  ? <Badge text="Activa" color="green" />
-                  : <Badge text="Inactiva" color="gray" />}
-              </div>
+            <h2 className="modal-title">{usuario.nombre} {usuario.apellidos}</h2>
+            <div className="modal-badges">
+              <Badge text={usuario.role} color="blue" />
+              {usuario.cuentaActivada
+                ? <Badge text="Activa" color="green" />
+                : <Badge text="Inactiva" color="gray" />}
             </div>
-          </div>
-          <button onClick={onCerrar} className="btn btn-ghost btn-icon">✕</button>
         </div>
 
         {/* Nav por secciones */}
@@ -279,7 +271,8 @@ export const DetalleUsuarioModal = ({ usuario, loading, onCerrar, onActualizar, 
         </div>
       </div>
     </div>
-)};
+  )
+};
 
 // --- Componente reutilizable de bloque de perfil ---
 interface PerfilBlockProps {

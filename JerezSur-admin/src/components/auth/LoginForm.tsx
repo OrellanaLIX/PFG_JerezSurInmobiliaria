@@ -40,39 +40,12 @@ const LoginForm = ({ onSwitchToRegister, onLoginSuccess }: LoginFormProps) => {
     setFormStatus('sending');
     setErrorMessage('');
 
-    const loginPayload = {
-      email: formData.identifier.trim(),
-      password: formData.password,
-    };
-
     try {
-      const response = await fetch('http://localhost:8080/api/usuarios/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(loginPayload),
-      });
-
-      if (!response.ok) {
-        // Captura el mensaje de BusinessValidationException del back
-        const errorText = await response.text();
-        throw new Error(errorText || 'Credenciales incorrectas');
-      }
-
-      // El backend devuelve el objeto Usuario (sin password por el @JsonIgnore)
-      const usuarioData = await response.json();
-      
-      // 1. Guardamos en el AuthContext (y este lo guarda en LocalStorage)
-      login(usuarioData);
-
+      await login({ email: formData.identifier.trim(), password: formData.password });
       setFormStatus('success');
-      
-      // 2. Notificamos éxito y redirigimos
-      setTimeout(() => {
-        if (onLoginSuccess) onLoginSuccess();
-      }, 1000);
-
+      setTimeout(() => { if (onLoginSuccess) onLoginSuccess(); }, 600);
     } catch (error: any) {
-      setErrorMessage(error.message);
+      setErrorMessage(error.message || 'Error en autenticación');
       setFormStatus('error');
     }
   };

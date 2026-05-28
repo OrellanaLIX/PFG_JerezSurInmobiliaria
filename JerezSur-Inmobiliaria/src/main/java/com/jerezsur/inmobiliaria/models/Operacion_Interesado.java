@@ -1,7 +1,13 @@
 package com.jerezsur.inmobiliaria.models;
 
+import java.time.LocalDateTime;
+
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import com.jerezsur.inmobiliaria.models.enums.RolParticipante;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -42,4 +48,12 @@ public class Operacion_Interesado {
     // --- OTROS CAMPOS ---
     @Enumerated(EnumType.STRING)
     private RolParticipante rol; // TITULAR, APODERADO
+
+        // --- AUDITORÍA ---
+    @CreationTimestamp
+    @Column(updatable = false)
+    private LocalDateTime fechaRegistro;
+
+    @UpdateTimestamp
+    private LocalDateTime fechaUltimaActualizacion;
 }

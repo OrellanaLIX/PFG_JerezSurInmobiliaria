@@ -2,8 +2,8 @@ import { useState, useCallback } from 'react';
 import { useCitas } from '../hooks/useCitas';
 import { Calendario } from '../components/crud/Citas/Calendario';
 import { ListaCitas } from '../components/crud/Citas/ListaCitas';
-import { DetalleCita } from '../components/crud/Citas/DetalleCita';
-import { FormCita } from '../components/crud/Citas/FormCita';
+import { DetalleCitaModal } from '../components/crud/Citas/DetalleCita';
+import { FormCitaModal } from '../components/crud/Citas/FormCitaModal'; // Cambiado el nombre para reflejar que es un Modal
 import type { Cita, EstadoCita } from '../types/cita';
 import '../styles/pages/CrudPages.scss';
 
@@ -74,7 +74,6 @@ const AdminCitas = () => {
     setFechaInicialForm(undefined);
   }, []);
 
-  // Wrappers para cerrar el detalle tras una acción
   const handleAceptar = async (id: number) => {
     await aceptar(id);
     cerrarDetalle();
@@ -96,27 +95,29 @@ const AdminCitas = () => {
   };
 
   if (loading) return <p>Cargando citas...</p>;
-  if (error) return <p>{error}</p>;
+  if (error) return <p className="error-text">{error}</p>;
 
   return (
     <div>
-      <header>
+      <header className="crud-page__header">
         <h1>Gestión de Citas</h1>
 
-        <div>
+        <div className="actions">
           <button
+            className={`btn ${vista === 'calendario' ? 'btn-primary' : 'btn-ghost'}`}
             onClick={() => setVista('calendario')}
             disabled={vista === 'calendario'}
           >
             📅 Calendario
           </button>
           <button
+            className={`btn ${vista === 'lista' ? 'btn-primary' : 'btn-ghost'}`}
             onClick={() => setVista('lista')}
             disabled={vista === 'lista'}
           >
             📋 Lista
           </button>
-          <button onClick={() => setMostrarForm(true)}>
+          <button className="btn btn-primary" onClick={() => setMostrarForm(true)}>
             + Nueva cita
           </button>
         </div>
@@ -147,7 +148,7 @@ const AdminCitas = () => {
 
       {/* Modal de detalle */}
       {citaSeleccionada && (
-        <DetalleCita
+        <DetalleCitaModal
           cita={citaSeleccionada}
           onCerrar={cerrarDetalle}
           onAceptar={handleAceptar}
@@ -159,7 +160,7 @@ const AdminCitas = () => {
 
       {/* Modal de creación */}
       {mostrarForm && (
-        <FormCita
+        <FormCitaModal
           fechaInicial={fechaInicialForm}
           onCrear={crear}
           onCancelar={cerrarForm}

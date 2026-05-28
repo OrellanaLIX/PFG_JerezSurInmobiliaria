@@ -1,5 +1,8 @@
 import type { OperacionDetalle, EstadoOperacion } from '../../../types/operacion';
 import '../../../styles/App.scss';
+import { useState } from 'react';
+import { contratoService } from '../../../services/contratoService';
+import { useAuth } from '../../../context/AuthContext';
 
 interface Props {
   operacion: OperacionDetalle;
@@ -7,9 +10,12 @@ interface Props {
   onCerrar: () => void;
   onActualizar: (id: number, data: Partial<OperacionDetalle>) => Promise<void>;
   onEliminar: (id: number) => Promise<void>;
+  onSubirDocumento?: (contratoId: number, archivo: File) => Promise<void>;
 }
 
-export const DetalleOperacionModal = ({ operacion, loading, onCerrar, onActualizar, onEliminar }: Props) => {
+export const DetalleOperacionModal = ({ operacion, loading, onCerrar, onActualizar, onEliminar, onSubirDocumento }: Props) => {
+  const { user } = useAuth();
+  const [modeloContrato, setModeloContrato] = useState<string>('ARRAS');
   if (loading) return <div className="modal"><p>Cargando documentación y anexos jurídicos...</p></div>;
 
   const handleCambiarEstado = async (nuevoEstado: EstadoOperacion) => {
@@ -69,6 +75,64 @@ export const DetalleOperacionModal = ({ operacion, loading, onCerrar, onActualiz
           ) : (
             <p className="text-warning">⚠️ No hay contratos PDFs cargados para este expediente todavía.</p>
           )}
+          {/* Subida de PDF (Admin) */}
+          {/* Upload to an existing Contrato: use the first documento's id */}
+          {operacion.documentos && operacion.documentos.length > 0 && (
+            (() => {
+              const primerDoc = operacion.documentos![0];
+              const contratoId = primerDoc.id;
+              return (
+                <div className="upload-row">
+                  <input id={`file-contrato-${contratoId}`} type="file" accept="application/pdf" />
+                  <button
+                    className="btn"
+                    onClick={async () => {
+                      const input = document.getElementById(`file-contrato-${contratoId}`) as HTMLInputElement | null;
+                      if (!input || !input.files || input.files.length === 0) return alert('Selecciona un PDF primero');
+                      const file = input.files[0];
+                      if (!file.name.toLowerCase().endsWith('.pdf')) return alert('Solo se permiten archivos PDF');
+                      try {
+                        if (onSubirDocumento) {
+                          await onSubirDocumento(contratoId, file);
+                        } else {
+                          const form = new FormData(); form.append('archivo', file);
+                          await fetch(`/api/media/contrato/${contratoId}/documento`, { method: 'POST', body: form });
+                        }
+                        alert('PDF subido correctamente');
+                        // refrescar detalles
+                        await onActualizar(operacion.id, {});
+                      } catch (e: any) {
+                        alert('Error subiendo PDF: ' + (e.message || e));
+                      }
+                    }}
+                  >Subir PDF al Contrato existente</button>
+                </div>
+              );
+            })()
+          )}
+          {(!operacion.documentos || operacion.documentos.length === 0) && (
+            <p className="text-soft">Crea primero un borrador de contrato desde la sección de generación para poder adjuntar el PDF.</p>
+          )}
+            <div style={{marginTop: 12}}>
+              <label><strong>Generar borrador de contrato:</strong></label>
+              <div className="form-row">
+                <select value={modeloContrato} onChange={e => setModeloContrato(e.target.value)}>
+                  <option value="ARRAS">Arras / Borrador de Compraventa</option>
+                  <option value="COMPRAVENTA">Compraventa</option>
+                  <option value="ALQUILER_VIVIENDA">Contrato de Alquiler</option>
+                </select>
+                <button className="btn" onClick={async () => {
+                  try {
+                    const trabajador = user ? { id: (user as any).userId } : {};
+                    await contratoService.generarBorrador(operacion.id, modeloContrato, trabajador);
+                    alert('Borrador generado correctamente');
+                    await onActualizar(operacion.id, {});
+                  } catch (e: any) {
+                    alert('Error generando borrador: ' + (e.message || e));
+                  }
+                }}>Generar Borrador</button>
+              </div>
+            </div>
         </fieldset>
 
         <footer className="modal-footer">

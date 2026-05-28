@@ -2,6 +2,7 @@ package com.jerezsur.inmobiliaria.repositories;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -56,4 +57,8 @@ public interface InmuebleRepository extends JpaRepository<Inmueble, Long> {
         void borrarInmueblesRetiradosAntiguos(LocalDateTime fecha);
 
         long countByEstado(EstadoInmueble estado);
+
+        List<Inmueble> findByEstado(EstadoInmueble estado);
+
+        List<Inmueble> findByEstadoAndOperacion(EstadoInmueble disponible, TipoOperacion operacion);
 }

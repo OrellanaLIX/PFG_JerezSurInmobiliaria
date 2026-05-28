@@ -37,4 +37,7 @@ public interface CitaRepository extends JpaRepository<Cita, Long> {
     long countByFechaHoraGreaterThanEqual(LocalDateTime fechaHora);
 
     Optional<Cita> findByTrabajadorIdOrderByFechaHoraAsc(Long trabajadorId);
+
+    @Query("SELECT COUNT(c) FROM Cita c WHERE c.fechaHora >= CURRENT_TIMESTAMP")
+    long countProximas();
 }

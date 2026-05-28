@@ -2,6 +2,9 @@ package com.jerezsur.inmobiliaria.models;
 
 import java.time.LocalDateTime;
 
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -66,4 +69,12 @@ public class MensajeContacto {
     protected void onCreate() {
         this.fechaEnvio = LocalDateTime.now();
     }
+
+        // --- AUDITORÍA ---
+    @CreationTimestamp
+    @Column(updatable = false)
+    private LocalDateTime fechaRegistro;
+
+    @UpdateTimestamp
+    private LocalDateTime fechaUltimaActualizacion;
 }

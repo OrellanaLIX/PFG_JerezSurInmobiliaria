@@ -44,8 +44,8 @@ export const DetalleInmuebleModal = ({ inmueble, loading, onCerrar, onEliminar }
           )}
         </fieldset>
 
-        {Object.keys(inmueble.caracteristicasExtra).length > 0 && (
-          <fieldset>
+        {inmueble.caracteristicasExtra && Object.keys(inmueble.caracteristicasExtra).length > 0 && (
+          <fieldset className="inmueble-fieldset">
             <legend>⚙️ Características Adicionales</legend>
             <ul>
               {Object.entries(inmueble.caracteristicasExtra).map(([clave, valor]) => (

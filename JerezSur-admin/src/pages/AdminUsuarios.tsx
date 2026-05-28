@@ -46,9 +46,9 @@ const AdminUsuarios = () => {
     <div>
       <header className="crud-page__header">
         <h1>Gestión de Usuarios (Modo PUT Unificado)</h1>
-        <div className="actions">
-          <button onClick={() => setMostrarFormCrear(true)}>+ Registrar Usuario</button>
-        </div>
+          <button className="btn btn-primary" onClick={() => setMostrarFormCrear(true)}>
+            + Registrar Lead Manual
+          </button>
       </header>
       
       <div className="crud-page__filters">
