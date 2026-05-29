@@ -1,128 +1,189 @@
+@use '../globals/Variables' as *;
+
 .admin-layout {
-  display: flex;
-  height: 100vh;
-  width: 100vw;
-  background-color: #f4f7fa;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  overflow: hidden;
+  display: grid;
+  // Define 2 columnas reales: la primera de 260px fijos y la otra toma el resto (1fr)
+  grid-template-columns: 260px 1fr;
+  min-height: 100vh;
+  background-color: $color-bg;
+
+  @media (max-width: $tablet) {
+    grid-template-columns: 1fr; // En móviles/tablets pasa a una sola columna
+  }
 
   &__sidebar {
-    width: 260px;
-    background-color: #1a2233;
-    color: #fff;
-    display: flex;
-    flex-direction: column;
-    box-shadow: 2px 0 8px rgba(0,0,0,0.1);
-    z-index: 10;
+    background-color: $color-primary;
+    color: $color-white;
+    padding: $space-6;
+    
+    // 🔥 CAMBIO CLAVE: Quitamos 'fixed'. Usamos 'sticky' para que no se mueva al hacer scroll,
+    // pero respetando al 100% el ancho de la columna del Grid (260px).
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    box-shadow: $shadow-md;
+    z-index: 100;
+
+    @media (max-width: $tablet) {
+      width: 100%;
+      height: auto;
+      position: relative;
+      padding: $space-4;
+    }
   }
 
   &__brand {
-    padding: 24px;
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: #fff;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: $space-3;
+    padding-bottom: $space-6;
+    margin-bottom: $space-6;
+    border-bottom: 1px solid rgba($color-white, 0.2);
     cursor: pointer;
+    font-size: $font-size-lg;
+    font-weight: 600;
+    transition: all $transition-base;
+
+    &:hover {
+      opacity: 0.8;
+    }
+
+    svg {
+      color: $color-secondary;
+    }
   }
 
   &__nav {
-    flex: 1;
-    padding: 20px 0;
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    overflow-y: auto;
+    gap: $space-2;
+
+    @media (max-width: $tablet) {
+      flex-direction: row;
+      flex-wrap: wrap;
+    }
   }
 
   &__nav-link {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 12px 24px;
-    color: #a3b1c6;
-    text-decoration: none;
+    gap: $space-3;
+    padding: $space-3 $space-4;
+    color: rgba($color-white, 0.7);
+    border-radius: $radius-sm;
+    transition: all $transition-base;
+    font-size: $font-size-sm;
     font-weight: 500;
-    transition: all 0.2s ease;
 
     &:hover {
-      color: #fff;
-      background-color: rgba(255,255,255,0.05);
+      background-color: rgba($color-white, 0.1);
+      color: $color-white;
     }
 
     &.active {
-      color: #fff;
-      background-color: #2e62ff;
-      border-left: 4px solid #fff;
+      background-color: $color-secondary;
+      color: $color-white;
+      font-weight: 600;
+    }
+
+    @media (max-width: $tablet) {
+      flex: 1 0 auto;
+      justify-content: center;
+      gap: $space-2;
+      padding: $space-2 $space-3;
+      font-size: $font-size-xs;
     }
   }
 
   &__content-wrapper {
-    flex: 1;
+    // 🔥 Ahora el contenido simplemente ocupa la columna 2. 
+    // Ya no necesita márgenes extraños porque respeta el final del sidebar.
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    min-width: 0; // Evita que contenidos anchos rompan el layout
   }
 
   &__header {
-    height: 70px;
-    background-color: #fff;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    background-color: $color-surface;
+    border-bottom: 1px solid $color-border;
+    padding: $space-5 $space-6;
+    box-shadow: $shadow-xs;
     display: flex;
     justify-content: flex-end;
     align-items: center;
-    padding: 0 32px;
-    z-index: 5;
+
+    @media (max-width: $tablet) {
+      padding: $space-4;
+    }
   }
 
   &__user-menu {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: $space-4;
+  }
+}
 
-    .user-info {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
+.user-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
 
-      .name {
-        font-weight: 600;
-        font-size: 0.9rem;
-        color: #333;
-      }
-
-      .role {
-        font-size: 0.8rem;
-        color: #777;
-        text-transform: capitalize;
-      }
-    }
-
-    .logout-btn {
-      background: none;
-      border: 1px solid #e0e4e8;
-      border-radius: 6px;
-      padding: 8px;
-      cursor: pointer;
-      color: #ff4757;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s;
-
-      &:hover {
-        background-color: #fff0f1;
-        border-color: #ff4757;
-      }
-    }
+  .name {
+    font-weight: 600;
+    color: $color-text;
+    font-size: $font-size-sm;
   }
 
-  &__main {
-    flex: 1;
-    padding: 32px;
-    overflow-y: auto;
-    background-color: #f4f7fa;
+  .role {
+    font-size: $font-size-xs;
+    color: $color-text-soft;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+}
+
+.logout-btn {
+  padding: $space-3;
+  background-color: transparent;
+  border: 1px solid $color-border;
+  border-radius: $radius-sm;
+  color: $color-error;
+  cursor: pointer;
+  transition: all $transition-base;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background-color: rgba($color-error, 0.1);
+    border-color: $color-error;
+  }
+}
+
+.admin-layout__main {
+  flex: 1;
+  padding: $space-8;
+  background-color: $color-bg;
+  overflow-y: auto;
+
+  @media (max-width: $tablet) {
+    padding: $space-4;
+  }
+
+  header {
+    margin-bottom: $space-6;
+
+    h1 {
+      color: $color-primary-dark;
+      margin-bottom: $space-2;
+      font-size: $font-size-2xl;
+    }
+
+    p {
+      color: $color-text-soft;
+      font-size: $font-size-sm;
+    }
   }
 }
