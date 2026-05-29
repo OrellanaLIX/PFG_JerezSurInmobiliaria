@@ -27,6 +27,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.MapKeyColumn;
+import jakarta.persistence.MapKeyJoinColumn;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.DecimalMin;
@@ -57,7 +58,7 @@ public class Inmueble {
 
     @NotBlank(message = "El código de referencia (ej. P-101) es obligatorio")
     @Column(unique = true)
-    private String referencia; // Sustituye al idLogico. Ej: "CH-001"
+    private String referencia; 
 
     // --- DATOS COMERCIALES (Públicos) ---
     @NotBlank(message = "El título es obligatorio")
@@ -72,19 +73,19 @@ public class Inmueble {
     private BigDecimal precio;
 
     @Enumerated(EnumType.STRING)
-    private TipoOperacion operacion; // VENTA, ALQUILER, AMBOS
+    private TipoOperacion operacion; 
 
     @Enumerated(EnumType.STRING)
-    private EstadoInmueble estado; // DISPONIBLE, VENDIDO, RESERVADO
+    private EstadoInmueble estado; 
 
     @Enumerated(EnumType.STRING)
-    private TipoInmueble tipo; // PISO, CASA, CHALET, etc.
+    private TipoInmueble tipo; 
 
     // --- CARACTERÍSTICAS DINÁMICAS ---
     @ElementCollection
     @CollectionTable(name = "inmueble_extras", joinColumns = @JoinColumn(name = "inmueble_id"))
-    @MapKeyColumn(name = "clave") // "Muebles", "Orientación", etc.
-    @Column(name = "valor") // "Sí", "Norte", etc.
+    @MapKeyColumn(name = "clave") 
+    @Column(name = "valor") 
     @Default
     private Map<String, String> caracteristicasExtra = new HashMap<>();
 
@@ -110,7 +111,7 @@ public class Inmueble {
     @NotBlank
     private String ciudad;
 
-    // --- GASTOS Y CARGAS (Datos para Contrato de Arras) ---
+    // --- GASTOS Y CARGAS ---
     @DecimalMin("0.0")
     private BigDecimal comunidad;
 
@@ -121,18 +122,18 @@ public class Inmueble {
     private BigDecimal valorDerrama;
 
     @DecimalMin("0.0")
-    private BigDecimal ibi; // Impuesto Anual
+    private BigDecimal ibi; 
 
-    // --- DOCUMENTACIÓN Y DATOS PRIVADOS (Solo trabajadores) ---
+    // --- DOCUMENTACIÓN Y DATOS PRIVADOS ---
     @Column(unique = true)
-    private String refCatastral; // ID oficial del inmueble
+    private String refCatastral; 
 
-    private String urlNotaSimple; // Link al PDF
-    private String urlCertificadoEnergetico; // Link al PDF
-    private String urlPlanoInmueble; // Link al PDF/Imagen
+    private String urlNotaSimple; 
+    private String urlCertificadoEnergetico; 
+    private String urlPlanoInmueble; 
 
     @Column(columnDefinition = "TEXT")
-    private String notasPrivadas; // Info sensible (ej: "Dueño solo tardes")
+    private String notasPrivadas; 
 
     // --- RELACIONES ---
 
@@ -142,12 +143,16 @@ public class Inmueble {
     @JsonIgnore
     private List<Imagen> imagenes = new ArrayList<>();
 
-    // 🌟 AQUÍ ESTABA EL ERROR EXPLICADO: Ahora es una colección correcta 🌟
-    @OneToMany(mappedBy = "inmueble", cascade = CascadeType.ALL, orphanRemoval = true)
+    // 🌟 NUEVO ENFOQUE: Diccionario directo de Vendedores con su Porcentaje 🌟
+    @ElementCollection
+    @CollectionTable(
+        name = "inmueble_propietario_porcentaje", 
+        joinColumns = @JoinColumn(name = "inmueble_id")
+    )
+    @MapKeyJoinColumn(name = "vendedor_id") // Clave del Mapa: Entidad Vendedor (guarda vendedor_id en la BD)
+    @Column(name = "porcentaje")            // Valor del Mapa: Double (guarda el % de propiedad)
     @Default
-    @ToString.Exclude
-    @JsonIgnore
-    private List<Inmueble_Vendedor> propietarios = new ArrayList<>();
+    private Map<Vendedor, Double> propietariosPorcentaje = new HashMap<>();
 
     @OneToMany(mappedBy = "inmueble")
     @Default

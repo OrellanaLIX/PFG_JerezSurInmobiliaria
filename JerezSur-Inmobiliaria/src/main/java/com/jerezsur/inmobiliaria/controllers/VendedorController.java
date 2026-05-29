@@ -25,7 +25,7 @@ public class VendedorController {
     public ResponseEntity<Vendedor> registrarVendedor(@Valid @RequestBody Vendedor vendedor) {
         // El service gestiona: validación DNI, creación de Usuario (ROLE_VENDEDOR) y
         // cifrado
-        //Vendedor nuevoVendedor = vendedorService.guardar(vendedor);
+        // Vendedor nuevoVendedor = vendedorService.guardar(vendedor);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 

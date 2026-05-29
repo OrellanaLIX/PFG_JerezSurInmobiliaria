@@ -1,11 +1,26 @@
 import api from './api';
 import type { Inmueble, NuevoInmueble, InmuebleDetalle } from '../types/inmueble';
 
+// Interfaz para mapear la paginación típica de un Page de Spring Boot/Hibernate
+interface SpringPageResponse<T> {
+  content: T[];
+  totalElements?: number;
+  totalPages?: number;
+  size?: number;
+  number?: number;
+}
+
 export const inmuebleService = {
   getTodos: async (): Promise<Inmueble[]> => {
     try {
-      const { data } = await api.get<{ content: Inmueble[] }>('/inmuebles');
-      return Array.isArray((data as any).content) ? (data as any).content : (data as unknown as Inmueble[]);
+      // ✅ REFACTORIZADO: Tipamos correctamente la respuesta esperada de Spring Boot ({ content: [...] })
+      const { data } = await api.get<SpringPageResponse<Inmueble>>('/inmuebles');
+      
+      // Validamos de forma segura si la API devolvió la envoltura de paginación o el array plano
+      if (data && Array.isArray(data.content)) {
+        return data.content;
+      }
+      return Array.isArray(data) ? data : [];
     } catch (error) {
       console.error('Error al obtener lista de inmuebles:', error);
       throw new Error('No se pudieron cargar los inmuebles. Intenta de nuevo más tarde.');
@@ -24,18 +39,24 @@ export const inmuebleService = {
 
   crear: async (inmueble: NuevoInmueble): Promise<Inmueble> => {
     try {
-      // Normalizar valores numéricos para BigDecimal en backend
-      const payload = {
+      // Normalizar valores numéricos para BigDecimal/Double en el backend de Java
+      const payload: NuevoInmueble = {
         ...inmueble,
         precio: Number(inmueble.precio),
         comunidad: inmueble.comunidad ? Number(inmueble.comunidad) : 0,
-        valorDerrama: inmueble.valorDerrama ? Number(inmueble.valorDerrama) : null,
+        valorDerrama: inmueble.valorDerrama ? Number(inmueble.valorDerrama) : undefined,
         ibi: inmueble.ibi ? Number(inmueble.ibi) : 0,
         superficieUtil: inmueble.superficieUtil ? Number(inmueble.superficieUtil) : 0,
         mConstruidos: inmueble.mConstruidos ? Number(inmueble.mConstruidos) : 0,
         habitaciones: inmueble.habitaciones ? Number(inmueble.habitaciones) : 1,
         banos: inmueble.banos ? Number(inmueble.banos) : 1,
+        // Forzamos el mapeo asegurando que los valores de los porcentajes viajen como Number y no como String
+        propietariosPorcentaje: Object.entries(inmueble.propietariosPorcentaje).reduce((acc, [key, val]) => {
+          acc[key] = Number(val);
+          return acc;
+        }, {} as Record<string, number>)
       };
+
       const { data } = await api.post<Inmueble>('/inmuebles', payload);
       return data;
     } catch (error) {
@@ -52,14 +73,24 @@ export const inmuebleService = {
       // Normalizar valores numéricos
       const payload = {
         ...inmuebleData,
-        ...(inmuebleData.precio && { precio: Number(inmuebleData.precio) }),
-        ...(inmuebleData.comunidad && { comunidad: Number(inmuebleData.comunidad) }),
-        ...(inmuebleData.ibi && { ibi: Number(inmuebleData.ibi) }),
+        ...(inmuebleData.precio !== undefined && { precio: Number(inmuebleData.precio) }),
+        ...(inmuebleData.comunidad !== undefined && { comunidad: Number(inmuebleData.comunidad) }),
+        ...(inmuebleData.ibi !== undefined && { ibi: Number(inmuebleData.ibi) }),
+        ...(inmuebleData.propietariosPorcentaje !== undefined && {
+          propietariosPorcentaje: Object.entries(inmuebleData.propietariosPorcentaje).reduce((acc, [key, val]) => {
+            acc[key] = Number(val);
+            return acc;
+          }, {} as Record<string, number>)
+        }),
       };
+      
       const { data } = await api.put<Inmueble>(`/inmuebles/${id}`, payload);
       return data;
     } catch (error) {
       console.error(`Error al actualizar inmueble ${id}:`, error);
+      if ((error as any)?.response?.data?.message) {
+        throw new Error((error as any).response.data.message);
+      }
       throw new Error('No se pudo actualizar el inmueble. Intenta de nuevo más tarde.');
     }
   },

@@ -1,18 +1,8 @@
-// ==========================================
-// ENUMS / TIPOS LITERALES
-// ==========================================
-export type TipoOperacion = 'VENTA' | 'ALQUILER' | 'CUALQUIERA';
-export type EstadoInmueble = 'DISPONIBLE' | 'VENDIDO' | 'RESERVADO';
-export type TipoInmueble = 'PISO' | 'CASA' | 'CHALET' | 'ADOSADO' | 'APARTAMENTO' | 'ESTUDIO' | 'DUPLEX' | 'ATICO' | 'LOCAL_COMERCIAL' | 'OFICINA' | 'GARAJE' | 'TRASTERO' | 'TERRENO' | 'NAVE_INDUSTRIAL' | 'FINCA';
+import type { TipoOperacion, EstadoInmueble, TipoInmueble } from '../Enum/InmuebleEnum';
+import type { ImagenInmueble } from './imagen';
 
-// Sub-interfaz para las imágenes asociadas
-export interface ImagenInmueble {
-  id: number;
-  url: string;
-  nombreArchivo: string;
-  esPortada: boolean;
-  inmuebleId?: number;
-}
+// Re-exportamos los tipos por si algún componente antiguo importaba todo desde 'inmueble'
+export * from '../Enum/InmuebleEnum';
 
 // ==========================================
 // INTERFAZ PRINCIPAL (LISTADO LIGERO)
@@ -57,6 +47,10 @@ export interface InmuebleDetalle extends Inmueble {
 
   // Relaciones
   imagenes?: ImagenInmueble[];
+  
+  // 🌟 Mapa real proveniente de la BD: { "id_vendedor": porcentaje_participacion }
+  propietariosPorcentaje?: Record<string, number>; 
+  
   fechaUltimaActualizacion?: string;
 }
 
@@ -65,12 +59,11 @@ export interface InmuebleDetalle extends Inmueble {
 // ==========================================
 export interface NuevoInmueble {
   // Campos obligatorios
-  referencia: string;
   titulo: string;
   precio: number;
   operacion: TipoOperacion;
   estado: EstadoInmueble;
-  tipo?: TipoInmueble;
+  tipo: TipoInmueble; // Lo marcamos obligatorio ya que el modal lo inicializa en 'PISO'
   
   // Características
   superficieUtil?: number;
@@ -98,4 +91,7 @@ export interface NuevoInmueble {
   
   // Descripción
   descripcion?: string;
+
+  // 🌟 Mapa requerido para el envío al controlador de Spring Boot: e.g. {"1": 50.0, "2": 50.0}
+  propietariosPorcentaje: Record<string, number>;
 }

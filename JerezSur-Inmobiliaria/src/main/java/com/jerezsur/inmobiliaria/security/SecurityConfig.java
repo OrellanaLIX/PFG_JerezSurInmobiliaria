@@ -33,20 +33,28 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
-                        // ── Rutas públicas ──
+                        // ── Rutas públicas generales ──
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/public/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/inmuebles/**").permitAll()
                         .requestMatchers("/api/usuarios/login").permitAll()
                         .requestMatchers("/api/usuarios/registro").permitAll()
                         .requestMatchers("/api/usuarios/auth/**").permitAll()
                         .requestMatchers("/api/usuarios/completar").permitAll()
                         .requestMatchers("/error").permitAll()
-                        .anyRequest().authenticated()
-                )
+
+                        // ── Rutas del Negocio Inmobiliario ──
+                        // Permitimos ver inmuebles sin loguearse (para la web pública)
+                        .requestMatchers(HttpMethod.GET, "/api/inmuebles/**").permitAll()
+
+                        // 🌟 SOLUCIÓN AL 403: Permitimos hacer GET a vendedores de forma pública
+                        // para que el modal de React los cargue sin restricciones.
+                        .requestMatchers(HttpMethod.GET, "/api/vendedores/**").permitAll()
+
+                        // Cualquier otra acción (POST, PUT, DELETE sobre inmuebles/vendedores/etc.)
+                        // requiere token
+                        .anyRequest().authenticated())
                 .sessionManagement(s -> s
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -57,8 +65,7 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of(
                 "http://localhost:5173",
-                "http://localhost:5174"
-        ));
+                "http://localhost:5174"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);

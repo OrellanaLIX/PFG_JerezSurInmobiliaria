@@ -40,15 +40,9 @@ public class Vendedor {
     private String observaciones;
 
     // --- RELACIONES ---
-
-    // Relación con la tabla intermedia que gestiona la propiedad de los inmuebles
-    @OneToMany(mappedBy = "vendedor")
-    private List<Inmueble_Vendedor> propiedades;
-
     @OneToMany(mappedBy = "vendedor")
     private List<Operacion_Vendedor> contratosFirmados;
 
-    @JsonBackReference
     @OneToOne
     @JoinColumn(name = "usuario_id")
     private Usuario usuario;
