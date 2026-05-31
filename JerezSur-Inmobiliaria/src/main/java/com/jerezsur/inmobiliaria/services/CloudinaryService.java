@@ -33,7 +33,9 @@ public class CloudinaryService {
                 "unique_filename", true,
                 "overwrite",       false,
                 // Transformación automática: máx 1920px, calidad auto
-                "transformation",  "w_1920,h_1080,c_limit,q_auto,f_auto"
+                "transformation",  "w_1920,h_1080,c_limit,q_auto,f_auto",
+                // 🌟 SOLUCIÓN AL ERROR: Forzamos el uso de la firma del Backend saltándonos los presets vacíos
+                "unsigned",        false 
             )
         );
 
@@ -53,7 +55,9 @@ public class CloudinaryService {
                 "folder",          "jerezsur/perfiles",
                 "public_id",       "usuario_" + usuarioId,
                 "overwrite",       true,   // Reemplaza la foto anterior
-                "transformation",  "w_400,h_400,c_fill,g_face,q_auto,f_auto"
+                "transformation",  "w_400,h_400,c_fill,g_face,q_auto,f_auto",
+                // 🌟 SOLUCIÓN AL ERROR: Forzamos subida autenticada
+                "unsigned",        false 
             )
         );
 
@@ -76,7 +80,9 @@ public class CloudinaryService {
                 "public_id",       tipo + "_" + referencia,
                 "resource_type",   "raw",   // Obligatorio para PDFs
                 "overwrite",       true,
-                "use_filename",    true
+                "use_filename",    true,
+                // 🌟 SOLUCIÓN AL ERROR: Forzamos subida autenticada
+                "unsigned",        false 
             )
         );
 
@@ -134,7 +140,7 @@ public class CloudinaryService {
     /**
      * Extrae el public_id de una URL de Cloudinary.
      * Ej: https://res.cloudinary.com/demo/image/upload/v123/jerezsur/inmuebles/PI-001/foto.jpg
-     *  →  jerezsur/inmuebles/PI-001/foto
+     * →  jerezsur/inmuebles/PI-001/foto
      */
     private String extraerPublicId(String url) {
         // Buscamos el segmento tras /upload/vXXXX/

@@ -6,6 +6,8 @@ import java.util.List;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -18,7 +20,9 @@ import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Entity
 @Table(name = "vendedores")
@@ -28,21 +32,18 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Vendedor {
 
-    // --- IDENTIFICADOR ---
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // --- OTROS DATOS ---
     @Column(columnDefinition = "TEXT")
     private String observaciones;
 
     // --- RELACIONES ---
-    @OneToMany(mappedBy = "vendedor")
-    private List<Operacion_Vendedor> contratosFirmados;
-
     @OneToOne
     @JoinColumn(name = "usuario_id")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Usuario usuario;
 
     // --- AUDITORÍA ---

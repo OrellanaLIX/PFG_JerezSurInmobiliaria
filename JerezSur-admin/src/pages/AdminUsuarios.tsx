@@ -36,8 +36,19 @@ const AdminUsuarios = () => {
   // Filtrado en memoria
   const usuariosFiltrados = usuarios.filter((u) => {
     const coincideRol = filtroRol === 'TODOS' || u.role === filtroRol;
-    const nombreCompleto = `${u.nombre} ${u.apellidos || ''}`.toLowerCase();
-    return coincideRol && (nombreCompleto.includes(busqueda.toLowerCase()) || u.email?.toLowerCase().includes(busqueda.toLowerCase()));
+    const texto = busqueda.toLowerCase();
+    const nombreCompleto = `${u.nombre || ''} ${u.apellidos || ''}`.toLowerCase();
+    const email = u.email?.toLowerCase() || '';
+    const telefono = u.telefono?.toLowerCase() || '';
+    const dni = u.dni?.toLowerCase() || '';
+
+    return coincideRol && (
+      nombreCompleto.includes(texto) ||
+      email.includes(texto) ||
+      telefono.includes(texto) ||
+      dni.includes(texto) ||
+      u.role?.toLowerCase().includes(texto)
+    );
   });
 
   if (loading) return <p>Cargando usuarios...</p>;

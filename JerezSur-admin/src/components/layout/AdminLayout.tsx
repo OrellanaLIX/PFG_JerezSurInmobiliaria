@@ -63,7 +63,7 @@ export const AdminLayout = () => {
             className={({ isActive }) => `admin-layout__nav-link ${isActive ? 'active' : ''}`}
           >
             <Calendar size={20} />
-            Contratos
+            Operaciones
           </NavLink>
         </nav>
       </aside>

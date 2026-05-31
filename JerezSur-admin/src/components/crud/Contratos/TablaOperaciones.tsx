@@ -4,10 +4,11 @@ import '../../../styles/App.scss';
 interface Props {
   operaciones: OperacionBase[];
   onVerDetalle: (id: number) => void;
+  onCrearContrato: (id: number) => void;
   onCambiarEstado: (operacion: OperacionBase, estado: EstadoOperacion) => void;
 }
 
-export const TablaOperaciones = ({ operaciones, onVerDetalle, onCambiarEstado }: Props) => {
+export const TablaOperaciones = ({ operaciones, onVerDetalle, onCrearContrato, onCambiarEstado }: Props) => {
   return (
     <div className="data-table">
       <table>
@@ -39,8 +40,9 @@ export const TablaOperaciones = ({ operaciones, onVerDetalle, onCambiarEstado }:
                   <option value="CANCELADA">🔴 Cancelada</option>
                 </select>
               </td>
-              <td>
-                <button className="btn btn-ghost" onClick={() => onVerDetalle(o.id)}>📂 Ver Documentos ({o.categoria_operacion})</button>
+              <td className="actions-cell">
+                <button className="btn btn-ghost" onClick={() => onVerDetalle(o.id)}>📂 Ver Expediente</button>
+                <button className="btn btn-secondary" onClick={() => onCrearContrato(o.id)}>➕ Crear Contrato</button>
               </td>
             </tr>
           ))}

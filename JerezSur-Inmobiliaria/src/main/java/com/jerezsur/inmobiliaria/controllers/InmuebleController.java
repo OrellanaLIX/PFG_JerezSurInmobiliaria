@@ -9,6 +9,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.jerezsur.inmobiliaria.dto.InmuebleActualizarDTO;
+import com.jerezsur.inmobiliaria.dto.InmuebleCrearDTO;
 import com.jerezsur.inmobiliaria.models.Inmueble;
 import com.jerezsur.inmobiliaria.models.enums.EstadoInmueble;
 import com.jerezsur.inmobiliaria.models.enums.TipoOperacion;
@@ -48,7 +50,8 @@ public class InmuebleController {
             sortDir = "asc";
         }
 
-        Set<String> allowedSortFields = Set.of("id", "referencia", "operacion", "precio", "superficieUtil", "habitaciones", "banos");
+        Set<String> allowedSortFields = Set.of("id", "referencia", "operacion", "precio", "superficieUtil",
+                "habitaciones", "banos");
         if (!allowedSortFields.contains(sortBy)) {
             sortBy = "id";
         }
@@ -64,15 +67,14 @@ public class InmuebleController {
     }
 
     @PostMapping
-    public ResponseEntity<Inmueble> createInmueble(@Valid @RequestBody Inmueble inmueble) {
-        Inmueble nuevo = inmuebleService.guardar(inmueble);
+    public ResponseEntity<Inmueble> createInmueble(@Valid @RequestBody InmuebleCrearDTO dto) {
+        Inmueble nuevo = inmuebleService.guardarDesdeDto(dto);
         return new ResponseEntity<>(nuevo, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Inmueble> updateInmueble(@PathVariable Long id, @Valid @RequestBody Inmueble inmueble) {
-        inmueble.setId(id);
-        return ResponseEntity.ok(inmuebleService.guardar(inmueble));
+    public ResponseEntity<Inmueble> updateInmueble(@PathVariable Long id, @Valid @RequestBody InmuebleActualizarDTO dto) {
+        return ResponseEntity.ok(inmuebleService.actualizarDesdeDto(id, dto));
     }
 
     @DeleteMapping("/{id}")

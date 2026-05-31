@@ -1,8 +1,8 @@
 import type { OperacionDetalle, EstadoOperacion } from '../../../types/operacion';
 import '../../../styles/App.scss';
 import { useState } from 'react';
-import { contratoService } from '../../../services/contratoService';
-import { useAuth } from '../../../context/AuthContext';
+
+type Tab = 'datos' | 'inmueble' | 'vendedor' | 'interesado';
 
 interface Props {
   operacion: OperacionDetalle;
@@ -10,13 +10,11 @@ interface Props {
   onCerrar: () => void;
   onActualizar: (id: number, data: Partial<OperacionDetalle>) => Promise<void>;
   onEliminar: (id: number) => Promise<void>;
-  onSubirDocumento?: (contratoId: number, archivo: File) => Promise<void>;
 }
 
-export const DetalleOperacionModal = ({ operacion, loading, onCerrar, onActualizar, onEliminar, onSubirDocumento }: Props) => {
-  const { user } = useAuth();
-  const [modeloContrato, setModeloContrato] = useState<string>('ARRAS');
-  if (loading) return <div className="modal"><p>Cargando documentación y anexos jurídicos...</p></div>;
+export const DetalleOperacionModal = ({ operacion, loading, onCerrar, onActualizar, onEliminar }: Props) => {
+  const [tab, setTab] = useState<Tab>('datos');
+  if (loading) return <div className="modal"><p>Cargando la información del expediente...</p></div>;
 
   const handleCambiarEstado = async (nuevoEstado: EstadoOperacion) => {
     const clon = { ...operacion, estadoActual: nuevoEstado };
@@ -34,106 +32,79 @@ export const DetalleOperacionModal = ({ operacion, loading, onCerrar, onActualiz
         </header>
 
         <section className="modal-body">
-          <p><strong>Inmueble Vinculado:</strong> Propiedad con Ref {operacion.inmuebleReferencia}</p>
-          <p><strong>Precio en Contrato:</strong> {operacion.precioAcordado.toLocaleString('es-ES')} €</p>
-          <p><strong>Tipo de Negocio:</strong> {operacion.tipo}</p>
-          
-          <label><strong>Estado Legal:</strong> </label>
-          <select value={operacion.estadoActual} onChange={(e) => handleCambiarEstado(e.target.value as EstadoOperacion)}>
-            <option value="ABIERTA">Abierta / Estudio</option>
-            <option value="EN_TRAMITE">En Trámite (Ej: Arras entregadas)</option>
-            <option value="CERRADA">Cerrada / Firmada ante Notario</option>
-            <option value="CANCELADA">Cancelada / Rescindida</option>
-          </select>
+          <div className="tabs" role="tablist">
+            <button type="button" className={`tab ${tab === 'datos' ? 'active' : ''}`} onClick={() => setTab('datos')}>
+              🔎 Operación
+            </button>
+            <button type="button" className={`tab ${tab === 'inmueble' ? 'active' : ''}`} onClick={() => setTab('inmueble')}>
+              🏠 Inmueble
+            </button>
+            <button type="button" className={`tab ${tab === 'vendedor' ? 'active' : ''}`} onClick={() => setTab('vendedor')}>
+              👤 Vendedor
+            </button>
+            <button type="button" className={`tab ${tab === 'interesado' ? 'active' : ''}`} onClick={() => setTab('interesado')}>
+              💼 Interesado
+            </button>
+          </div>
+
+          {tab === 'datos' && (
+            <div className="detail-panel">
+              <p><strong>Inmueble Vinculado:</strong> {operacion.inmuebleReferencia}</p>
+              <p><strong>Precio Acordado:</strong> {operacion.precioAcordado.toLocaleString('es-ES')} €</p>
+              <p><strong>Tipo de operación:</strong> {operacion.tipo}</p>
+              <p><strong>Categoría:</strong> {operacion.categoria_operacion}</p>
+              <p><strong>Estado actual:</strong> {operacion.estadoActual}</p>
+
+              <label><strong>Actualizar estado:</strong></label>
+              <select value={operacion.estadoActual} onChange={(e) => handleCambiarEstado(e.target.value as EstadoOperacion)}>
+                <option value="ABIERTA">Abierta / Estudio</option>
+                <option value="EN_TRAMITE">En Trámite</option>
+                <option value="CERRADA">Cerrada</option>
+                <option value="CANCELADA">Cancelada</option>
+              </select>
+
+              {operacion.categoria_operacion === 'VENTA' ? (
+                <fieldset className="inmueble-fieldset">
+                  <legend>✍️ Datos de Compraventa</legend>
+                  <p>Depósito de arras: {operacion.importeArras ? `${operacion.importeArras} €` : 'No especificado'}</p>
+                  <p>Incluye mobiliario: {operacion.incluyeMobiliario ? 'Sí' : 'No'}</p>
+                </fieldset>
+              ) : (
+                <fieldset className="inmueble-fieldset">
+                  <legend>🔑 Datos de Arrendamiento</legend>
+                  <p>Fianza: {operacion.fianzaMeses ?? 'No especificada'} meses</p>
+                  <p>Admite mascotas: {operacion.incluyeGastosComunidad ? 'Sí' : 'No'}</p>
+                </fieldset>
+              )}
+            </div>
+          )}
+
+          {tab === 'inmueble' && (
+            <div className="detail-panel">
+              <p><strong>ID del Inmueble:</strong> {operacion.inmuebleId}</p>
+              <p><strong>Referencia/Dirección:</strong> {operacion.inmuebleReferencia}</p>
+              <p className="text-soft">Los datos del inmueble son de solo lectura en este expediente. Edita el inmueble desde su módulo si necesitas cambiar la propiedad.</p>
+            </div>
+          )}
+
+          {tab === 'vendedor' && (
+            <div className="detail-panel">
+              <p><strong>Vendedor principal:</strong> {operacion.vendedorNombre || 'No disponible'}</p>
+              <p className="text-soft">Si necesitas modificar el vendedor, actualiza su perfil en el módulo de usuarios.</p>
+            </div>
+          )}
+
+          {tab === 'interesado' && (
+            <div className="detail-panel">
+              <p><strong>Interesado:</strong> {operacion.compradorNombre || 'No disponible'}</p>
+              <p className="text-soft">Los datos de este interesado se gestionan desde el módulo de usuarios.</p>
+            </div>
+          )}
         </section>
 
-        {operacion.categoria_operacion === 'VENTA' ? (
-          <fieldset className="inmueble-fieldset">
-            <legend>✍️ Detalles Específicos de Compraventa</legend>
-            <p>Maneja cláusulas específicas de liquidación patrimonial y escrituras.</p>
-            {operacion.importeArras && <p><strong>Depósito de Arras:</strong> {operacion.importeArras} €</p>}
-          </fieldset>
-        ) : (
-          <fieldset className="inmueble-fieldset">
-            <legend>🔑 Detalles Específicos de Arrendamiento</legend>
-            <p><strong>Garantías (Meses de Fianza):</strong> {operacion.fianzaMeses} meses</p>
-            <p><strong>Comunidad incluida en mensualidad:</strong> {operacion.incluyeGastosComunidad ? 'Sí' : 'No'}</p>
-          </fieldset>
-        )}
-
-        <fieldset className="doc-list">
-          <legend>📁 Contratos, Anexos y Avales Firmados</legend>
-          {operacion.documentos && operacion.documentos.length > 0 ? (
-            <ul>
-              {operacion.documentos.map((doc) => (
-                <li key={doc.id} className="doc-item">
-                  <strong>{doc.tipoDocumento}:</strong> <a href={doc.urlArchivo} target="_blank" rel="noreferrer">📥 Descargar documento</a>
-                  <span className="text-soft"> ({doc.fechaFirma})</span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-warning">⚠️ No hay contratos PDFs cargados para este expediente todavía.</p>
-          )}
-          {/* Subida de PDF (Admin) */}
-          {/* Upload to an existing Contrato: use the first documento's id */}
-          {operacion.documentos && operacion.documentos.length > 0 && (
-            (() => {
-              const primerDoc = operacion.documentos![0];
-              const contratoId = primerDoc.id;
-              return (
-                <div className="upload-row">
-                  <input id={`file-contrato-${contratoId}`} type="file" accept="application/pdf" />
-                  <button
-                    className="btn"
-                    onClick={async () => {
-                      const input = document.getElementById(`file-contrato-${contratoId}`) as HTMLInputElement | null;
-                      if (!input || !input.files || input.files.length === 0) return alert('Selecciona un PDF primero');
-                      const file = input.files[0];
-                      if (!file.name.toLowerCase().endsWith('.pdf')) return alert('Solo se permiten archivos PDF');
-                      try {
-                        if (onSubirDocumento) {
-                          await onSubirDocumento(contratoId, file);
-                        } else {
-                          const form = new FormData(); form.append('archivo', file);
-                          await fetch(`/api/media/contrato/${contratoId}/documento`, { method: 'POST', body: form });
-                        }
-                        alert('PDF subido correctamente');
-                        // refrescar detalles
-                        await onActualizar(operacion.id, {});
-                      } catch (e: any) {
-                        alert('Error subiendo PDF: ' + (e.message || e));
-                      }
-                    }}
-                  >Subir PDF al Contrato existente</button>
-                </div>
-              );
-            })()
-          )}
-          {(!operacion.documentos || operacion.documentos.length === 0) && (
-            <p className="text-soft">Crea primero un borrador de contrato desde la sección de generación para poder adjuntar el PDF.</p>
-          )}
-            <div style={{marginTop: 12}}>
-              <label><strong>Generar borrador de contrato:</strong></label>
-              <div className="form-row">
-                <select value={modeloContrato} onChange={e => setModeloContrato(e.target.value)}>
-                  <option value="ARRAS">Arras / Borrador de Compraventa</option>
-                  <option value="COMPRAVENTA">Compraventa</option>
-                  <option value="ALQUILER_VIVIENDA">Contrato de Alquiler</option>
-                </select>
-                <button className="btn" onClick={async () => {
-                  try {
-                    const trabajador = user ? { id: (user as any).userId } : {};
-                    await contratoService.generarBorrador(operacion.id, modeloContrato, trabajador);
-                    alert('Borrador generado correctamente');
-                    await onActualizar(operacion.id, {});
-                  } catch (e: any) {
-                    alert('Error generando borrador: ' + (e.message || e));
-                  }
-                }}>Generar Borrador</button>
-              </div>
-            </div>
-        </fieldset>
+        <section className="modal-body">
+          <p className="text-soft">Para crear o gestionar un contrato asociado a esta operación, usa el botón "Crear Contrato" desde la fila correspondiente en la tabla.</p>
+        </section>
 
         <footer className="modal-footer">
           <button 

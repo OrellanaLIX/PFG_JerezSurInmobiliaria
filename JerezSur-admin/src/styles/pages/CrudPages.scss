@@ -536,6 +536,327 @@
 /* Textarea helper */
 .textarea-large { min-height: 70px; resize: vertical; }
 
+/* Read-only value display */
+.read-value {
+  display: inline-block;
+  padding: $space-2 $space-3;
+  background-color: $color-surface-alt;
+  border-radius: $radius-sm;
+  font-size: $font-size-sm;
+  color: $color-text;
+  font-family: 'Courier New', monospace;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   MODAL STYLES (Form field, tabs, badges, info boxes)
+═══════════════════════════════════════════════════════════════════════════════ */
+
+/* Form field styling */
+.form-field {
+  margin-bottom: $space-4;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  label {
+    display: block;
+    font-weight: 600;
+    font-size: $font-size-sm;
+    color: $color-text;
+    margin-bottom: $space-2;
+
+    .required {
+      color: $color-error;
+      margin-left: 3px;
+    }
+  }
+
+  input,
+  textarea,
+  select {
+    width: 100%;
+    padding: $space-3 $space-4;
+    border: 1px solid $color-border;
+    border-radius: $radius-sm;
+    font-size: $font-size-sm;
+    transition: all $transition-base;
+    font-family: $font-family-base;
+
+    &:focus {
+      border-color: $color-primary;
+      box-shadow: 0 0 0 3px rgba($color-primary, 0.1);
+      outline: none;
+    }
+
+    &:disabled {
+      background-color: $color-surface-alt;
+      color: $color-text-muted;
+      cursor: not-allowed;
+    }
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 100px;
+  }
+}
+
+/* Tabs styling */
+.tabs {
+  display: flex;
+  gap: $space-2;
+  border-bottom: 2px solid $color-border;
+  margin-bottom: $space-6;
+  overflow-x: auto;
+
+  .tab {
+    background: none;
+    border: none;
+    padding: $space-3 $space-4;
+    font-size: $font-size-sm;
+    font-weight: 600;
+    color: $color-text-soft;
+    cursor: pointer;
+    position: relative;
+    border-bottom: 3px solid transparent;
+    transition: all $transition-base;
+    white-space: nowrap;
+
+    &:hover {
+      color: $color-text;
+    }
+
+    &.active {
+      color: $color-primary;
+      border-bottom-color: $color-primary;
+    }
+  }
+}
+
+/* Modal header styling */
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: $space-4;
+  margin-bottom: $space-6;
+  padding-bottom: $space-4;
+  border-bottom: 1px solid $color-border;
+
+  h2 {
+    font-size: $font-size-2xl;
+    font-weight: 700;
+    color: $color-primary-dark;
+    margin: 0;
+  }
+
+  p {
+    font-size: $font-size-sm;
+    color: $color-text-soft;
+    margin: $space-1 0 0;
+  }
+
+  .modal-badges {
+    display: flex;
+    gap: $space-2;
+    flex-shrink: 0;
+
+    .badge {
+      white-space: nowrap;
+    }
+  }
+}
+
+/* Modal body styling */
+.form-modal__body {
+  margin-bottom: $space-6;
+
+  p.text-soft {
+    color: $color-text-soft;
+    margin: $space-3 0;
+  }
+}
+
+/* Modal footer styling */
+.modal-footer {
+  display: flex;
+  gap: $space-4;
+  justify-content: flex-end;
+  border-top: 1px solid $color-border;
+  padding-top: $space-6;
+  flex-wrap: wrap;
+
+  @media (max-width: $tablet) {
+    flex-direction: column-reverse;
+  }
+
+  button {
+    min-width: 120px;
+  }
+
+  > div {
+    display: flex;
+    gap: $space-2;
+  }
+}
+
+/* Form actions */
+.form-actions {
+  display: flex;
+  gap: $space-3;
+  margin-top: $space-6;
+  justify-content: flex-end;
+}
+
+/* Info box styling */
+.info-box {
+  background-color: $color-primary-light;
+  border: 1px solid rgba($color-primary, 0.2);
+  border-radius: $radius-sm;
+  padding: $space-4;
+  color: $color-text;
+  font-size: $font-size-sm;
+  margin: $space-4 0;
+}
+
+/* Perfil block styling */
+.perfil-block {
+  border: 1px solid $color-border;
+  border-radius: $radius-sm;
+  margin-bottom: $space-4;
+  overflow: hidden;
+
+  .perfil-header {
+    background-color: $color-surface-alt;
+    padding: $space-4;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    user-select: none;
+    transition: background-color $transition-base;
+
+    &:hover {
+      background-color: darken($color-surface-alt, 3%);
+    }
+
+    .perfil-header__title {
+      display: flex;
+      align-items: center;
+      gap: $space-3;
+      font-weight: 600;
+      font-size: $font-size-sm;
+    }
+
+    .perfil-toggle {
+      display: inline-block;
+      transition: transform $transition-base;
+
+      &.open {
+        transform: rotate(180deg);
+      }
+    }
+  }
+
+  .perfil-body {
+    padding: $space-4;
+    background-color: $color-surface;
+
+    .perfil-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: $space-3;
+      margin-top: $space-4;
+      padding-top: $space-4;
+      border-top: 1px solid $color-border;
+
+      .perfil-desasignar {
+        color: $color-error;
+        cursor: pointer;
+        font-size: $font-size-sm;
+        text-decoration: underline;
+        transition: color $transition-base;
+
+        &:hover {
+          color: darken($color-error, 10%);
+        }
+      }
+    }
+  }
+}
+
+/* Image grid and cards */
+.imagenes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: $space-3;
+  margin: $space-4 0;
+}
+
+.imagen-card {
+  border: 1px solid $color-border;
+  border-radius: $radius-sm;
+  overflow: hidden;
+  transition: all $transition-base;
+
+  &:hover {
+    box-shadow: $shadow-md;
+  }
+
+  img {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+    display: block;
+  }
+
+  .imagen-card__meta {
+    padding: $space-2;
+    background-color: $color-surface-alt;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: $space-2;
+
+    small {
+      font-size: $font-size-xs;
+      color: $color-text-soft;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1;
+    }
+
+    .btn {
+      flex-shrink: 0;
+    }
+  }
+}
+
+/* Dropzone styling */
+.dropzone {
+  border: 2px dashed $color-border;
+  border-radius: $radius-sm;
+  padding: $space-6;
+  text-align: center;
+  cursor: pointer;
+  transition: all $transition-base;
+  background-color: rgba($color-primary, 0.02);
+
+  &:hover,
+  &:active {
+    border-color: $color-primary;
+    background-color: rgba($color-primary, 0.05);
+  }
+
+  span {
+    color: $color-text-soft;
+    font-size: $font-size-sm;
+  }
+}
+
 /* ═══════════════════════════════════════════════════════════════════════════════
    ANIMACIONES
 ═══════════════════════════════════════════════════════════════════════════════ */

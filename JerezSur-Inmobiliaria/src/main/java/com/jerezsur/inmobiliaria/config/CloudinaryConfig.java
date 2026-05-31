@@ -12,6 +12,9 @@ public class CloudinaryConfig {
     @Value("${cloudinary.cloud-name}")
     private String cloudName;
 
+    @Value("${cloudinary.upload-preset}")
+    private String uploadPreset;
+
     @Value("${cloudinary.api-key}")
     private String apiKey;
 
@@ -22,6 +25,7 @@ public class CloudinaryConfig {
     public Cloudinary cloudinary() {
         return new Cloudinary(ObjectUtils.asMap(
             "cloud_name", cloudName,
+            "uploadPreset", uploadPreset,
             "api_key",    apiKey,
             "api_secret", apiSecret,
             "secure",     true

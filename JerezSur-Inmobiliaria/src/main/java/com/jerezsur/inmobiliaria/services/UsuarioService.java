@@ -11,6 +11,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import com.jerezsur.inmobiliaria.dto.RegistroRequest;
 
@@ -34,7 +35,7 @@ public class UsuarioService {
     // LISTAR TODOS
     @Transactional(readOnly = true)
     public List<Usuario> listarTodos() {
-        return usuarioRepository.findAll();
+        return usuarioRepository.findByFechaEliminacionIsNull();
     }
 
     // BUSCAR INDIVIDUAL
@@ -147,13 +148,22 @@ public class UsuarioService {
         return usuarioRepository.save(usuario);
     }
 
-    // ELIMINAR
+    // ELIMINAR (Soft Delete)
     @Transactional
     public void eliminar(Long id) {
-        if (!usuarioRepository.existsById(id)) {
-            throw new ResourceNotFoundException("No se puede eliminar: El usuario con ID " + id + " no existe.");
-        }
-        usuarioRepository.deleteById(id);
+        // 1. Buscamos al usuario completo en lugar de solo comprobar si existe
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "No se puede eliminar: El usuario con ID " + id + " no existe."));
+
+        // 2. Cambiamos su estado para el borrado lógico
+        usuario.setCuentaActivada(false); // O si prefieres: usuario.setEliminado(true);
+
+        // 3. Registramos la fecha de eliminación para el método de limpieza posterior
+        usuario.setFechaEliminacion(LocalDateTime.now());
+
+        // 4. Guardamos los cambios (Hará un UPDATE automático en la base de datos)
+        usuarioRepository.save(usuario);
     }
 
     // ------------------------------------------------------------------

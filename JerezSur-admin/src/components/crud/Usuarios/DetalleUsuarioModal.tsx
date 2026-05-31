@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { toast } from 'react-toastify'; 
 import type { UsuarioDetalle, Role, TrabajadorPerfil, InteresadoPerfil, VendedorPerfil } from '../../../types/usuario';
 import '../../../styles/App.scss';
 
@@ -44,33 +45,76 @@ export const DetalleUsuarioModal = ({ usuario, loading, onCerrar, onActualizar, 
   const togglePerfil = (key: string) =>
     setPerfilesAbiertos(p => ({ ...p, [key]: !p[key] }));
 
-  const guardarDatosBase = async () => {
+  // ── HELPER GLOBAL PARA PROCESAR ACCIONES DEL MODAL ──
+  const procesarAccion = async (
+    accionFn: () => Promise<void>, 
+    msgExito: string, 
+    debeCerrar: boolean = false
+  ) => {
     setGuardando(true);
-    try { await onActualizar(usuario.id, datosBase); }
-    finally { setGuardando(false); }
+    try {
+      await accionFn();
+      toast.success(msgExito);
+      if (debeCerrar) onCerrar();
+    } catch (error: any) {
+      console.error(error);
+      const springBootMessage = error.response?.data?.message;
+      toast.error(`Error: ${springBootMessage || 'No se pudieron guardar los cambios.'}`);
+    } finally {
+      setGuardando(false);
+    }
   };
 
-  const guardarAcceso = async () => {
-    setGuardando(true);
-    try { await onActualizar(usuario.id, acceso); }
-    finally { setGuardando(false); }
+  // ── MANEJADORES CON CIERRE AUTOMÁTICO TRAS SUCESS ──
+  const guardarDatosBase = () => {
+    if (!datosBase.nombre) return toast.warning('El nombre es obligatorio');
+    procesarAccion(
+      () => onActualizar(usuario.id, datosBase),
+      'Datos básicos actualizados correctamente.',
+      true
+    );
   };
 
-  const guardarPerfil = async (tipo: 'trabajador' | 'interesado' | 'vendedor') => {
+  const guardarAcceso = () => {
+    procesarAccion(
+      () => onActualizar(usuario.id, acceso),
+      'Configuración de acceso actualizada con éxito.',
+      true
+    );
+  };
+
+  const guardarPerfil = (tipo: 'trabajador' | 'interesado' | 'vendedor') => {
     const payloads = { trabajador: trabajador, interesado: interesado, vendedor: vendedor };
     const update: Partial<UsuarioDetalle> = { [tipo]: payloads[tipo] };
-    setGuardando(true);
-    try { await onActualizar(usuario.id, update); }
-    finally { setGuardando(false); }
+    
+    procesarAccion(
+      () => onActualizar(usuario.id, update),
+      `Perfil de ${tipo} guardado correctamente.`,
+      true
+    );
   };
 
-  const desvincularPerfil = async (tipo: 'trabajador' | 'interesado' | 'vendedor') => {
+  const desvincularPerfil = (tipo: 'trabajador' | 'interesado' | 'vendedor') => {
     if (!confirm(`¿Desvincular el perfil de ${tipo}? El usuario mantendrá su cuenta.`)) return;
     const update: Partial<UsuarioDetalle> = {};
     if (tipo === 'trabajador') update.trabajadorId = undefined;
     if (tipo === 'interesado') update.interesadoId = undefined;
     if (tipo === 'vendedor') update.vendedorId = undefined;
-    await onActualizar(usuario.id, update);
+
+    procesarAccion(
+      () => onActualizar(usuario.id, update),
+      `Perfil de ${tipo} desvinculado con éxito.`,
+      true
+    );
+  };
+
+  const manejarEliminar = () => {
+    if (!confirm('¿Eliminar este usuario de la plataforma?')) return;
+    procesarAccion(
+      () => onEliminar(usuario.id),
+      'El usuario ha sido desactivado/eliminado correctamente.',
+      true
+    );
   };
 
   return (
@@ -264,14 +308,14 @@ export const DetalleUsuarioModal = ({ usuario, loading, onCerrar, onActualizar, 
 
         {/* Footer */}
         <div className="modal-footer">
-          <button onClick={async () => { if (confirm('¿Eliminar este usuario permanentemente?')) { await onEliminar(usuario.id); onCerrar(); } }} className="btn btn-danger">
+          <button onClick={manejarEliminar} disabled={guardando} className="btn btn-danger">
             🗑 Eliminar usuario
           </button>
           <button onClick={onCerrar} className="btn btn-ghost">Cerrar</button>
         </div>
       </div>
     </div>
-  )
+  );
 };
 
 // --- Componente reutilizable de bloque de perfil ---
@@ -308,12 +352,6 @@ const PerfilBlock = ({ titulo, icon, asignado, abierto, onToggle, onDesasignar, 
 );
 
 const Badge = ({ text, color }: { text: string; color: 'blue' | 'green' | 'amber' | 'gray' }) => {
-  const colors = {
-    blue: { background: '#E6F1FB', color: '#185FA5' },
-    green: { background: '#EAF3DE', color: '#3B6D11' },
-    amber: { background: '#FAEEDA', color: '#854F0B' },
-    gray: { background: '#F1EFE8', color: '#5F5E5A' },
-  };
   return <span className={`badge badge--${color}`}>{text}</span>;
 };
 

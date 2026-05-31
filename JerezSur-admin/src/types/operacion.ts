@@ -59,7 +59,6 @@ export interface NuevaOperacion {
   precioAcordado: number;
   tipo: TipoOperacionContrato;
   inmuebleId: number;
-  vendedorId: number;
   interesadoId: number;
   depositoArras?: number;
   fechaLimiteEscritura?: string;

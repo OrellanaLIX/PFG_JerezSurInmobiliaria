@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { toast } from 'react-toastify'; // Importamos toast para validaciones locales
+import { useFormSubmit } from '../../../hooks/useFormSubmit'; // Importamos tu nuevo hook
 import type { NuevoUsuario } from '../../../types/usuario';
 import '../../../styles/App.scss';
 
@@ -57,29 +59,34 @@ export const FormUsuarioModal = ({ onCrear, onCancelar }: Props) => {
     tipoBusqueda: 'VENTA', requiereHipoteca: false,
   });
   const [datosVendedor, setDatosVendedor] = useState<DatosVendedor>({});
-  const [guardando, setGuardando] = useState(false);
+  
+  // Usamos nuestro hook genérico aquí
+  const { guardando, ejecutarEnvio } = useFormSubmit<NuevoUsuarioConPerfil>();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.nombre) return alert('El nombre es obligatorio');
+    
+    // Validaciones del Frontend convertidas a avisos estéticos
+    if (!form.nombre) return toast.warning('El nombre es obligatorio');
     if (rol === 'trabajador' && !datosTrabajador.dni)
-      return alert('El DNI es obligatorio para trabajadores');
+      return toast.warning('El DNI es obligatorio para trabajadores');
     if (rol === 'trabajador' && !datosTrabajador.fechaInicioContrato)
-      return alert('La fecha de inicio de contrato es obligatoria');
+      return toast.warning('La fecha de inicio de contrato es obligatoria');
 
-    setGuardando(true);
-    try {
-      await onCrear({
-        ...form,
-        rol,
-        datosTrabajador: ['trabajador'].includes(rol) ? datosTrabajador : undefined,
-        datosInteresado: ['interesado', 'ambos'].includes(rol) ? datosInteresado : undefined,
-        datosVendedor: ['vendedor', 'ambos'].includes(rol) ? datosVendedor : undefined,
-      });
-      onCancelar();
-    } finally {
-      setGuardando(false);
-    }
+    const payload: NuevoUsuarioConPerfil = {
+      ...form,
+      rol,
+      datosTrabajador: ['trabajador'].includes(rol) ? datosTrabajador : undefined,
+      datosInteresado: ['interesado', 'ambos'].includes(rol) ? datosInteresado : undefined,
+      datosVendedor: ['vendedor', 'ambos'].includes(rol) ? datosVendedor : undefined,
+    };
+
+    // Toda la lógica pesada, los catch de Spring Boot y el onCancelar() ocurren aquí de forma automática
+    await ejecutarEnvio({
+      submitFn: onCrear,
+      onSuccess: onCancelar, // Al terminar con éxito cerrará la ventana
+      successMessage: '¡Usuario registrado con éxito!'
+    }, payload);
   };
 
   const f = (field: keyof NuevoUsuario) => (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -217,7 +224,6 @@ const CamposVendedor = ({ datos, onChange }: { datos: DatosVendedor; onChange: (
   </>
 );
 
-// --- Helpers de UI ---
 const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
   <div className="form-group">
     <label>{label}</label>

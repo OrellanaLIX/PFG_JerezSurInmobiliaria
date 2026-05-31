@@ -1,12 +1,17 @@
 package com.jerezsur.inmobiliaria.services;
 
+import com.jerezsur.inmobiliaria.dto.InmuebleActualizarDTO;
+import com.jerezsur.inmobiliaria.dto.InmuebleCrearDTO;
 import com.jerezsur.inmobiliaria.exceptions.BusinessValidationException;
 import com.jerezsur.inmobiliaria.exceptions.ResourceNotFoundException;
+import com.jerezsur.inmobiliaria.models.Imagen;
 import com.jerezsur.inmobiliaria.models.Inmueble;
+import com.jerezsur.inmobiliaria.models.Vendedor;
 import com.jerezsur.inmobiliaria.models.enums.EstadoInmueble;
 import com.jerezsur.inmobiliaria.models.enums.TipoInmueble;
 import com.jerezsur.inmobiliaria.models.enums.TipoOperacion;
 import com.jerezsur.inmobiliaria.repositories.InmuebleRepository;
+import com.jerezsur.inmobiliaria.repositories.VendedorRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -23,6 +28,9 @@ public class InmuebleService {
 
     @Autowired
     private InmuebleRepository inmuebleRepository;
+
+    @Autowired
+    private VendedorRepository vendedorRepository;
 
     @Transactional(readOnly = true)
     public Page<Inmueble> buscarConFiltros(String ref, String tit, String desc, TipoOperacion op, EstadoInmueble est,
@@ -132,5 +140,141 @@ public class InmuebleService {
                 Map.entry(TipoInmueble.FINCA, "FC"));
         String prefijo = prefijos.getOrDefault(tipo, "ER");
         return prefijo + "-" + String.format("%03d", id);
+    }
+
+    @Transactional
+    public Inmueble guardarDesdeDto(InmuebleCrearDTO dto) {
+        // 1. Instanciamos la entidad real vacía y pasamos los datos básicos
+        Inmueble inmueble = new Inmueble();
+        inmueble.setTitulo(dto.getTitulo());
+        inmueble.setDescripcion(dto.getDescripcion());
+        inmueble.setPrecio(dto.getPrecio());
+        inmueble.setOperacion(dto.getOperacion());
+        inmueble.setEstado(dto.getEstado());
+        inmueble.setTipo(dto.getTipo());
+        inmueble.setSuperficieUtil(dto.getSuperficieUtil());
+        inmueble.setMConstruidos(dto.getMConstruidos());
+        inmueble.setHabitaciones(dto.getHabitaciones());
+        inmueble.setBanos(dto.getBanos());
+        inmueble.setDireccion(dto.getDireccion());
+        inmueble.setCodigoPostal(dto.getCodigoPostal());
+        inmueble.setCiudad(dto.getCiudad());
+        
+        // Gastos y cargas
+        if (dto.getComunidad() != null) inmueble.setComunidad(dto.getComunidad());
+        if (dto.getTieneDerrama() != null) inmueble.setTieneDerrama(dto.getTieneDerrama());
+        if (dto.getValorDerrama() != null) inmueble.setValorDerrama(dto.getValorDerrama());
+        if (dto.getRefCatastral() != null) inmueble.setRefCatastral(dto.getRefCatastral());
+        
+        // URLs de documentación desde Cloudinary
+        if (dto.getUrlNotaSimple() != null) inmueble.setUrlNotaSimple(dto.getUrlNotaSimple());
+        if (dto.getUrlCertificadoEnergetico() != null) inmueble.setUrlCertificadoEnergetico(dto.getUrlCertificadoEnergetico());
+        if (dto.getUrlPlanoInmueble() != null) inmueble.setUrlPlanoInmueble(dto.getUrlPlanoInmueble());
+        if (dto.getNotasPrivadas() != null) inmueble.setNotasPrivadas(dto.getNotasPrivadas());
+
+        // 2. PROCESAMOS EL MAPA DE PROPIETARIOS
+        // Como 'inmueble' ya no se reasigna abajo, Java lo considerará "effectively
+        // final" y compilará sin errores
+        dto.getPropietariosPorcentaje().forEach((vendedorId, porcentaje) -> {
+            Vendedor vendedor = vendedorRepository.findById(vendedorId)
+                    .orElseThrow(
+                            () -> new ResourceNotFoundException("El vendedor con ID " + vendedorId + " no existe."));
+
+            inmueble.getPropietariosPorcentaje().put(vendedor, porcentaje);
+        });
+
+        // Executamos tus validaciones de negocio (comprobar el 100%, precios, etc.)
+        validarInmueble(inmueble);
+
+        // 3. Flujo de Referencia Automática
+        String tempRef = "T-" + java.util.UUID.randomUUID().toString().substring(0, 4);
+        inmueble.setReferencia(tempRef);
+
+        // 🌟 CORRECCIÓN AQUÍ: Usamos otra variable para el retorno del guardado
+        // intermedio 🌟
+        Inmueble inmuebleGuardado = inmuebleRepository.save(inmueble);
+
+        String referenciaDefinitiva = generarReferencia(inmuebleGuardado.getTipo(), inmuebleGuardado.getId());
+        inmuebleGuardado.setReferencia(referenciaDefinitiva);
+
+        // 4. Procesar imágenes desde Cloudinary
+        if (dto.getImagenesUrls() != null && !dto.getImagenesUrls().isEmpty()) {
+            for (int i = 0; i < dto.getImagenesUrls().size(); i++) {
+                String urlImagen = dto.getImagenesUrls().get(i);
+                Imagen imagen = Imagen.builder()
+                        .url(urlImagen)
+                        .nombreArchivo("imagen_" + System.currentTimeMillis() + "_" + i + ".jpg")
+                        .esPortada(i == 0) // Primera imagen es portada
+                        .inmueble(inmuebleGuardado)
+                        .build();
+                inmuebleGuardado.getImagenes().add(imagen);
+            }
+        }
+
+        // 5. Guardado final
+        return inmuebleRepository.save(inmuebleGuardado);
+    }
+
+    @Transactional
+    public Inmueble actualizarDesdeDto(Long id, InmuebleActualizarDTO dto) {
+        // 1. Obtener el inmueble existente
+        Inmueble inmueble = buscarPorId(id);
+
+        // 2. Actualizar campos si están presentes
+        if (dto.getTitulo() != null) inmueble.setTitulo(dto.getTitulo());
+        if (dto.getDescripcion() != null) inmueble.setDescripcion(dto.getDescripcion());
+        if (dto.getPrecio() != null) inmueble.setPrecio(dto.getPrecio());
+        if (dto.getOperacion() != null) inmueble.setOperacion(dto.getOperacion());
+        if (dto.getEstado() != null) inmueble.setEstado(dto.getEstado());
+        if (dto.getTipo() != null) inmueble.setTipo(dto.getTipo());
+        if (dto.getSuperficieUtil() != null) inmueble.setSuperficieUtil(dto.getSuperficieUtil());
+        if (dto.getMConstruidos() != null) inmueble.setMConstruidos(dto.getMConstruidos());
+        if (dto.getHabitaciones() != null) inmueble.setHabitaciones(dto.getHabitaciones());
+        if (dto.getBanos() != null) inmueble.setBanos(dto.getBanos());
+        if (dto.getDireccion() != null) inmueble.setDireccion(dto.getDireccion());
+        if (dto.getCodigoPostal() != null) inmueble.setCodigoPostal(dto.getCodigoPostal());
+        if (dto.getCiudad() != null) inmueble.setCiudad(dto.getCiudad());
+
+        // Gastos y cargas
+        if (dto.getComunidad() != null) inmueble.setComunidad(dto.getComunidad());
+        if (dto.getTieneDerrama() != null) inmueble.setTieneDerrama(dto.getTieneDerrama());
+        if (dto.getValorDerrama() != null) inmueble.setValorDerrama(dto.getValorDerrama());
+        if (dto.getRefCatastral() != null) inmueble.setRefCatastral(dto.getRefCatastral());
+
+        // URLs de documentación desde Cloudinary
+        if (dto.getUrlNotaSimple() != null) inmueble.setUrlNotaSimple(dto.getUrlNotaSimple());
+        if (dto.getUrlCertificadoEnergetico() != null) inmueble.setUrlCertificadoEnergetico(dto.getUrlCertificadoEnergetico());
+        if (dto.getUrlPlanoInmueble() != null) inmueble.setUrlPlanoInmueble(dto.getUrlPlanoInmueble());
+        if (dto.getNotasPrivadas() != null) inmueble.setNotasPrivadas(dto.getNotasPrivadas());
+
+        // 3. Actualizar propietarios si están presentes
+        if (dto.getPropietariosPorcentaje() != null && !dto.getPropietariosPorcentaje().isEmpty()) {
+            inmueble.getPropietariosPorcentaje().clear();
+            dto.getPropietariosPorcentaje().forEach((vendedorId, porcentaje) -> {
+                Vendedor vendedor = vendedorRepository.findById(vendedorId)
+                        .orElseThrow(() -> new ResourceNotFoundException("El vendedor con ID " + vendedorId + " no existe."));
+                inmueble.getPropietariosPorcentaje().put(vendedor, porcentaje);
+            });
+        }
+
+        // 4. Procesar nuevas imágenes desde Cloudinary si existen
+        if (dto.getImagenesUrls() != null && !dto.getImagenesUrls().isEmpty()) {
+            for (int i = 0; i < dto.getImagenesUrls().size(); i++) {
+                String urlImagen = dto.getImagenesUrls().get(i);
+                Imagen imagen = Imagen.builder()
+                        .url(urlImagen)
+                        .nombreArchivo("imagen_" + System.currentTimeMillis() + "_" + i + ".jpg")
+                        .esPortada(false) // Las nuevas imágenes no son portada
+                        .inmueble(inmueble)
+                        .build();
+                inmueble.getImagenes().add(imagen);
+            }
+        }
+
+        // 5. Validar cambios críticos
+        validarInmueble(inmueble);
+
+        // 6. Guardado final
+        return inmuebleRepository.save(inmueble);
     }
 }

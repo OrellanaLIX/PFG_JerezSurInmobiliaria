@@ -53,8 +53,9 @@ export const useInmuebles = () => {
     try {
       setCreando(true);
       setError(null);
-      await inmuebleService.crear(inmueble);
+      const created = await inmuebleService.crear(inmueble);
       await cargar();
+      return created;
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Error al crear el inmueble';
       setError(message);

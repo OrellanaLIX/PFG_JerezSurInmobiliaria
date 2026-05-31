@@ -58,13 +58,4 @@ public class TrabajadorController {
         // Trabajador actualizado = trabajadorService.guardar(trabajador);
         return ResponseEntity.ok(trabajador);
     }
-
-    // --- ELIMINAR / DAR DE BAJA ---
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminarTrabajador(@PathVariable Long id) {
-        trabajadorService.eliminar(id);
-        // Respuesta 204 No Content: indica que la acción se realizó con éxito pero no
-        // hay datos que devolver
-        return ResponseEntity.noContent().build();
-    }
 }

@@ -11,6 +11,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.jerezsur.inmobiliaria.models.enums.EstadoInmueble;
 import com.jerezsur.inmobiliaria.models.enums.TipoInmueble;
 import com.jerezsur.inmobiliaria.models.enums.TipoOperacion;
@@ -22,6 +23,7 @@ import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -58,7 +60,7 @@ public class Inmueble {
 
     @NotBlank(message = "El código de referencia (ej. P-101) es obligatorio")
     @Column(unique = true)
-    private String referencia; 
+    private String referencia;
 
     // --- DATOS COMERCIALES (Públicos) ---
     @NotBlank(message = "El título es obligatorio")
@@ -73,19 +75,19 @@ public class Inmueble {
     private BigDecimal precio;
 
     @Enumerated(EnumType.STRING)
-    private TipoOperacion operacion; 
+    private TipoOperacion operacion;
 
     @Enumerated(EnumType.STRING)
-    private EstadoInmueble estado; 
+    private EstadoInmueble estado;
 
     @Enumerated(EnumType.STRING)
-    private TipoInmueble tipo; 
+    private TipoInmueble tipo;
 
     // --- CARACTERÍSTICAS DINÁMICAS ---
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "inmueble_extras", joinColumns = @JoinColumn(name = "inmueble_id"))
-    @MapKeyColumn(name = "clave") 
-    @Column(name = "valor") 
+    @MapKeyColumn(name = "clave")
+    @Column(name = "valor")
     @Default
     private Map<String, String> caracteristicasExtra = new HashMap<>();
 
@@ -122,18 +124,18 @@ public class Inmueble {
     private BigDecimal valorDerrama;
 
     @DecimalMin("0.0")
-    private BigDecimal ibi; 
+    private BigDecimal ibi;
 
     // --- DOCUMENTACIÓN Y DATOS PRIVADOS ---
     @Column(unique = true)
-    private String refCatastral; 
+    private String refCatastral;
 
-    private String urlNotaSimple; 
-    private String urlCertificadoEnergetico; 
-    private String urlPlanoInmueble; 
+    private String urlNotaSimple;
+    private String urlCertificadoEnergetico;
+    private String urlPlanoInmueble;
 
     @Column(columnDefinition = "TEXT")
-    private String notasPrivadas; 
+    private String notasPrivadas;
 
     // --- RELACIONES ---
 
@@ -144,13 +146,11 @@ public class Inmueble {
     private List<Imagen> imagenes = new ArrayList<>();
 
     // 🌟 NUEVO ENFOQUE: Diccionario directo de Vendedores con su Porcentaje 🌟
-    @ElementCollection
-    @CollectionTable(
-        name = "inmueble_propietario_porcentaje", 
-        joinColumns = @JoinColumn(name = "inmueble_id")
-    )
-    @MapKeyJoinColumn(name = "vendedor_id") // Clave del Mapa: Entidad Vendedor (guarda vendedor_id en la BD)
-    @Column(name = "porcentaje")            // Valor del Mapa: Double (guarda el % de propiedad)
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "inmueble_propietario_porcentaje", joinColumns = @JoinColumn(name = "inmueble_id"))
+    @MapKeyJoinColumn(name = "vendedor_id") // Clave del Mapa: Entidad Vendedor
+    @Column(name = "porcentaje") // Valor del Mapa: Double o Integer
+    @JsonIgnoreProperties({ "contratosFirmados", "hibernateLazyInitializer", "handler" })
     @Default
     private Map<Vendedor, Double> propietariosPorcentaje = new HashMap<>();
 

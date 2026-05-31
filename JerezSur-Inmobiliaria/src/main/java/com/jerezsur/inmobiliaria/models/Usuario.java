@@ -11,6 +11,7 @@ import com.jerezsur.inmobiliaria.models.enums.AuthProvider;
 import com.jerezsur.inmobiliaria.models.enums.OrigenUsuario;
 import com.jerezsur.inmobiliaria.models.enums.Role;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -89,16 +90,16 @@ public class Usuario {
     private String providerId;
 
     // --- RELACIONES DE PERFIL ---
-    @OneToOne(mappedBy = "usuario")
+    @OneToOne(mappedBy = "usuario", cascade = CascadeType.REMOVE, orphanRemoval = true)
     @ToString.Exclude
     @JsonIgnore
     private Trabajador trabajador;
 
-    @OneToOne(mappedBy = "usuario")
+    @OneToOne(mappedBy = "usuario", cascade = CascadeType.REMOVE, orphanRemoval = true)
     @JsonIgnore
     private Interesado interesado;
 
-    @OneToOne(mappedBy = "usuario")
+    @OneToOne(mappedBy = "usuario", cascade = CascadeType.REMOVE, orphanRemoval = true)
     @JsonIgnore
     private Vendedor vendedor;
 
@@ -106,6 +107,8 @@ public class Usuario {
     @ToString.Exclude
     @JsonIgnore
     private List<Cita> citas;
+
+    private LocalDateTime fechaEliminacion;
 
     @CreationTimestamp
     private LocalDateTime fechaRegistro;

@@ -12,15 +12,14 @@ Cambiar telefono etc de contacto, ponerlo debajo del form como cta
 Cambiar textos
 
 SECUNDARIAS:
-Quitar cosas para mapa interactivo de búsqueda de inmueble
-Quitar campos de contrato, solo subir PDF y añadir inmueble e interesado
+Quitar cosas para mapa interactivo de búsqueda de inmueble de la docu
 Mejorar botón de tareas para no tener que poner enlace
 
 FIXES:
-Crea usuario pero mal
-Se ve mal los detalles de las citas
-Quitar boton de crear contacto
-Cambiar contratos por operacion y crear cotratos para cada operacion
-Revisr Filtros de busqueda
-Revisar relaciones y types del front
+Al crear un usuario lo crea pero visualmente no esta del todo bien
+Cambiar contratos por operacion y crear cotratos para cada operacion (un formmodel de creacion de contrato para cada operacion en el front de admin)
+Revisr Filtros de busqueda del panel de admin
+Revisar relaciones y types
+Hemos tocado bastantes cosas del back y ahora el front publico no funciona correctamente (arreglarlo)
 Repaso general
+Comprobar funcionamiento de las apis

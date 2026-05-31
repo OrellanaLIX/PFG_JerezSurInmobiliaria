@@ -4,6 +4,7 @@ import type { EstadoOperacion, CategoriaOperacion, OperacionBase } from '../type
 import { TablaOperaciones } from '../components/crud/Contratos/TablaOperaciones';
 import { DetalleOperacionModal } from '../components/crud/Contratos/DetalleOperacionModal';
 import { FormOperacionModal } from '../components/crud/Contratos/FormOperacionModal';
+import { contratoService } from '../services/contratoService';
 import '../styles/pages/CrudPages.scss';
 
 const AdminContratos = () => {
@@ -18,10 +19,13 @@ const AdminContratos = () => {
     eliminar,
     cargarDetalle,
     limpiarSeleccionada,
-    subirDocumentoContrato,
   } = useOperaciones();
 
+  const [operacionParaContrato, setOperacionParaContrato] = useState<OperacionBase | null>(null);
+  const [modeloContrato, setModeloContrato] = useState<string>('ARRAS');
+  const [guardandoContrato, setGuardandoContrato] = useState(false);
   const [busqueda, setBusqueda] = useState('');
+
   const [filtroCategoria, setFiltroCategoria] = useState<CategoriaOperacion | 'TODOS'>('TODOS');
   const [filtroEstado, setFiltroEstado] = useState<EstadoOperacion | 'TODOS'>('TODOS');
   const [mostrarForm, setMostrarForm] = useState(false);
@@ -30,13 +34,36 @@ const AdminContratos = () => {
     await actualizar(operacion.id, { ...operacion, estadoActual: nuevoEstado });
   };
 
+  const handleCerrarContrato = () => setOperacionParaContrato(null);
+
+  const handleGenerarContrato = async () => {
+    if (!operacionParaContrato) return;
+    setGuardandoContrato(true);
+    try {
+      await contratoService.generarBorrador(operacionParaContrato.id, modeloContrato, {});
+      alert('Borrador de contrato generado correctamente.');
+      await cargarDetalle(operacionParaContrato.id);
+      await cargar();
+    } catch (e: any) {
+      alert(`Error al generar contrato: ${e.message || e}`);
+    } finally {
+      setGuardandoContrato(false);
+      setOperacionParaContrato(null);
+    }
+  };
+
   const operacionesFiltradas = operaciones.filter((o) => {
     const coincideCat = filtroCategoria === 'TODOS' || o.categoria_operacion === filtroCategoria;
     const coincideEst = filtroEstado === 'TODOS' || o.estadoActual === filtroEstado;
-    const coincideTexto = 
-      o.inmuebleReferencia.toLowerCase().includes(busqueda.toLowerCase()) ||
-      o.vendedorNombre?.toLowerCase().includes(busqueda.toLowerCase()) ||
-      o.compradorNombre?.toLowerCase().includes(busqueda.toLowerCase());
+    const textoBuscado = busqueda.toLowerCase();
+    const inmuebleRef = o.inmuebleReferencia?.toLowerCase() || '';
+    const vendedor = o.vendedorNombre?.toLowerCase() || '';
+    const comprador = o.compradorNombre?.toLowerCase() || '';
+
+    const coincideTexto =
+      inmuebleRef.includes(textoBuscado) ||
+      vendedor.includes(textoBuscado) ||
+      comprador.includes(textoBuscado);
 
     return coincideCat && coincideEst && coincideTexto;
   });
@@ -79,6 +106,10 @@ const AdminContratos = () => {
       <TablaOperaciones
         operaciones={operacionesFiltradas}
         onVerDetalle={cargarDetalle}
+        onCrearContrato={(id) => {
+          const match = operaciones.find((o) => o.id === id);
+          if (match) setOperacionParaContrato(match);
+        }}
         onCambiarEstado={handleCambiarEstadoRapido}
       />
 
@@ -89,7 +120,6 @@ const AdminContratos = () => {
           onCerrar={limpiarSeleccionada}
           onActualizar={actualizar}
           onEliminar={eliminar}
-          onSubirDocumento={subirDocumentoContrato}
         />
       )}
 

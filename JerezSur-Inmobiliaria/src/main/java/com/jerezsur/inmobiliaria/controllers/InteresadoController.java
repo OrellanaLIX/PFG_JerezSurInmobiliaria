@@ -65,11 +65,4 @@ public class InteresadoController {
         //Interesado actualizado = interesadoService.guardar(interesado);
         return ResponseEntity.ok(interesado);
     }
-
-    // --- ELIMINAR ---
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminarInteresado(@PathVariable Long id) {
-        interesadoService.eliminar(id);
-        return ResponseEntity.noContent().build(); // Devuelve 204 No Content
-    }
 }

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { usuarioService } from '../services/usuarioService';
-import type { Usuario, NuevoUsuario, Role } from '../types/usuario';
+import type { Usuario } from '../types/usuario';
 
 export const useUsuarios = () => {
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
@@ -40,7 +40,7 @@ export const useUsuarios = () => {
 
   const limpiarSeleccionado = () => setUsuarioSeleccionado(null);
 
-  const crear = async (usuario: NuevoUsuario) => {
+  const crear = async (usuario: any) => {
     await usuarioService.crear(usuario);
     await cargar();
   };

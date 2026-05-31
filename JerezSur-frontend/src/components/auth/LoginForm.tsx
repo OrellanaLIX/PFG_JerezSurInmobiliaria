@@ -58,15 +58,24 @@ const LoginForm = ({ onSwitchToRegister, onLoginSuccess }: LoginFormProps) => {
         throw new Error(errorText || 'Credenciales incorrectas');
       }
 
-      // El backend devuelve el objeto Usuario (sin password por el @JsonIgnore)
       const usuarioData = await response.json();
       
-      // 1. Guardamos en el AuthContext (y este lo guarda en LocalStorage)
-      login(usuarioData);
+      // Guardamos token y usuario en el contexto / localStorage
+      const normalizedUser = {
+        id: usuarioData.userId || usuarioData.id,
+        nombre: usuarioData.nombre,
+        email: usuarioData.email,
+        telefono: usuarioData.telefono,
+        token: usuarioData.token,
+      };
+
+      if (usuarioData.token) {
+        localStorage.setItem('token', usuarioData.token);
+      }
+      login(normalizedUser);
 
       setFormStatus('success');
       
-      // 2. Notificamos éxito y redirigimos
       setTimeout(() => {
         if (onLoginSuccess) onLoginSuccess();
       }, 1000);

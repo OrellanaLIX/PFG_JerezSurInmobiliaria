@@ -1,11 +1,31 @@
 import api from './api';
 import type { OperacionBase, NuevaOperacion, OperacionDetalle } from '../types/operacion';
 
+const mapOperacionToBase = (operacion: any): OperacionBase => ({
+  id: operacion.id,
+  categoria_operacion: operacion.categoria_operacion,
+  precioAcordado: Number(operacion.precioAcordado ?? 0),
+  tipo: operacion.tipo,
+  estadoActual: operacion.estadoActual,
+  inmuebleId: operacion.inmueble?.id ?? 0,
+  inmuebleReferencia:
+    operacion.inmueble?.referencia || operacion.inmueble?.direccion || `#${operacion.inmueble?.id ?? 'N/A'}`,
+  vendedorNombre:
+    operacion.vendedores?.[0]?.vendedor?.usuario?.nombre ||
+    operacion.vendedores?.[0]?.vendedor?.usuario?.email ||
+    undefined,
+  compradorNombre:
+    operacion.compradores?.[0]?.comprador?.usuario?.nombre ||
+    operacion.compradores?.[0]?.comprador?.usuario?.email ||
+    undefined,
+});
+
 export const operacionService = {
   getTodas: async (): Promise<OperacionBase[]> => {
     try {
       const { data } = await api.get<OperacionBase[]>('/operaciones');
-      return Array.isArray(data) ? data : (data as any).content || [];
+      const raw = Array.isArray(data) ? data : (data as any).content || [];
+      return raw.map(mapOperacionToBase);
     } catch (error) {
       console.error('Error al obtener operaciones:', error);
       throw new Error('No se pudieron cargar las operaciones.');
@@ -15,7 +35,10 @@ export const operacionService = {
   getPorId: async (id: number): Promise<OperacionDetalle> => {
     try {
       const { data } = await api.get<OperacionDetalle>(`/operaciones/${id}`);
-      return data;
+      return {
+        ...data,
+        documentos: Array.isArray((data as any).documentos) ? (data as any).documentos : [],
+      } as OperacionDetalle;
     } catch (error) {
       console.error(`Error al obtener operación ${id}:`, error);
       throw new Error('No se pudo cargar la operación.');
@@ -29,8 +52,8 @@ export const operacionService = {
         precioAcordado: Number(operacion.precioAcordado),
         tipo: operacion.tipo,
         inmueble: { id: operacion.inmuebleId },
-        representanteVendedor: { id: operacion.vendedorId },
-        representanteComprador: { id: operacion.interesadoId }
+        vendedores: [{ vendedor: { id: operacion.vendedorId } }],
+        compradores: [{ comprador: { id: operacion.interesadoId } }],
       };
 
       if (operacion.categoria_operacion === 'VENTA') {
@@ -45,8 +68,8 @@ export const operacionService = {
         payload.admiteMascotas = !!operacion.admiteMascotas;
       }
 
-      const { data } = await api.post<OperacionBase>('/operaciones', payload);
-      return data;
+      const { data } = await api.post('/operaciones', payload);
+      return mapOperacionToBase(data);
     } catch (error) {
       console.error('Error al crear operación:', error);
       if ((error as any)?.response?.data?.message) {
@@ -59,7 +82,7 @@ export const operacionService = {
   actualizar: async (id: number, operacionData: Partial<OperacionDetalle>): Promise<OperacionBase> => {
     try {
       const { data } = await api.put<OperacionBase>(`/operaciones/${id}`, operacionData);
-      return data;
+      return mapOperacionToBase(data);
     } catch (error) {
       console.error(`Error al actualizar operación ${id}:`, error);
       throw new Error('No se pudo actualizar la operación.');

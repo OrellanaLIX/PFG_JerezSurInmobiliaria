@@ -105,10 +105,9 @@ const Auth: React.FC = () => {
     redirectByUserRole(userData);
   };
 
-  const handleRegisterSuccess = (userData: UserData): void => {
-    console.log('Cuenta creada:', userData);
-    // Tras registro, siempre mandamos a redirección (que detectará ROLE_NOROL)
-    redirectByUserRole(userData);
+  const handleRegisterSuccess = (): void => {
+    alert('Registro completado. Ahora puedes iniciar sesión con tus credenciales.');
+    setAuthMode('login');
   };
 
   return (

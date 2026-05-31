@@ -188,4 +188,11 @@ public class UsuarioController {
                     .body(Map.of("error", "Error al procesar el perfil: " + e.getMessage()));
         }
     }
+
+    // --- ELIMINAR USUARIO ---
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> eliminarUsuario(@PathVariable Long id) {
+        usuarioService.eliminar(id);
+        return ResponseEntity.noContent().build();
+    }
 }

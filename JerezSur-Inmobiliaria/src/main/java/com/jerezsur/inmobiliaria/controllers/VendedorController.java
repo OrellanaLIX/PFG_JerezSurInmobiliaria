@@ -36,6 +36,7 @@ public class VendedorController {
             @RequestParam(required = false, defaultValue = "10") @Min(1) @Max(100) int size,
             @RequestParam(required = false, defaultValue = "id") String sortBy,
             @RequestParam(required = false, defaultValue = "asc") String sortDir) {
+
         return ResponseEntity.ok(vendedorService.listarTodos(page, size, sortBy, sortDir));
     }
 
@@ -55,12 +56,5 @@ public class VendedorController {
         vendedor.setId(id);
         // Vendedor actualizado = vendedorService.guardar(vendedor);
         return ResponseEntity.ok(vendedor);
-    }
-
-    // --- ELIMINAR VENDEDOR ---
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminarVendedor(@PathVariable Long id) {
-        vendedorService.eliminar(id);
-        return ResponseEntity.noContent().build();
     }
 }

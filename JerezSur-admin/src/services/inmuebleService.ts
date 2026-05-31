@@ -13,17 +13,16 @@ interface SpringPageResponse<T> {
 export const inmuebleService = {
   getTodos: async (): Promise<Inmueble[]> => {
     try {
-      // ✅ REFACTORIZADO: Tipamos correctamente la respuesta esperada de Spring Boot ({ content: [...] })
+      // ✅ Tipamos correctamente la respuesta esperada de Spring Boot
       const { data } = await api.get<SpringPageResponse<Inmueble>>('/inmuebles');
-      
-      // Validamos de forma segura si la API devolvió la envoltura de paginación o el array plano
+
       if (data && Array.isArray(data.content)) {
         return data.content;
       }
       return Array.isArray(data) ? data : [];
     } catch (error) {
       console.error('Error al obtener lista de inmuebles:', error);
-      throw new Error('No se pudieron cargar los inmuebles. Intenta de nuevo más tarde.');
+      throw error; // Relanzamos el error para no perder el contexto en los componentes
     }
   },
 
@@ -33,13 +32,12 @@ export const inmuebleService = {
       return data;
     } catch (error) {
       console.error(`Error al obtener inmueble ${id}:`, error);
-      throw new Error(`No se pudo cargar el inmueble. Intenta de nuevo más tarde.`);
+      throw error;
     }
   },
 
   crear: async (inmueble: NuevoInmueble): Promise<Inmueble> => {
     try {
-      // Normalizar valores numéricos para BigDecimal/Double en el backend de Java
       const payload: NuevoInmueble = {
         ...inmueble,
         precio: Number(inmueble.precio),
@@ -50,48 +48,47 @@ export const inmuebleService = {
         mConstruidos: inmueble.mConstruidos ? Number(inmueble.mConstruidos) : 0,
         habitaciones: inmueble.habitaciones ? Number(inmueble.habitaciones) : 1,
         banos: inmueble.banos ? Number(inmueble.banos) : 1,
-        // Forzamos el mapeo asegurando que los valores de los porcentajes viajen como Number y no como String
         propietariosPorcentaje: Object.entries(inmueble.propietariosPorcentaje).reduce((acc, [key, val]) => {
           acc[key] = Number(val);
           return acc;
-        }, {} as Record<string, number>)
+        }, {} as Record<string, number>),
+        imagenesUrls: inmueble.imagenesUrls ?? [],
       };
 
       const { data } = await api.post<Inmueble>('/inmuebles', payload);
       return data;
     } catch (error) {
       console.error('Error al crear inmueble:', error);
-      if ((error as any)?.response?.data?.message) {
-        throw new Error((error as any).response.data.message);
-      }
-      throw new Error('No se pudo crear el inmueble. Verifica los datos e intenta de nuevo.');
+      throw error; // 🛠️ DEJAMOS QUE AXIOS LLEVE EL ERROR COMPLETO AL MODAL
     }
   },
 
   actualizar: async (id: number, inmuebleData: Partial<InmuebleDetalle>): Promise<Inmueble> => {
     try {
-      // Normalizar valores numéricos
+      // 🛠️ MAPEADO COMPLETO: Aseguramos la conversión numérica de todos los posibles campos editables
       const payload = {
         ...inmuebleData,
         ...(inmuebleData.precio !== undefined && { precio: Number(inmuebleData.precio) }),
         ...(inmuebleData.comunidad !== undefined && { comunidad: Number(inmuebleData.comunidad) }),
         ...(inmuebleData.ibi !== undefined && { ibi: Number(inmuebleData.ibi) }),
+        ...(inmuebleData.valorDerrama !== undefined && { valorDerrama: Number(inmuebleData.valorDerrama) }),
+        ...(inmuebleData.superficieUtil !== undefined && { superficieUtil: Number(inmuebleData.superficieUtil) }),
+        ...(inmuebleData.mConstruidos !== undefined && { mConstruidos: Number(inmuebleData.mConstruidos) }),
+        ...(inmuebleData.habitaciones !== undefined && { habitaciones: Number(inmuebleData.habitaciones) }),
+        ...(inmuebleData.banos !== undefined && { banos: Number(inmuebleData.banos) }),
         ...(inmuebleData.propietariosPorcentaje !== undefined && {
           propietariosPorcentaje: Object.entries(inmuebleData.propietariosPorcentaje).reduce((acc, [key, val]) => {
             acc[key] = Number(val);
             return acc;
-          }, {} as Record<string, number>)
+          }, {} as Record<string, number>),
         }),
       };
-      
+
       const { data } = await api.put<Inmueble>(`/inmuebles/${id}`, payload);
       return data;
     } catch (error) {
       console.error(`Error al actualizar inmueble ${id}:`, error);
-      if ((error as any)?.response?.data?.message) {
-        throw new Error((error as any).response.data.message);
-      }
-      throw new Error('No se pudo actualizar el inmueble. Intenta de nuevo más tarde.');
+      throw error; // 🛠️ EL MODAL LEERÁ EL 'error.response.data.message' DE SPRING PERFECTAMENTE
     }
   },
 
@@ -100,7 +97,7 @@ export const inmuebleService = {
       await api.delete(`/inmuebles/${id}`);
     } catch (error) {
       console.error(`Error al eliminar inmueble ${id}:`, error);
-      throw new Error('No se pudo eliminar el inmueble. Intenta de nuevo más tarde.');
+      throw error;
     }
   }
 };

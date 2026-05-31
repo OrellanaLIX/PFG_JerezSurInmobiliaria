@@ -6,6 +6,7 @@ interface User {
   nombre: string;
   email?: string;
   telefono?: string;
+  token?: string;
 }
 
 interface AuthContextType {
@@ -31,6 +32,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = (userData: User) => {
     setUser(userData);
     localStorage.setItem('usuario', JSON.stringify(userData));
+    if (userData.token) {
+      localStorage.setItem('token', userData.token);
+    }
   };
 
   const logout = () => {

@@ -73,10 +73,6 @@ public abstract class Operacion {
   @OneToMany(mappedBy = "operacion", cascade = CascadeType.ALL)
   private List<Contrato> documentos;
 
-  // Relación con todos los vendedores que intervienen en la firma
-  @OneToMany(mappedBy = "operacion", cascade = CascadeType.ALL)
-  private List<Operacion_Vendedor> vendedores;
-
   // Relación con todos los interesados/compradores que intervienen
   @OneToMany(mappedBy = "operacion", cascade = CascadeType.ALL)
   private List<Operacion_Interesado> compradores;

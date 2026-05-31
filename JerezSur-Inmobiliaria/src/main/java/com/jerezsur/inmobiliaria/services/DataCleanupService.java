@@ -11,6 +11,7 @@ import com.jerezsur.inmobiliaria.repositories.CitaRepository;
 import com.jerezsur.inmobiliaria.repositories.ContratoRepository;
 import com.jerezsur.inmobiliaria.repositories.InmuebleRepository;
 import com.jerezsur.inmobiliaria.repositories.OperacionRepository;
+import com.jerezsur.inmobiliaria.repositories.UsuarioRepository;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -29,6 +30,9 @@ public class DataCleanupService {
 
     @Autowired
     private OperacionRepository operacionRepository;
+
+    @Autowired
+    private UsuarioRepository usuarioRepository;
 
     // ------------------------------------------------------------------
     // TAREAS PROGRAMADAS (CRON)
@@ -68,5 +72,7 @@ public class DataCleanupService {
 
         // CATÁLOGO DE INMUEBLES: Eliminar inmuebles retirados hace más de 1 año
         inmuebleRepository.borrarInmueblesRetiradosAntiguos(haceUnAño);
+
+        usuarioRepository.deleteByCuentaActivadaFalseAndFechaEliminacionBefore(haceSeisMeses);
     }
 }

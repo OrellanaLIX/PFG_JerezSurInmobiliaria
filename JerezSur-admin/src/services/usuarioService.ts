@@ -1,6 +1,37 @@
 import api from './api';
 import type { Usuario, NuevoUsuario, UsuarioDetalle } from '../types/usuario';
 
+type RolPerfil = 'ninguno' | 'trabajador' | 'interesado' | 'vendedor' | 'ambos';
+
+interface DatosTrabajador {
+  dni: string;
+  cargo: string;
+  fechaInicioContrato: string;
+  fechaFinContrato?: string;
+  observacionesLaborales?: string;
+}
+
+interface DatosInteresado {
+  presupuestoMaximo?: number;
+  zonaInteres?: string;
+  habitacionesMinimas?: number;
+  banosMinimos?: number;
+  tipoBusqueda?: 'VENTA' | 'ALQUILER' | 'CUALQUIERA';
+  requiereHipoteca?: boolean;
+  observaciones?: string;
+}
+
+interface DatosVendedor {
+  observaciones?: string;
+}
+
+export interface NuevoUsuarioConPerfil extends NuevoUsuario {
+  rol: RolPerfil;
+  datosTrabajador?: DatosTrabajador;
+  datosInteresado?: DatosInteresado;
+  datosVendedor?: DatosVendedor;
+}
+
 export const usuarioService = {
   getTodos: async (): Promise<Usuario[]> => {
     const { data } = await api.get<Usuario[]>('/usuarios');
@@ -12,7 +43,7 @@ export const usuarioService = {
     return data;
   },
 
-  crear: async (usuario: NuevoUsuario): Promise<Usuario> => {
+  crear: async (usuario: NuevoUsuarioConPerfil): Promise<Usuario> => {
     const payload = {
       nombre: usuario.nombre,
       apellidos: usuario.apellidos,
@@ -24,7 +55,45 @@ export const usuarioService = {
     };
 
     const { data } = await api.post<Usuario>('/usuarios/registro', payload);
-    return data;
+    const creado = data;
+
+    if (usuario.rol && usuario.rol !== 'ninguno') {
+      const perfilPayload: any = {
+        role: usuario.rol === 'ambos' ? 'ROLE_AMBOS' : `ROLE_${usuario.rol.toUpperCase()}`,
+        perfil:
+          usuario.rol === 'trabajador' ? 'trabajador' :
+          usuario.rol === 'interesado' ? 'interesado' :
+          usuario.rol === 'vendedor' ? 'propietario' :
+          usuario.rol === 'ambos' ? 'ambos' : undefined,
+      };
+
+      if (usuario.datosTrabajador && ['trabajador', 'ambos'].includes(usuario.rol)) {
+        perfilPayload.dniTrabajador = usuario.datosTrabajador.dni;
+        perfilPayload.cargo = usuario.datosTrabajador.cargo;
+        perfilPayload.fechaInicioContrato = usuario.datosTrabajador.fechaInicioContrato;
+        perfilPayload.fechaFinContrato = usuario.datosTrabajador.fechaFinContrato;
+        perfilPayload.observacionesLaborales = usuario.datosTrabajador.observacionesLaborales;
+        perfilPayload.activoTrabajador = true;
+      }
+
+      if (usuario.datosInteresado && ['interesado', 'ambos'].includes(usuario.rol)) {
+        perfilPayload.presupuestoMaximo = usuario.datosInteresado.presupuestoMaximo;
+        perfilPayload.zonaInteres = usuario.datosInteresado.zonaInteres;
+        perfilPayload.habitacionesMinimas = usuario.datosInteresado.habitacionesMinimas;
+        perfilPayload.banosMinimos = usuario.datosInteresado.banosMinimos;
+        perfilPayload.tipoOperacion = usuario.datosInteresado.tipoBusqueda;
+        perfilPayload.requiereHipoteca = usuario.datosInteresado.requiereHipoteca;
+        perfilPayload.observacionesInteresado = usuario.datosInteresado.observaciones;
+      }
+
+      if (usuario.datosVendedor && ['vendedor', 'ambos'].includes(usuario.rol)) {
+        perfilPayload.observacionesVendedor = usuario.datosVendedor.observaciones;
+      }
+
+      await api.put<UsuarioDetalle>(`/usuarios/${creado.id}`, perfilPayload);
+    }
+
+    return creado;
   },
 
   /**

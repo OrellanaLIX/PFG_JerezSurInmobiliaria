@@ -33,9 +33,6 @@ public class OperacionService {
         validarDatosOperacion(operacion);
 
         // VINCULACIÓN: Sincronización de tablas intermedias para persistencia correcta
-        if (operacion.getVendedores() != null) {
-            operacion.getVendedores().forEach(v -> v.setOperacion(operacion));
-        }
         if (operacion.getCompradores() != null) {
             operacion.getCompradores().forEach(c -> c.setOperacion(operacion));
         }
