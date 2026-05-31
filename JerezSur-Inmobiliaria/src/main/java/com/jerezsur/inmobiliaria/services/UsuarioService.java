@@ -102,12 +102,12 @@ public class UsuarioService {
     @Transactional
     public Usuario registrarUsuario(RegistroRequest request) {
         Usuario usuario = new Usuario();
-        usuario.setEmail(request.getEmail());
-        usuario.setTelefono(request.getTelefono());
+        usuario.setEmail(nullIfEmpty(request.getEmail()));
+        usuario.setTelefono(nullIfEmpty(request.getTelefono()));
         usuario.setNombre(request.getNombre());
         usuario.setApellidos(request.getApellidos());
-        usuario.setPassword(request.getPassword());
-        usuario.setDni(request.getDni());
+        usuario.setPassword(nullIfEmpty(request.getPassword()));
+        usuario.setDni(nullIfEmpty(request.getDni()));
 
         validarDatos(usuario);
 
@@ -216,5 +216,9 @@ public class UsuarioService {
 
     private boolean isEmpty(String str) {
         return str == null || str.trim().isEmpty();
+    }
+
+    private String nullIfEmpty(String str) {
+        return (str == null || str.trim().isEmpty()) ? null : str.trim();
     }
 }

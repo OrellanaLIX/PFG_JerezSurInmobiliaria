@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { operacionService } from '../services/operacionService';
-import type { OperacionBase, NuevaOperacion, OperacionDetalle } from '../types/operacion';
+import type { OperacionBase, NuevaOperacion, OperacionDetalle, EstadoOperacion } from '../types/operacion';
 
 export const useOperaciones = () => {
   const [operaciones, setOperaciones] = useState<OperacionBase[]>([]);
@@ -13,8 +13,7 @@ export const useOperaciones = () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await operacionService.getTodas();
-      setOperaciones(data);
+      setOperaciones(await operacionService.getTodas());
     } catch {
       setError('Error al cargar el histórico de operaciones');
     } finally {
@@ -22,17 +21,14 @@ export const useOperaciones = () => {
     }
   }, []);
 
-  useEffect(() => {
-    cargar();
-  }, [cargar]);
+  useEffect(() => { cargar(); }, [cargar]);
 
   const cargarDetalle = async (id: number) => {
     try {
       setLoadingDetalle(true);
-      const data = await operacionService.getPorId(id);
-      setOperacionSeleccionada(data);
+      setOperacionSeleccionada(await operacionService.getPorId(id));
     } catch {
-      setError('Error al recuperar los contratos de la operación');
+      setError('Error al recuperar los detalles de la operación');
     } finally {
       setLoadingDetalle(false);
     }
@@ -45,12 +41,10 @@ export const useOperaciones = () => {
     await cargar();
   };
 
-  const actualizar = async (id: number, operacionData: Partial<OperacionDetalle>) => {
-    await operacionService.actualizar(id, operacionData);
+  const actualizarEstado = async (id: number, estado: EstadoOperacion) => {
+    await operacionService.actualizarEstado(id, estado);
     await cargar();
-    if (operacionSeleccionada?.id === id) {
-      await cargarDetalle(id);
-    }
+    if (operacionSeleccionada?.id === id) await cargarDetalle(id);
   };
 
   const eliminar = async (id: number) => {
@@ -60,7 +54,6 @@ export const useOperaciones = () => {
 
   const subirDocumentoContrato = async (contratoId: number, archivo: File) => {
     await operacionService.subirContratoPdf(contratoId, archivo);
-    // refrescar detalles si el contrato pertenece a la operación seleccionada
     if (operacionSeleccionada) await cargarDetalle(operacionSeleccionada.id);
     await cargar();
   };
@@ -75,7 +68,7 @@ export const useOperaciones = () => {
     cargarDetalle,
     limpiarSeleccionada,
     crear,
-    actualizar,
+    actualizarEstado,
     eliminar,
     subirDocumentoContrato,
   };

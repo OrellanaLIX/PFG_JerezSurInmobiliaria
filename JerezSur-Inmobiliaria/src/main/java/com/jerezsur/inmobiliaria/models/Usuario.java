@@ -28,6 +28,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Builder.Default;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
@@ -37,6 +38,7 @@ import lombok.ToString;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(of = "id")
 public class Usuario {
 
     @Id
@@ -96,10 +98,12 @@ public class Usuario {
     private Trabajador trabajador;
 
     @OneToOne(mappedBy = "usuario", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @ToString.Exclude
     @JsonIgnore
     private Interesado interesado;
 
     @OneToOne(mappedBy = "usuario", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @ToString.Exclude
     @JsonIgnore
     private Vendedor vendedor;
 

@@ -24,6 +24,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Builder.Default;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
@@ -33,6 +34,7 @@ import lombok.ToString;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(of = "id")
 public class Trabajador {
 
     // --- IDENTIFICADOR ---
@@ -68,6 +70,8 @@ public class Trabajador {
 
     // Contratos en los que el trabajador ha actuado como representante/testigo
     @OneToMany(mappedBy = "trabajador")
+    @ToString.Exclude
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private List<Contrato> contratos;
 
     // Vinculación con las credenciales de seguridad del sistema

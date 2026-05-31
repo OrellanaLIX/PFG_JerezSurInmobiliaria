@@ -61,4 +61,8 @@ public interface InmuebleRepository extends JpaRepository<Inmueble, Long> {
         List<Inmueble> findByEstado(EstadoInmueble estado);
 
         List<Inmueble> findByEstadoAndOperacion(EstadoInmueble disponible, TipoOperacion operacion);
+
+        List<Inmueble> findByDestacadoTrueOrderByFechaRegistroAsc();
+
+        List<Inmueble> findByDestacadoTrueOrderByFechaRegistroDesc();
 }

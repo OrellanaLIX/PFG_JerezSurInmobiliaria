@@ -2,6 +2,7 @@ package com.jerezsur.inmobiliaria.services;
 
 import com.jerezsur.inmobiliaria.dto.InmuebleActualizarDTO;
 import com.jerezsur.inmobiliaria.dto.InmuebleCrearDTO;
+import com.jerezsur.inmobiliaria.dto.InmuebleDestacadoDTO;
 import com.jerezsur.inmobiliaria.exceptions.BusinessValidationException;
 import com.jerezsur.inmobiliaria.exceptions.ResourceNotFoundException;
 import com.jerezsur.inmobiliaria.models.Imagen;
@@ -21,7 +22,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class InmuebleService {
@@ -76,6 +79,44 @@ public class InmuebleService {
 
         // 3. Guardado final
         return inmuebleRepository.save(inmueble);
+    }
+
+    @Transactional(readOnly = true)
+    public List<InmuebleDestacadoDTO> listarDestacadosDTO() {
+        List<Inmueble> destacados = inmuebleRepository.findByDestacadoTrueOrderByFechaRegistroDesc();
+        return destacados.stream().map(i -> {
+            String imagenUrl = i.getImagenes().stream()
+                    .filter(img -> Boolean.TRUE.equals(img.getEsPortada()))
+                    .findFirst()
+                    .or(() -> i.getImagenes().stream().findFirst())
+                    .map(Imagen::getUrl)
+                    .orElse(null);
+            return InmuebleDestacadoDTO.builder()
+                    .id(i.getId())
+                    .referencia(i.getReferencia())
+                    .titulo(i.getTitulo())
+                    .precio(i.getPrecio())
+                    .operacion(i.getOperacion() != null ? i.getOperacion().name() : null)
+                    .ciudad(i.getCiudad())
+                    .zona(i.getZona())
+                    .habitaciones(i.getHabitaciones())
+                    .banos(i.getBanos())
+                    .superficieUtil(i.getSuperficieUtil())
+                    .imagenPortadaUrl(imagenUrl)
+                    .build();
+        }).collect(Collectors.toList());
+    }
+
+    private void enforceDestacadoLimit(Long exceptoId) {
+        List<Inmueble> destacados = inmuebleRepository.findByDestacadoTrueOrderByFechaRegistroAsc();
+        List<Inmueble> otros = destacados.stream()
+                .filter(i -> exceptoId == null || !i.getId().equals(exceptoId))
+                .collect(Collectors.toList());
+        while (otros.size() >= 3) {
+            Inmueble oldest = otros.remove(0);
+            oldest.setDestacado(false);
+            inmuebleRepository.save(oldest);
+        }
     }
 
     @Transactional
@@ -157,9 +198,15 @@ public class InmuebleService {
         inmueble.setHabitaciones(dto.getHabitaciones());
         inmueble.setBanos(dto.getBanos());
         inmueble.setDireccion(dto.getDireccion());
+        if (dto.getZona() != null) inmueble.setZona(dto.getZona());
         inmueble.setCodigoPostal(dto.getCodigoPostal());
         inmueble.setCiudad(dto.getCiudad());
-        
+
+        if (Boolean.TRUE.equals(dto.getDestacado())) {
+            enforceDestacadoLimit(null);
+        }
+        inmueble.setDestacado(Boolean.TRUE.equals(dto.getDestacado()));
+
         // Gastos y cargas
         if (dto.getComunidad() != null) inmueble.setComunidad(dto.getComunidad());
         if (dto.getTieneDerrama() != null) inmueble.setTieneDerrama(dto.getTieneDerrama());
@@ -232,8 +279,16 @@ public class InmuebleService {
         if (dto.getHabitaciones() != null) inmueble.setHabitaciones(dto.getHabitaciones());
         if (dto.getBanos() != null) inmueble.setBanos(dto.getBanos());
         if (dto.getDireccion() != null) inmueble.setDireccion(dto.getDireccion());
+        if (dto.getZona() != null) inmueble.setZona(dto.getZona());
         if (dto.getCodigoPostal() != null) inmueble.setCodigoPostal(dto.getCodigoPostal());
         if (dto.getCiudad() != null) inmueble.setCiudad(dto.getCiudad());
+
+        if (dto.getDestacado() != null) {
+            if (Boolean.TRUE.equals(dto.getDestacado()) && !Boolean.TRUE.equals(inmueble.getDestacado())) {
+                enforceDestacadoLimit(id);
+            }
+            inmueble.setDestacado(dto.getDestacado());
+        }
 
         // Gastos y cargas
         if (dto.getComunidad() != null) inmueble.setComunidad(dto.getComunidad());

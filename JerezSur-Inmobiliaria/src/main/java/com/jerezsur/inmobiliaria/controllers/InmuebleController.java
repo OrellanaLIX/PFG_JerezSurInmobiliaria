@@ -1,6 +1,7 @@
 package com.jerezsur.inmobiliaria.controllers;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import com.jerezsur.inmobiliaria.dto.InmuebleActualizarDTO;
 import com.jerezsur.inmobiliaria.dto.InmuebleCrearDTO;
+import com.jerezsur.inmobiliaria.dto.InmuebleDestacadoDTO;
 import com.jerezsur.inmobiliaria.models.Inmueble;
 import com.jerezsur.inmobiliaria.models.enums.EstadoInmueble;
 import com.jerezsur.inmobiliaria.models.enums.TipoOperacion;
@@ -26,6 +28,11 @@ public class InmuebleController {
 
     @Autowired
     private InmuebleService inmuebleService;
+
+    @GetMapping("/destacados")
+    public ResponseEntity<List<InmuebleDestacadoDTO>> getDestacados() {
+        return ResponseEntity.ok(inmuebleService.listarDestacadosDTO());
+    }
 
     @GetMapping
     public ResponseEntity<Page<Inmueble>> filtrar(

@@ -23,6 +23,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.Builder.Default;
 
@@ -32,6 +33,7 @@ import lombok.Builder.Default;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(of = "id")
 public class Contrato {
 
     // --- IDENTIFICADOR ---
@@ -62,9 +64,9 @@ public class Contrato {
     @JoinColumn(name = "operacion_id", nullable = false)
     private Operacion operacion;
 
-    // Trabajador responsable de gestionar o supervisar la firma
+    // Trabajador responsable de gestionar o supervisar la firma (opcional al crear el borrador)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "trabajador_id", nullable = false)
+    @JoinColumn(name = "trabajador_id", nullable = true)
     private Trabajador trabajador;
 
     // --- AUDITORÍA ---

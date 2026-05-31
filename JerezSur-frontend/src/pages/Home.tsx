@@ -3,18 +3,21 @@ import { Link } from 'react-router-dom';
 import logo from '../assets/imgs/LogoAncho.png';
 import '../styles/Home.scss';
 
-// TIPOS (Sin cambios)
-type Property = {
+const API_BASE = 'http://localhost:8080/api';
+const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80';
+
+type FeaturedProperty = {
   id: number;
-  title: string;
-  location: string;
-  price: string;
-  type: 'Venta' | 'Alquiler';
-  image: string;
-  beds: number;
-  baths: number;
-  area: number;
-  slug: string;
+  referencia: string;
+  titulo: string;
+  precio: number;
+  operacion?: string;
+  ciudad?: string;
+  zona?: string;
+  habitaciones?: number;
+  banos?: number;
+  superficieUtil?: number;
+  imagenPortadaUrl?: string;
 };
 
 type Testimonial = {
@@ -23,12 +26,13 @@ type Testimonial = {
   text: string;
 };
 
-// DATOS MOCK (Reseña 1 actualizada)
-const featuredProperties: Property[] = [
-  { id: 1, title: 'Piso luminoso en zona centro', location: 'Centro, Jerez de la Frontera', price: '185.000 €', type: 'Venta', image: 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80', beds: 3, baths: 2, area: 108, slug: 'piso-luminoso-zona-centro' },
-  { id: 2, title: 'Casa familiar con patio', location: 'Zona Sur, Jerez de la Frontera', price: '249.000 €', type: 'Venta', image: 'https://images.unsplash.com/photo-1560185007-c5ca9d2c014d?auto=format&fit=crop&w=1200&q=80', beds: 4, baths: 2, area: 164, slug: 'casa-familiar-con-patio' },
-  { id: 3, title: 'Ático con terraza', location: 'Norte, Jerez de la Frontera', price: '950 €/mes', type: 'Alquiler', image: 'https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=1200&q=80', beds: 2, baths: 1, area: 92, slug: 'atico-con-terraza' },
-];
+const slugify = (text: string) =>
+  text.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+
+const formatPrecio = (precio: number, operacion?: string): string => {
+  const formatted = new Intl.NumberFormat('es-ES').format(precio);
+  return operacion === 'ALQUILER' ? `${formatted} €/mes` : `${formatted} €`;
+};
 
 const testimonials: Testimonial[] = [
   { id: 1, name: 'María G.', text: 'obiliaria nos inspiraron mucha confianza. Estamos convencidos de que ambos le ha dado un aire fresco a la inmobiliaria. Sin duda, volveremos a contar con ellos en futuras ocasiones.' },
@@ -39,12 +43,19 @@ const testimonials: Testimonial[] = [
 
 const Home = () => {
   const [activeTestimonial, setActiveTestimonial] = useState(0);
+  const [destacados, setDestacados] = useState<FeaturedProperty[]>([]);
+
+  useEffect(() => {
+    fetch(`${API_BASE}/inmuebles/destacados`)
+      .then(r => r.ok ? r.json() : [])
+      .then(data => setDestacados(Array.isArray(data) ? data : []))
+      .catch(() => setDestacados([]));
+  }, []);
 
   useEffect(() => {
     const interval = window.setInterval(() => {
       setActiveTestimonial((prev) => (prev + 1) % testimonials.length);
-    }, 5000); // Carrusel cada 5 segundos
-
+    }, 5000);
     return () => window.clearInterval(interval);
   }, []);
 
@@ -88,23 +99,36 @@ const Home = () => {
           <Link to="/inmuebles" className="btn btn--outline">Ver todas</Link>
         </div>
         <div className="properties-grid">
-          {featuredProperties.map((property) => (
-            <article key={property.id} className="property-card">
-              <div className="property-card__media">
-                <img src={property.image} alt={property.title} loading="lazy" />
-                <span className="property-card__tag">{property.type}</span>
-              </div>
-              <div className="property-card__content">
-                <h3>{property.title}</h3>
-                <p className="property-card__location">{property.location}</p>
-                <div className="property-card__features">
-                  <span>{property.beds} hab.</span><span>{property.baths} baños</span><span>{property.area} m²</span>
-                </div>
-                <span className="price">{property.price}</span>
-                <Link to={`/inmuebles/${property.slug}`} className="btn btn--primary btn--full">Ver detalles</Link>
-              </div>
-            </article>
-          ))}
+          {destacados.length === 0 ? (
+            <p style={{ gridColumn: '1/-1', textAlign: 'center', color: '#6c757d' }}>
+              No hay propiedades destacadas en este momento.
+            </p>
+          ) : (
+            destacados.map((p) => {
+              const slug = `${slugify(p.referencia)}-${slugify(p.titulo.substring(0, 40))}`;
+              const tipo = p.operacion === 'ALQUILER' ? 'Alquiler' : 'Venta';
+              const location = [p.zona, p.ciudad].filter(Boolean).join(', ');
+              return (
+                <article key={p.id} className="property-card">
+                  <div className="property-card__media">
+                    <img src={p.imagenPortadaUrl || DEFAULT_IMAGE} alt={p.titulo} loading="lazy" />
+                    <span className="property-card__tag">{tipo}</span>
+                  </div>
+                  <div className="property-card__content">
+                    <h3>{p.titulo}</h3>
+                    <p className="property-card__location">{location || 'Jerez de la Frontera'}</p>
+                    <div className="property-card__features">
+                      {p.habitaciones != null && <span>{p.habitaciones} hab.</span>}
+                      {p.banos != null && <span>{p.banos} baños</span>}
+                      {p.superficieUtil != null && <span>{p.superficieUtil} m²</span>}
+                    </div>
+                    <span className="price">{formatPrecio(p.precio, p.operacion)}</span>
+                    <Link to={`/inmuebles/${slug}`} className="btn btn--primary btn--full">Ver detalles</Link>
+                  </div>
+                </article>
+              );
+            })
+          )}
         </div>
       </section>
 

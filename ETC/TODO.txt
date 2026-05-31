@@ -1,6 +1,4 @@
 HORARIO:
-29/05 -> Últimos retoques y limpiar código basura
-30/05 -> Terminar ultimos retoques, comprobar que todo funcione
 31/05 -> Documentación
 01/06 -> Enviar y comenzar con mini mejoras
 Hasta el 08/06 -> Presentación, aprender código, seguir con mini mejoras
@@ -16,10 +14,16 @@ Quitar cosas para mapa interactivo de búsqueda de inmueble de la docu
 Mejorar botón de tareas para no tener que poner enlace
 
 FIXES:
-Al crear un usuario lo crea pero visualmente no esta del todo bien
-Cambiar contratos por operacion y crear cotratos para cada operacion (un formmodel de creacion de contrato para cada operacion en el front de admin)
 Revisr Filtros de busqueda del panel de admin
-Revisar relaciones y types
 Hemos tocado bastantes cosas del back y ahora el front publico no funciona correctamente (arreglarlo)
 Repaso general
 Comprobar funcionamiento de las apis
+Añadir campo de zona a inmueble
+Login con provider asigna telefono erroneo
+
+HECHO:
+Al crear un usuario lo crea pero visualmente no esta del todo bien
+Revisar relaciones y types
+Cambiar contratos por operacion y crear cotratos para cada operacion (un formmodel de creacion de contrato para cada operacion en el front de admin)
+CRUD completo funcional
+No crea Imagen a la vez que inmueble

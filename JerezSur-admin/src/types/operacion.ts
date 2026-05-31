@@ -1,68 +1,91 @@
 // ==========================================
-// ENUMS
+// ENUMS — deben coincidir exactamente con el backend
 // ==========================================
-export type TipoOperacionContrato = 'VENTA' | 'ALQUILER' | 'TRASPASO';
-export type EstadoOperacion = 'ABIERTA' | 'EN_TRAMITE' | 'CERRADA' | 'CANCELADA';
 export type CategoriaOperacion = 'VENTA' | 'ALQUILER';
-
-export interface DocumentoContrato {
-  id: number;
-  urlArchivo: string;
-  tipoDocumento: string; // Arras, Contrato Final, Anexo...
-  fechaFirma: string;
-}
+export type EstadoOperacion = 'ABIERTA' | 'EN_TRAMITE' | 'CERRADA' | 'CANCELADA';
+export type RolParticipante = 'TITULAR' | 'APODERADO' | 'AVALISTA';
+export type ModeloContrato = 'ARRAS' | 'ALQUILER_VIVIENDA';
 
 // ==========================================
-// INTERFAZ BASE COMPARTIDA
+// VISTAS DE LISTA (ligeras)
 // ==========================================
 export interface OperacionBase {
   id: number;
-  categoria_operacion: CategoriaOperacion; // El discriminador de Jackson
+  categoria_operacion: CategoriaOperacion;
   precioAcordado: number;
-  tipo: TipoOperacionContrato;
   estadoActual: EstadoOperacion;
-  
-  // Guardamos referencias simples para los listados ligeros
   inmuebleId: number;
   inmuebleReferencia: string;
-  vendedorNombre?: string;
-  compradorNombre?: string;
+  // Primer interesado del mapa para mostrar en tabla
+  primerInteresadoId?: number;
+  primerInteresadoRol?: RolParticipante;
 }
 
 // ==========================================
-// UNIÓN DISCRIMINADA (POLIMORFISMO EN TS)
+// DETALLE COMPLETO (polimórfico)
 // ==========================================
 export interface OperacionVentaDetalle extends OperacionBase {
   categoria_operacion: 'VENTA';
-  // Añade aquí campos específicos de tu clase OperacionVenta de Java, ej:
-  gastosNotariaComprador?: boolean;
-  importeArras?: number;
+  depositoArras?: number;
+  fechaLimiteEscritura?: string;
+  incluyeMobiliario?: boolean;
 }
 
 export interface OperacionAlquilerDetalle extends OperacionBase {
   categoria_operacion: 'ALQUILER';
-  // Añade aquí campos específicos de tu clase OperacionAlquiler de Java, ej:
-  fianzaMeses: number;
-  incluyeGastosComunidad: boolean;
+  fianza?: number;
+  duracionMeses?: number;
+  admiteMascotas?: boolean;
 }
 
-// El tipo definitivo para detalles profundos
 export type OperacionDetalle = (OperacionVentaDetalle | OperacionAlquilerDetalle) & {
-  documentos: DocumentoContrato[];
-  vendedoresIds: number[];
-  compradoresIds: number[];
+  // Mapa { "interesadoId": "ROL" } — viene del getter getCompradoresRolIds()
+  compradoresRol: Record<string, RolParticipante>;
+  documentos: ContratoResumen[];
 };
 
-// DTO para la creación de un nuevo trámite
+// ==========================================
+// CONTRATOS
+// ==========================================
+export interface ContratoResumen {
+  id: number;
+  modelo: ModeloContrato;
+  estado: string;
+  fechaFirma: string;
+  urlDocumentoPdf?: string;
+}
+
+export interface ContratoDetalle {
+  id: number;
+  modelo: string;
+  estado: string;
+  fechaFirma: string;
+  clausulasEspeciales?: string;
+  urlDocumentoPdf?: string;
+  trabajadorId?: number;
+}
+
+export interface CrearContratoData {
+  modelo: ModeloContrato;
+  fechaFirma: string;
+  clausulasEspeciales?: string;
+  trabajadorId?: number;
+}
+
+// ==========================================
+// DTO DE CREACIÓN
+// ==========================================
 export interface NuevaOperacion {
   categoria_operacion: CategoriaOperacion;
   precioAcordado: number;
-  tipo: TipoOperacionContrato;
   inmuebleId: number;
-  interesadoId: number;
+  // Mapa de interesados con sus roles: { "1": "TITULAR", "3": "AVALISTA" }
+  interesadosRol: Record<string, RolParticipante>;
+  // VENTA
   depositoArras?: number;
   fechaLimiteEscritura?: string;
   incluyeMobiliario?: boolean;
+  // ALQUILER
   fianza?: number;
   duracionMeses?: number;
   admiteMascotas?: boolean;

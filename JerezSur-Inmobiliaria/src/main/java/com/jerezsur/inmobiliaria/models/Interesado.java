@@ -2,12 +2,10 @@ package com.jerezsur.inmobiliaria.models;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
-
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.jerezsur.inmobiliaria.models.enums.EstadoComprador;
 import com.jerezsur.inmobiliaria.models.enums.TipoOperacion;
 
@@ -19,12 +17,12 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.Builder.Default;
 
@@ -34,6 +32,7 @@ import lombok.Builder.Default;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(of = "id")
 public class Interesado {
 
     @Id
@@ -64,13 +63,9 @@ public class Interesado {
     @Column(columnDefinition = "TEXT")
     private String observaciones;
 
-    // --- RELACIONES ---
-    @OneToMany(mappedBy = "comprador")
-    private List<Operacion_Interesado> operaciones;
-
-    @JsonBackReference
     @OneToOne
     @JoinColumn(name = "usuario_id")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "password", "interesado", "vendedor", "trabajador", "citas"})
     private Usuario usuario;
 
     // --- AUDITORÍA ---

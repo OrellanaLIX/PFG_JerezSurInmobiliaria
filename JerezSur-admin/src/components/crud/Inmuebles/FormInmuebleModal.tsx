@@ -35,10 +35,12 @@ export const FormInmuebleModal = ({ onCrear, onCancelar, error: externalError }:
     superficieUtil: 0, 
     mConstruidos: 0, 
     habitaciones: 1,
-    banos: 1, 
-    direccion: '', 
-    codigoPostal: '', 
-    ciudad: '', 
+    banos: 1,
+    direccion: '',
+    zona: '',
+    codigoPostal: '',
+    ciudad: '',
+    destacado: false,
     descripcion: '',
     comunidad: 0,
     ibi: 0,
@@ -287,6 +289,15 @@ export const FormInmuebleModal = ({ onCrear, onCancelar, error: externalError }:
               <div className="form-row">
                 <Field label="Código Postal *"><input type="text" required value={form.codigoPostal} onChange={e => setForm({ ...form, codigoPostal: e.target.value })} /></Field>
                 <Field label="Ciudad *"><input type="text" required value={form.ciudad} onChange={e => setForm({ ...form, ciudad: e.target.value })} /></Field>
+                <Field label="Zona"><input type="text" placeholder="ej: Mopu, Chapín..." value={form.zona || ''} onChange={e => setForm({ ...form, zona: e.target.value })} /></Field>
+              </div>
+              <div className="form-row">
+                <Field label="Destacado en portada">
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                    <input type="checkbox" checked={!!form.destacado} onChange={e => setForm({ ...form, destacado: e.target.checked })} style={{ width: 'auto' }} />
+                    <span>Mostrar en destacados (máx. 3)</span>
+                  </label>
+                </Field>
               </div>
 
               <p className="section-title">Gastos y Cargas</p>

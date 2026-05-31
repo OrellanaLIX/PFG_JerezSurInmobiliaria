@@ -35,8 +35,10 @@ export interface Inmueble {
   habitaciones: number;
   banos: number;
   direccion: string;
+  zona?: string;
   codigoPostal: string;
   ciudad: string;
+  destacado?: boolean;
   imagenes: Imagen[];
   caracteristicasExtra?: Record<string, string>;
   fechaRegistro: string;

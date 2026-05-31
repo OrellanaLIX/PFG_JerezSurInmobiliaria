@@ -39,4 +39,9 @@ public class Tarea {
     @Column(nullable = false)
     @Default
     private LocalDate fechaCreacion = LocalDate.now();
+
+    @jakarta.persistence.PrePersist
+    protected void prePersist() {
+        if (fechaCreacion == null) fechaCreacion = LocalDate.now();
+    }
 }

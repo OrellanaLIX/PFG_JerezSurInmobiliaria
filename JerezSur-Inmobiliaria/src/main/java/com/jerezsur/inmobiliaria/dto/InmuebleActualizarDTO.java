@@ -32,8 +32,11 @@ public class InmuebleActualizarDTO {
 
     // Ubicación
     private String direccion;
+    private String zona;
     private String codigoPostal;
     private String ciudad;
+
+    private Boolean destacado;
 
     // Gastos y cargas
     private BigDecimal comunidad;

@@ -35,6 +35,8 @@ export const DetalleInmuebleModal = ({ inmueble, loading, onCerrar, onEliminar }
         urlCertificadoEnergetico: inmueble.urlCertificadoEnergetico,
         urlPlanoInmueble: inmueble.urlPlanoInmueble,
         notasPrivadas: inmueble.notasPrivadas,
+        zona: inmueble.zona,
+        destacado: inmueble.destacado ?? false,
         imagenes: inmueble.imagenes?.slice() || [],
       });
     }
@@ -141,6 +143,8 @@ export const DetalleInmuebleModal = ({ inmueble, loading, onCerrar, onEliminar }
         valorDerrama: form.tieneDerrama ? form.valorDerrama : 0,
         refCatastral: form.refCatastral,
         notasPrivadas: form.notasPrivadas,
+        zona: form.zona,
+        destacado: form.destacado ?? false,
         urlNotaSimple: urlNotaSimpleNueva,
         urlCertificadoEnergetico: urlCertificadoNuevo,
         urlPlanoInmueble: urlPlanoNuevo,
@@ -241,6 +245,23 @@ export const DetalleInmuebleModal = ({ inmueble, loading, onCerrar, onEliminar }
                       : <span className="read-value">{form.valorDerrama} €</span>}
                   </Field>
                 )}
+              </div>
+
+              <p className="section-title">Ubicación y Visibilidad</p>
+              <div className="form-row">
+                <Field label="Zona">
+                  {editMode
+                    ? <input placeholder="ej: Mopu, Chapín..." value={form.zona ?? ''} onChange={e => setForm(f => ({ ...f, zona: e.target.value }))} />
+                    : <span className="read-value">{form.zona || '—'}</span>}
+                </Field>
+                <Field label="Destacado en portada">
+                  {editMode
+                    ? <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                        <input type="checkbox" checked={!!form.destacado} onChange={e => setForm(f => ({ ...f, destacado: e.target.checked }))} style={{ width: 'auto' }} />
+                        <span>Mostrar en destacados (máx. 3)</span>
+                      </label>
+                    : <span className="read-value">{form.destacado ? '⭐ Sí' : 'No'}</span>}
+                </Field>
               </div>
 
               <p className="section-title">Datos Catastrales</p>

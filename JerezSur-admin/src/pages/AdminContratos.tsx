@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { useOperaciones } from '../hooks/useOperaciones';
+import { useFeedback } from '../hooks/useFeedback';
+import { FeedbackBanner } from '../components/layout/FeedbackBanner';
 import type { EstadoOperacion, CategoriaOperacion, OperacionBase } from '../types/operacion';
 import { TablaOperaciones } from '../components/crud/Contratos/TablaOperaciones';
 import { DetalleOperacionModal } from '../components/crud/Contratos/DetalleOperacionModal';
 import { FormOperacionModal } from '../components/crud/Contratos/FormOperacionModal';
-import { contratoService } from '../services/contratoService';
+import { ContratosModal } from '../components/crud/Contratos/ContratosModal';
 import '../styles/pages/CrudPages.scss';
 
 const AdminContratos = () => {
@@ -14,117 +16,140 @@ const AdminContratos = () => {
     loading,
     loadingDetalle,
     error,
+    cargar,
     crear,
-    actualizar,
+    actualizarEstado,
     eliminar,
     cargarDetalle,
     limpiarSeleccionada,
   } = useOperaciones();
 
-  const [operacionParaContrato, setOperacionParaContrato] = useState<OperacionBase | null>(null);
-  const [modeloContrato, setModeloContrato] = useState<string>('ARRAS');
-  const [guardandoContrato, setGuardandoContrato] = useState(false);
-  const [busqueda, setBusqueda] = useState('');
+  const { feedback, showSuccess, showError, clearFeedback } = useFeedback();
 
+  const [mostrarDetalle, setMostrarDetalle] = useState(false);
+  const [operacionParaContratos, setOperacionParaContratos] = useState<OperacionBase | null>(null);
+  const [busqueda, setBusqueda] = useState('');
   const [filtroCategoria, setFiltroCategoria] = useState<CategoriaOperacion | 'TODOS'>('TODOS');
   const [filtroEstado, setFiltroEstado] = useState<EstadoOperacion | 'TODOS'>('TODOS');
   const [mostrarForm, setMostrarForm] = useState(false);
 
-  const handleCambiarEstadoRapido = async (operacion: OperacionBase, nuevoEstado: EstadoOperacion) => {
-    await actualizar(operacion.id, { ...operacion, estadoActual: nuevoEstado });
-  };
-
-  const handleCerrarContrato = () => setOperacionParaContrato(null);
-
-  const handleGenerarContrato = async () => {
-    if (!operacionParaContrato) return;
-    setGuardandoContrato(true);
+  const handleVerDetalle = async (id: number) => {
+    setMostrarDetalle(true);
     try {
-      await contratoService.generarBorrador(operacionParaContrato.id, modeloContrato, {});
-      alert('Borrador de contrato generado correctamente.');
-      await cargarDetalle(operacionParaContrato.id);
-      await cargar();
-    } catch (e: any) {
-      alert(`Error al generar contrato: ${e.message || e}`);
-    } finally {
-      setGuardandoContrato(false);
-      setOperacionParaContrato(null);
+      await cargarDetalle(id);
+    } catch {
+      showError('Error al cargar los detalles del expediente.');
     }
   };
 
-  const operacionesFiltradas = operaciones.filter((o) => {
+  const handleCerrarDetalle = () => {
+    setMostrarDetalle(false);
+    limpiarSeleccionada();
+  };
+
+  const handleCrear = async (datos: any) => {
+    try {
+      await crear(datos);
+      setMostrarForm(false);
+      showSuccess('Expediente abierto correctamente.');
+    } catch (e: any) {
+      showError(e?.response?.data?.message ?? 'Error al crear el expediente.');
+    }
+  };
+
+  const handleActualizarEstado = async (id: number, estado: EstadoOperacion) => {
+    try {
+      await actualizarEstado(id, estado);
+      showSuccess('Estado actualizado correctamente.');
+    } catch {
+      showError('Error al actualizar el estado.');
+    }
+  };
+
+  const handleEliminar = async (id: number) => {
+    try {
+      await eliminar(id);
+      await cargar();
+      showSuccess('Expediente eliminado correctamente.');
+    } catch {
+      showError('Error al eliminar el expediente.');
+    }
+  };
+
+  const operacionesFiltradas = operaciones.filter(o => {
     const coincideCat = filtroCategoria === 'TODOS' || o.categoria_operacion === filtroCategoria;
     const coincideEst = filtroEstado === 'TODOS' || o.estadoActual === filtroEstado;
-    const textoBuscado = busqueda.toLowerCase();
-    const inmuebleRef = o.inmuebleReferencia?.toLowerCase() || '';
-    const vendedor = o.vendedorNombre?.toLowerCase() || '';
-    const comprador = o.compradorNombre?.toLowerCase() || '';
-
+    const texto = busqueda.toLowerCase();
     const coincideTexto =
-      inmuebleRef.includes(textoBuscado) ||
-      vendedor.includes(textoBuscado) ||
-      comprador.includes(textoBuscado);
-
+      o.inmuebleReferencia?.toLowerCase().includes(texto) ||
+      String(o.primerInteresadoId ?? '').includes(texto);
     return coincideCat && coincideEst && coincideTexto;
   });
 
-  if (loading) return <p>Cargando operaciones inmobiliarias...</p>;
+  if (loading) return <p>Cargando operaciones...</p>;
   if (error) return <p className="error-text">{error}</p>;
 
   return (
     <div>
       <header className="crud-page__header">
-        <h1>Expedientes y Contratos Comerciales</h1>
-        <div className="actions">
-          <button className="btn btn-primary" onClick={() => setMostrarForm(true)}>
-            + Abrir Nueva Operación
-          </button>
-        </div>
+        <h1>Expedientes y Contratos</h1>
+        <button className="btn btn-primary" onClick={() => setMostrarForm(true)}>
+          + Abrir nueva operación
+        </button>
       </header>
 
+      <FeedbackBanner feedback={feedback} onDismiss={clearFeedback} />
+
       <div className="crud-page__filters">
-        <input 
-          type="text" 
-          placeholder="Buscar por Ref Inmueble, Cliente..." 
-          value={busqueda} 
-          onChange={e => setBusqueda(e.target.value)} 
+        <input
+          type="text"
+          placeholder="Buscar por ref. inmueble..."
+          value={busqueda}
+          onChange={e => setBusqueda(e.target.value)}
         />
         <select value={filtroCategoria} onChange={e => setFiltroCategoria(e.target.value as any)}>
-          <option value="TODOS">Todas las Categorías</option>
-          <option value="VENTA">Ventas de Inmuebles</option>
-          <option value="ALQUILER">Alquileres / Arrendamientos</option>
+          <option value="TODOS">Todas las categorías</option>
+          <option value="VENTA">Compraventas</option>
+          <option value="ALQUILER">Alquileres</option>
         </select>
         <select value={filtroEstado} onChange={e => setFiltroEstado(e.target.value as any)}>
-          <option value="TODOS">Todos los Estados</option>
+          <option value="TODOS">Todos los estados</option>
           <option value="ABIERTA">⚪ Abierta</option>
-          <option value="EN_TRAMITE">🟡 En Trámite / Arras</option>
-          <option value="CERRADA">🟢 Cerrada (Firmada)</option>
+          <option value="EN_TRAMITE">🟡 En Trámite</option>
+          <option value="CERRADA">🟢 Cerrada</option>
           <option value="CANCELADA">🔴 Cancelada</option>
         </select>
       </div>
 
       <TablaOperaciones
         operaciones={operacionesFiltradas}
-        onVerDetalle={cargarDetalle}
-        onCrearContrato={(id) => {
-          const match = operaciones.find((o) => o.id === id);
-          if (match) setOperacionParaContrato(match);
+        onVerDetalle={handleVerDetalle}
+        onVerContratos={id => {
+          const match = operaciones.find(o => o.id === id);
+          if (match) setOperacionParaContratos(match);
         }}
-        onCambiarEstado={handleCambiarEstadoRapido}
+        onCambiarEstado={(op, estado) => handleActualizarEstado(op.id, estado)}
       />
 
-      {operacionSeleccionada && (
+      {mostrarDetalle && (
         <DetalleOperacionModal
           operacion={operacionSeleccionada}
           loading={loadingDetalle}
-          onCerrar={limpiarSeleccionada}
-          onActualizar={actualizar}
-          onEliminar={eliminar}
+          onCerrar={handleCerrarDetalle}
+          onActualizarEstado={handleActualizarEstado}
+          onEliminar={handleEliminar}
         />
       )}
 
       {mostrarForm && (
-        <FormOperacionModal onCrear={crear} onCancelar={() => setMostrarForm(false)} />
+        <FormOperacionModal onCrear={handleCrear} onCancelar={() => setMostrarForm(false)} />
+      )}
+
+      {operacionParaContratos && (
+        <ContratosModal
+          operacion={operacionParaContratos}
+          onCerrar={() => setOperacionParaContratos(null)}
+        />
       )}
     </div>
   );

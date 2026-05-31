@@ -20,8 +20,10 @@ export interface Inmueble {
   habitaciones: number;
   banos: number;
   direccion: string;
+  zona?: string;
   codigoPostal: string;
   ciudad: string;
+  destacado?: boolean;
   fechaRegistro: string;
 }
 
@@ -37,6 +39,9 @@ export interface InmuebleDetalle extends Inmueble {
   tieneDerrama?: boolean;
   valorDerrama?: number;
   ibi?: number;
+
+  zona?: string;
+  destacado?: boolean;
 
   // Documentos y Notas Privadas (Solo trabajadores)
   refCatastral?: string;
@@ -80,6 +85,8 @@ export interface NuevoInmueble {
   urlPlanoInmueble?: string;
   notasPrivadas?: string;
   descripcion?: string;
+  zona?: string;
+  destacado?: boolean;
   propietariosPorcentaje: Record<string, number>;
   imagenesUrls?: string[];
 }

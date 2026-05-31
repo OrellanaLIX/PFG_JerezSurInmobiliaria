@@ -1,25 +1,40 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import LoginForm from '../components/auth/LoginForm';
-import RegistroForm from '../components/auth/RegistroForm';
 import '../styles/Vender.scss';
 
-type AuthMode = 'login' | 'register';
+interface FormData {
+  nombre: string;
+  apellidos: string;
+  telefono: string;
+  email: string;
+  detallesPropiedad: string;
+}
 
 const Vender = () => {
-  const [authMode, setAuthMode] = useState<AuthMode>('login');
+  const [formData, setFormData] = useState<FormData>({
+    nombre: '',
+    apellidos: '',
+    telefono: '',
+    email: '',
+    detallesPropiedad: '',
+  });
 
-  const handleLoginSuccess = () => {
-    console.log('Login exitoso - redirigir a dashboard');
-    // navigate('/propietarios/dashboard');
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleRegistroSuccess = () => {
-    console.log('Registro exitoso - mostrar mensaje');
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log('Formulario enviado:', formData);
+    setSubmitted(true);
   };
 
   return (
     <main className="propietarios">
+
       {/* HERO */}
       <section className="hero propietarios-hero">
         <div className="hero__content">
@@ -31,11 +46,12 @@ const Vender = () => {
       {/* CONTENIDO PRINCIPAL */}
       <section className="section propietarios-content">
         <div className="propietarios-container">
+
           {/* COLUMNA IZQUIERDA - INFO */}
           <div className="propietarios-info">
             <div className="propietarios-info__content">
               <h2>¿Por qué ser propietario con JerezSur?</h2>
-              
+
               <div className="propietarios-info__features">
                 <div className="propietarios-info__feature">
                   <div className="propietarios-info__icon">
@@ -106,37 +122,121 @@ const Vender = () => {
             </div>
           </div>
 
-          {/* COLUMNA DERECHA - LOGIN/REGISTRO */}
+          {/* COLUMNA DERECHA - FORMULARIO DE CONTACTO */}
           <div className="propietarios-auth">
-            <div className="propietarios-auth__tabs">
-              <button
-                className={`propietarios-auth__tab ${authMode === 'login' ? 'propietarios-auth__tab--active' : ''}`}
-                onClick={() => setAuthMode('login')}
-              >
-                Iniciar sesión
-              </button>
-              <button
-                className={`propietarios-auth__tab ${authMode === 'register' ? 'propietarios-auth__tab--active' : ''}`}
-                onClick={() => setAuthMode('register')}
-              >
-                Solicitar acceso
-              </button>
-            </div>
+            {submitted ? (
+              <div className="propietarios-auth__content">
+                <div className="propietarios-auth__success">
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                  </svg>
+                  <h3>¡Mensaje enviado!</h3>
+                  <p>Nos pondremos en contacto contigo a la mayor brevedad posible.</p>
+                  <button className="btn btn--primary" onClick={() => setSubmitted(false)}>
+                    Enviar otro mensaje
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="propietarios-auth__tabs">
+                  <span className="propietarios-auth__tab propietarios-auth__tab--active">
+                    Vende tu inmueble
+                  </span>
+                </div>
 
-            <div className="propietarios-auth__content">
-              {authMode === 'login' ? (
-                <LoginForm 
-                  onSwitchToRegister={() => setAuthMode('register')}
-                  onLoginSuccess={handleLoginSuccess}
-                />
-              ) : (
-                <RegistroForm 
-                  onSwitchToLogin={() => setAuthMode('login')}
-                  onRegisterSuccess={handleRegistroSuccess}
-                />
-              )}
-            </div>
+                <div className="propietarios-auth__content">
+                  <form className="propietarios-auth__form" onSubmit={handleSubmit} noValidate>
+                    <fieldset>
+                      <legend>Tus datos de contacto</legend>
+
+                      <div className="form-row">
+                        <div className="form-group">
+                          <label htmlFor="nombre">Nombre *</label>
+                          <input
+                            id="nombre"
+                            type="text"
+                            name="nombre"
+                            required
+                            value={formData.nombre}
+                            onChange={handleChange}
+                            placeholder="Tu nombre"
+                            autoComplete="given-name"
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label htmlFor="apellidos">Apellidos *</label>
+                          <input
+                            id="apellidos"
+                            type="text"
+                            name="apellidos"
+                            required
+                            value={formData.apellidos}
+                            onChange={handleChange}
+                            placeholder="Tus apellidos"
+                            autoComplete="family-name"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="form-row">
+                        <div className="form-group">
+                          <label htmlFor="telefono">Teléfono *</label>
+                          <input
+                            id="telefono"
+                            type="tel"
+                            name="telefono"
+                            required
+                            value={formData.telefono}
+                            onChange={handleChange}
+                            placeholder="600 000 000"
+                            autoComplete="tel"
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label htmlFor="email">Email (opcional)</label>
+                          <input
+                            id="email"
+                            type="email"
+                            name="email"
+                            value={formData.email}
+                            onChange={handleChange}
+                            placeholder="tu@email.com"
+                            autoComplete="email"
+                          />
+                        </div>
+                      </div>
+                    </fieldset>
+
+                    <fieldset>
+                      <legend>Tu propiedad</legend>
+                      <div className="form-group">
+                        <label htmlFor="detallesPropiedad">Cuéntanos un poco sobre el inmueble</label>
+                        <textarea
+                          id="detallesPropiedad"
+                          name="detallesPropiedad"
+                          value={formData.detallesPropiedad}
+                          onChange={handleChange}
+                          placeholder="Ej: Piso en el centro, 3 habitaciones, terraza..."
+                          rows={4}
+                        />
+                      </div>
+                    </fieldset>
+
+                    <button type="submit" className="btn btn--primary">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                      </svg>
+                      Solicitar información
+                    </button>
+                  </form>
+                </div>
+              </>
+            )}
           </div>
+
         </div>
       </section>
 
@@ -170,6 +270,7 @@ const Vender = () => {
           </div>
         </div>
       </section>
+
     </main>
   );
 };

@@ -4,35 +4,43 @@ import '../../../styles/App.scss';
 interface Props {
   operaciones: OperacionBase[];
   onVerDetalle: (id: number) => void;
-  onCrearContrato: (id: number) => void;
+  onVerContratos: (id: number) => void;
   onCambiarEstado: (operacion: OperacionBase, estado: EstadoOperacion) => void;
 }
 
-export const TablaOperaciones = ({ operaciones, onVerDetalle, onCrearContrato, onCambiarEstado }: Props) => {
+export const TablaOperaciones = ({ operaciones, onVerDetalle, onVerContratos, onCambiarEstado }: Props) => {
+  if (operaciones.length === 0) {
+    return <p className="text-soft" style={{ textAlign: 'center', padding: '2rem' }}>No hay operaciones que mostrar.</p>;
+  }
+
   return (
     <div className="data-table">
       <table>
         <thead>
           <tr>
-            <th>ID Expediente</th>
-            <th>Inmueble Objeto</th>
+            <th>Expediente</th>
+            <th>Inmueble</th>
             <th>Tipo</th>
-            <th>Precio Final</th>
-            <th>Estado Actual</th>
+            <th>Precio</th>
+            <th>Estado</th>
             <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
-          {operaciones.map((o) => (
+          {operaciones.map(o => (
             <tr key={o.id}>
               <td><code>EXP-{o.id}</code></td>
-              <td><strong>Ref: {o.inmuebleReferencia}</strong></td>
-              <td><span className={`badge-${o.categoria_operacion}`}>{o.tipo}</span></td>
+              <td><strong>{o.inmuebleReferencia}</strong></td>
+              <td>
+                <span className={`badge badge-${o.categoria_operacion.toLowerCase()}`}>
+                  {o.categoria_operacion}
+                </span>
+              </td>
               <td>{o.precioAcordado.toLocaleString('es-ES')} €</td>
               <td>
-                <select 
-                  value={o.estadoActual} 
-                  onChange={(e) => onCambiarEstado(o, e.target.value as EstadoOperacion)}
+                <select
+                  value={o.estadoActual}
+                  onChange={e => onCambiarEstado(o, e.target.value as EstadoOperacion)}
                 >
                   <option value="ABIERTA">⚪ Abierta</option>
                   <option value="EN_TRAMITE">🟡 En Trámite</option>
@@ -41,8 +49,12 @@ export const TablaOperaciones = ({ operaciones, onVerDetalle, onCrearContrato, o
                 </select>
               </td>
               <td className="actions-cell">
-                <button className="btn btn-ghost" onClick={() => onVerDetalle(o.id)}>📂 Ver Expediente</button>
-                <button className="btn btn-secondary" onClick={() => onCrearContrato(o.id)}>➕ Crear Contrato</button>
+                <button className="btn btn-ghost" onClick={() => onVerDetalle(o.id)}>
+                  Ver expediente
+                </button>
+                <button className="btn btn-secondary" onClick={() => onVerContratos(o.id)}>
+                  Contratos
+                </button>
               </td>
             </tr>
           ))}

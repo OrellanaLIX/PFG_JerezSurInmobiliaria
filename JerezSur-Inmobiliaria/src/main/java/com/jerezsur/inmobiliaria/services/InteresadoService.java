@@ -15,33 +15,25 @@ import com.jerezsur.inmobiliaria.repositories.InteresadoRepository;
 @Service
 public class InteresadoService {
 
-    // INYECCION DE DEPENDENCIAS
     @Autowired
     private InteresadoRepository interesadoRepository;
 
-    // ------------------------------------------------------------------
-    // CRUD BASICO
-    // ------------------------------------------------------------------
-
-    // LISTAR TODOS
     @Transactional(readOnly = true)
-    public Page<Interesado> listarTodo(boolean hipo, Double presu, String zona, int habs, int banos, TipoOperacion tipo,
+    public Page<Interesado> listarTodo(Boolean hipo, Double presu, String zona,
+            Integer habs, Integer banos, TipoOperacion tipo,
             int page, int size, String sortBy, String sortDir) {
 
         Sort sort = Sort.by(Sort.Direction.fromString(sortDir), sortBy);
         PageRequest pageable = PageRequest.of(page, size, sort);
-
         return interesadoRepository.listarFiltrado(hipo, presu, zona, habs, banos, tipo, pageable);
     }
 
-    // BUSCAR INDIVIDUAL
     @Transactional(readOnly = true)
     public Interesado buscarPorId(Long id) {
         return interesadoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("El interesado con ID " + id + " no existe."));
     }
 
-    // ELIMINAR
     @Transactional
     public void eliminar(Long id) {
         if (!interesadoRepository.existsById(id)) {

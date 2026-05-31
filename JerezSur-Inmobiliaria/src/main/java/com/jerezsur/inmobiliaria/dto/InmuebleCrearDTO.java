@@ -37,10 +37,13 @@ public class InmuebleCrearDTO {
 
     @NotBlank
     private String direccion;
+    private String zona;
     @NotBlank
     private String codigoPostal;
     @NotBlank
     private String ciudad;
+
+    private Boolean destacado;
 
     // Gastos y cargas
     private BigDecimal comunidad;

@@ -41,6 +41,7 @@ import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.Builder.Default;
@@ -51,6 +52,7 @@ import lombok.Builder.Default;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(of = "id")
 public class Inmueble {
 
     // --- IDENTIFICADORES ---
@@ -107,11 +109,19 @@ public class Inmueble {
     @NotBlank
     private String direccion;
 
+    //@NotBlank
+    //private String zona;
+
+    private String zona;
+
     @NotBlank
     private String codigoPostal;
 
     @NotBlank
     private String ciudad;
+
+    @Default
+    private Boolean destacado = false;
 
     // --- GASTOS Y CARGAS ---
     @DecimalMin("0.0")

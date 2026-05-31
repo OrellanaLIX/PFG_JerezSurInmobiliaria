@@ -8,6 +8,7 @@ import com.jerezsur.inmobiliaria.repositories.UsuarioRepository;
 import com.jerezsur.inmobiliaria.services.CloudinaryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -30,6 +31,7 @@ public class MediaController {
      * Sube una imagen y la asocia al inmueble en BD.
      */
     @PostMapping("/inmueble/{id}/imagen")
+    @Transactional
     public ResponseEntity<?> subirImagenInmueble(
             @PathVariable Long id,
             @RequestParam("archivo") MultipartFile archivo,

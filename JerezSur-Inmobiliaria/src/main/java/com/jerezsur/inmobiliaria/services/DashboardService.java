@@ -48,7 +48,7 @@ public class DashboardService {
                 .prioridad(dto.getPrioridad())
                 .enlace(dto.getEnlace())
                 .etiquetaEnlace(dto.getEtiquetaEnlace())
-                .fechaCreacion(dto.getFechaCreacion())
+                .fechaCreacion(dto.getFechaCreacion() != null ? dto.getFechaCreacion() : java.time.LocalDate.now())
                 .build();
 
         return tareaRepository.save(tarea);
