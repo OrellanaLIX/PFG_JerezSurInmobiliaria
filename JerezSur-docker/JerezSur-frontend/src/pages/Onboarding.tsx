@@ -445,11 +445,36 @@ const Onboarding: React.FC = () => {
     }
   };
 
-  const handleWhatsApp = () => {
+  const handleWhatsApp = async () => {
     const msg = encodeURIComponent(
       'Hola, me gustaría concertar una cita en persona para dar de alta mi perfil en JerezSur Inmobiliaria.'
     );
     window.open(`https://wa.me/34600000000?text=${msg}`, '_blank');
+
+    // Registrar también como mensaje de contacto para que el equipo tenga constancia
+    try {
+      const user = getStoredUser();
+      const token = getToken();
+      const nombre = (formData.nombre.trim() || (user as any)?.nombre) || 'Usuario onboarding';
+      const telefono = (formData.telefono.trim() || (user as any)?.telefono) || null;
+      const email = (formData.email.trim() || (user as any)?.email) || null;
+
+      await fetch('/api/contactos/enviar', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          nombre,
+          email,
+          telefono,
+          mensaje: '[Cita presencial solicitada desde onboarding] El usuario prefiere gestionar su perfil en persona.',
+        }),
+      });
+    } catch {
+      // No interrumpir el flujo si falla el registro
+    }
   };
 
   // --- RENDER ---

@@ -1,73 +1,175 @@
-// Fila de archivo con estado actual + opción de reemplazar
+// ── Helper: descarga un PDF cifrado a través del backend ─────────────
+export const descargarPdfCifrado = async (cloudinaryUrl: string, nombre = 'documento.pdf') => {
+  const token = localStorage.getItem('accessToken') || '';
+  const apiUrl = `/api/media/documento/descargar?url=${encodeURIComponent(cloudinaryUrl)}`;
+
+  const res = await fetch(apiUrl, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!res.ok) {
+    const msg = await res.text().catch(() => 'Error desconocido');
+    throw new Error(`No se pudo descargar el documento (${res.status}): ${msg}`);
+  }
+
+  const blob = await res.blob();
+  const blobUrl = URL.createObjectURL(blob);
+
+  // Abre el PDF en nueva pestaña como inline viewer
+  const a = document.createElement('a');
+  a.href = blobUrl;
+  a.target = '_blank';
+  a.rel = 'noopener noreferrer';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+
+  // Limpia el blob URL después de 60s
+  setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
+};
+
+// ── Componente fila de archivo ────────────────────────────────────────
 interface ArchivoFilaProps {
-    label: string;
-    urlActual?: string | null;
-    archivoNuevo: File | null;
-    inputRef: React.RefObject<HTMLInputElement | null>; editMode: boolean;
-    accept: string;
-    onChange: (f: File | null) => void;
+  label: string;
+  urlActual?: string | null;
+  archivoNuevo: File | null;
+  inputRef: React.RefObject<HTMLInputElement | null>;
+  editMode: boolean;
+  accept: string;
+  onChange: (f: File | null) => void;
+  /** true si el archivo es un PDF cifrado (usa el endpoint de descarga) */
+  esPdf?: boolean;
 }
 
-export const ArchivoFila = ({ label, urlActual, archivoNuevo, inputRef, editMode, accept, onChange }: ArchivoFilaProps) => (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.6rem 0', borderBottom: '1px solid #f0f0f0', gap: '1rem' }}>
-        <span style={{ fontWeight: '500', minWidth: '200px' }}>{label}</span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1 }}>
-            {archivoNuevo ? (
-                <span style={{ color: '#198754', fontSize: '0.9rem' }}>✅ {archivoNuevo.name}</span>
-            ) : urlActual ? (
-                <a href={urlActual} target="_blank" rel="noreferrer" style={{ fontSize: '0.9rem' }}>📥 Ver archivo actual</a>
-            ) : (
-                <span style={{ color: '#adb5bd', fontSize: '0.85rem' }}>Sin archivo</span>
-            )}
-            {editMode && (
-                <>
-                    <button type="button" className="btn btn-sm btn-outline" onClick={() => inputRef.current?.click()}>
-                        {urlActual || archivoNuevo ? '🔄 Reemplazar' : '⬆️ Subir'}
-                    </button>
-                    {archivoNuevo && (
-                        <button type="button" className="btn btn-sm btn-ghost" onClick={() => onChange(null)}>✕</button>
-                    )}
-                    <input ref={inputRef} type="file" accept={accept} style={{ display: 'none' }}
-                        onChange={e => onChange(e.target.files?.[0] || null)} />
-                </>
-            )}
-        </div>
-    </div>
-);
+export const ArchivoFila = ({
+  label, urlActual, archivoNuevo, inputRef,
+  editMode, accept, onChange, esPdf = false,
+}: ArchivoFilaProps) => {
+  const [descargando, setDescargando] = React.useState(false);
+  const [errorDescarga, setErrorDescarga] = React.useState('');
 
-// Uploader para el formulario de alta (siempre en modo edición)
+  const handleVerPdf = async () => {
+    if (!urlActual) return;
+    setDescargando(true);
+    setErrorDescarga('');
+    try {
+      await descargarPdfCifrado(urlActual);
+    } catch (e: any) {
+      setErrorDescarga(e.message ?? 'Error al descargar el PDF');
+    } finally {
+      setDescargando(false);
+    }
+  };
+
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
+      padding: '0.6rem 0', borderBottom: '1px solid #f0f0f0', gap: '1rem',
+    }}>
+      <span style={{ fontWeight: '500', minWidth: '200px' }}>{label}</span>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', flex: 1 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          {archivoNuevo ? (
+            <span style={{ color: '#198754', fontSize: '0.9rem' }}>✅ {archivoNuevo.name}</span>
+          ) : urlActual ? (
+            esPdf ? (
+              <button
+                type="button"
+                onClick={handleVerPdf}
+                disabled={descargando}
+                style={{
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  color: '#0d6efd', fontSize: '0.9rem', padding: 0, textDecoration: 'underline',
+                }}
+              >
+                {descargando ? '⏳ Abriendo…' : '🔒 Ver PDF cifrado'}
+              </button>
+            ) : (
+              <a href={urlActual} target="_blank" rel="noreferrer" style={{ fontSize: '0.9rem' }}>
+                📥 Ver archivo actual
+              </a>
+            )
+          ) : (
+            <span style={{ color: '#adb5bd', fontSize: '0.85rem' }}>Sin archivo</span>
+          )}
+
+          {editMode && (
+            <>
+              <button
+                type="button"
+                className="btn btn-sm btn-outline"
+                onClick={() => inputRef.current?.click()}
+              >
+                {urlActual || archivoNuevo ? '🔄 Reemplazar' : '⬆️ Subir'}
+              </button>
+              {archivoNuevo && (
+                <button type="button" className="btn btn-sm btn-ghost" onClick={() => onChange(null)}>✕</button>
+              )}
+              <input
+                ref={inputRef}
+                type="file"
+                accept={accept}
+                style={{ display: 'none' }}
+                onChange={e => onChange(e.target.files?.[0] || null)}
+              />
+            </>
+          )}
+        </div>
+
+        {errorDescarga && (
+          <span style={{ color: '#dc3545', fontSize: '0.8rem' }}>{errorDescarga}</span>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// ── Uploader simple (formulario de alta) ─────────────────────────────
 interface ArchivoUploaderProps {
-    label: string;
-    accept: string;
-    archivo?: File;
-    inputRef: React.RefObject<HTMLInputElement | null>;
-    onChange: (f: File | undefined) => void;
+  label: string;
+  accept: string;
+  archivo?: File;
+  inputRef: React.RefObject<HTMLInputElement | null>;
+  onChange: (f: File | undefined) => void;
 }
 
 export const ArchivoUploader = ({ label, accept, archivo, inputRef, onChange }: ArchivoUploaderProps) => (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.6rem 0', borderBottom: '1px solid #f0f0f0', gap: '1rem' }}>
-        <span style={{ fontWeight: '500', minWidth: '200px' }}>{label}</span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1 }}>
-            {archivo
-                ? <span style={{ color: '#198754', fontSize: '0.9rem' }}>✅ {archivo.name}</span>
-                : <span style={{ color: '#adb5bd', fontSize: '0.85rem' }}>Sin archivo</span>}
-            <button type="button" className="btn btn-sm btn-outline" onClick={() => inputRef.current?.click()}>
-                {archivo ? '🔄 Cambiar' : '⬆️ Subir'}
-            </button>
-            {archivo && <button type="button" className="btn btn-sm btn-ghost" onClick={() => onChange(undefined)}>✕</button>}
-            <input ref={inputRef} type="file" accept={accept} style={{ display: 'none' }}
-                onChange={e => onChange(e.target.files?.[0])} />
-        </div>
+  <div style={{
+    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    padding: '0.6rem 0', borderBottom: '1px solid #f0f0f0', gap: '1rem',
+  }}>
+    <span style={{ fontWeight: '500', minWidth: '200px' }}>{label}</span>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1 }}>
+      {archivo
+        ? <span style={{ color: '#198754', fontSize: '0.9rem' }}>✅ {archivo.name}</span>
+        : <span style={{ color: '#adb5bd', fontSize: '0.85rem' }}>Sin archivo</span>}
+      <button type="button" className="btn btn-sm btn-outline" onClick={() => inputRef.current?.click()}>
+        {archivo ? '🔄 Cambiar' : '⬆️ Subir'}
+      </button>
+      {archivo && (
+        <button type="button" className="btn btn-sm btn-ghost" onClick={() => onChange(undefined)}>✕</button>
+      )}
+      <input
+        ref={inputRef}
+        type="file"
+        accept={accept}
+        style={{ display: 'none' }}
+        onChange={e => onChange(e.target.files?.[0])}
+      />
     </div>
+  </div>
 );
 
 export const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
-    <div className="form-field">
-        <label className="form-field__label">{label}</label>
-        {children}
-    </div>
+  <div className="form-field">
+    <label className="form-field__label">{label}</label>
+    {children}
+  </div>
 );
 
 export const Badge = ({ text, color }: { text: string; color: 'blue' | 'green' | 'amber' | 'gray' | 'red' }) => (
-    <span className={`badge badge--${color}`}>{text}</span>
+  <span className={`badge badge--${color}`}>{text}</span>
 );
+
+// Necesario para useState en el componente ArchivoFila
+import React from 'react';

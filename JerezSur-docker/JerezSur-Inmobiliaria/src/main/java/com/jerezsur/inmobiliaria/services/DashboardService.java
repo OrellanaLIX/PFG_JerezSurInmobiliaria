@@ -14,6 +14,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Servicio que proporciona los datos para el panel de control (dashboard) del admin.
+ *
+ * Recoge información de varios repositorios para construir el DTO del dashboard:
+ * conteo de inmuebles, clientes, citas pendientes, contratos y lista de tareas.
+ *
+ * También gestiona el CRUD de tareas manuales que crean los trabajadores desde el panel.
+ * Las tareas automáticas (por nueva cita, nuevo mensaje, etc.) las crean otros servicios.
+ */
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -25,21 +34,32 @@ public class DashboardService {
     private final CitaRepository citaRepository;
     private final ContratoRepository contratoRepository;
 
+    /**
+     * Recoge todos los datos necesarios para el panel principal.
+     * Usamos @Transactional(readOnly=true) porque solo leemos, nunca escribimos.
+     * Esto mejora el rendimiento porque Hibernate no tiene que llevar la cuenta de cambios.
+     */
     @Transactional(readOnly = true)
     public DashboardDTO getDashboard() {
         return DashboardDTO.builder()
-                .inmueblesActivos(
-                        inmuebleRepository.countByEstado(EstadoInmueble.DISPONIBLE))
-                .clientesNuevos(
-                        usuarioRepository.count()) // Contamos todos los usuarios para el MVP
-                .visitasProgramadas(
-                        citaRepository.count()) // Contamos todas las citas en el sistema
-                .contratosPendientes(
-                        contratoRepository.countByEstado(EstadoContrato.PENDIENTE_FIRMA))
+                // Solo los disponibles, no los vendidos o retirados
+                .inmueblesActivos(inmuebleRepository.countByEstado(EstadoInmueble.DISPONIBLE))
+                // Total de usuarios registrados en el sistema
+                .clientesNuevos(usuarioRepository.count())
+                // Total de citas (futuras y pasadas), para ver la actividad general
+                .visitasProgramadas(citaRepository.count())
+                // Solo los que están a falta de firma (los más urgentes)
+                .contratosPendientes(contratoRepository.countByEstado(EstadoContrato.PENDIENTE_FIRMA))
+                // Tareas ordenadas por fecha de vencimiento (las más urgentes primero)
                 .tareas(tareaRepository.findAllByOrderByFechaAsc())
                 .build();
     }
 
+    /**
+     * Crea una tarea manual desde el dashboard.
+     * El trabajador puede crear tareas propias además de las automáticas del sistema.
+     * Si no manda fecha de creación usamos la fecha de hoy.
+     */
     public Tarea crearTarea(CrearTareaDTO dto) {
         Tarea tarea = Tarea.builder()
                 .titulo(dto.getTitulo())
@@ -48,15 +68,18 @@ public class DashboardService {
                 .prioridad(dto.getPrioridad())
                 .enlace(dto.getEnlace())
                 .etiquetaEnlace(dto.getEtiquetaEnlace())
-                .fechaCreacion(dto.getFechaCreacion() != null ? dto.getFechaCreacion() : java.time.LocalDate.now())
+                .fechaCreacion(dto.getFechaCreacion() != null
+                        ? dto.getFechaCreacion()
+                        : java.time.LocalDate.now())
                 .build();
 
         return tareaRepository.save(tarea);
     }
 
     /**
-     * Al completar una tarea se elimina físicamente de la BD.
-     * No queremos guardar histórico para que no ocupe espacio.
+     * Cuando un trabajador marca una tarea como "hecha", la borramos directamente.
+     * No guardamos histórico de tareas completadas porque no lo necesitamos
+     * y así la BD no crece innecesariamente.
      */
     public void completarTarea(Long id) {
         if (!tareaRepository.existsById(id)) {
@@ -65,6 +88,7 @@ public class DashboardService {
         tareaRepository.deleteById(id);
     }
 
+    /** Eliminación directa sin comprobación (para el botón de eliminar del panel). */
     public void eliminarTarea(Long id) {
         tareaRepository.deleteById(id);
     }

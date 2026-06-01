@@ -2,6 +2,15 @@ import { useState, useEffect, useCallback } from 'react';
 import { inmuebleService } from '../services/inmuebleService';
 import type { Inmueble, NuevoInmueble, InmuebleDetalle } from '../types/inmueble';
 
+// Helper para extraer el mensaje de error de la respuesta del backend
+const extractError = (err: unknown, fallback: string): string => {
+  if (err && typeof err === 'object') {
+    const e = err as any;
+    return e?.response?.data?.error || e?.message || fallback;
+  }
+  return fallback;
+};
+
 export const useInmuebles = () => {
   const [inmuebles, setInmuebles] = useState<Inmueble[]>([]);
   const [inmuebleSeleccionado, setInmuebleSeleccionado] = useState<InmuebleDetalle | null>(null);
@@ -19,9 +28,7 @@ export const useInmuebles = () => {
       const data = await inmuebleService.getTodos();
       setInmuebles(data);
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Error al cargar el catálogo de inmuebles';
-      setError(message);
-      console.error(message, err);
+      setError(extractError(err, 'Error al cargar el catálogo de inmuebles.'));
     } finally {
       setLoading(false);
     }
@@ -38,9 +45,7 @@ export const useInmuebles = () => {
       const data = await inmuebleService.getPorId(id);
       setInmuebleSeleccionado(data);
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Error al recuperar la ficha del inmueble';
-      setError(message);
-      console.error(message, err);
+      setError(extractError(err, 'Error al recuperar la ficha del inmueble.'));
       throw err;
     } finally {
       setLoadingDetalle(false);
@@ -57,9 +62,7 @@ export const useInmuebles = () => {
       await cargar();
       return created;
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Error al crear el inmueble';
-      setError(message);
-      console.error(message, err);
+      setError(extractError(err, 'Error al crear el inmueble.'));
       throw err;
     } finally {
       setCreando(false);
@@ -76,9 +79,7 @@ export const useInmuebles = () => {
         await cargarDetalle(id);
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Error al actualizar el inmueble';
-      setError(message);
-      console.error(message, err);
+      setError(extractError(err, 'Error al actualizar el inmueble.'));
       throw err;
     } finally {
       setActualizando(false);
@@ -95,9 +96,7 @@ export const useInmuebles = () => {
         limpiarSeleccionado();
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Error al eliminar el inmueble';
-      setError(message);
-      console.error(message, err);
+      setError(extractError(err, 'Error al eliminar el inmueble.'));
       throw err;
     } finally {
       setEliminando(false);

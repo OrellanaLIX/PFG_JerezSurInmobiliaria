@@ -75,20 +75,26 @@ const Contact = () => {
     e.preventDefault();
     setFormStatus('sending');
 
-    // Simulación de envío
-    setTimeout(() => {
-      setFormStatus('success');
-      setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        subject: 'Información general',
-        message: '',
-        consent: false,
+    try {
+      const res = await fetch('/api/contactos/enviar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nombre: formData.name.trim(),
+          email: formData.email.trim(),
+          telefono: formData.phone.trim(),
+          mensaje: `[${formData.subject}] ${formData.message.trim()}`,
+        }),
       });
 
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      setFormStatus('success');
+      setFormData({ name: '', email: '', phone: '', subject: 'Información general', message: '', consent: false });
       setTimeout(() => setFormStatus('idle'), 5000);
-    }, 1500);
+    } catch {
+      setFormStatus('error');
+    }
   };
 
   const toggleFAQ = (id: number) => {

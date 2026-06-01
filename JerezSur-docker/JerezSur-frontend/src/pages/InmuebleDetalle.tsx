@@ -435,12 +435,19 @@ const InmuebleDetalle: React.FC = () => {
             </div>
           )}
 
-          {/* Certificado energético */}
+          {/* Certificado energético — disponible bajo solicitud */}
           {inmueble.urlCertificadoEnergetico && (
             <div style={{ marginTop: '1rem' }}>
-              <a href={inmueble.urlCertificadoEnergetico} target="_blank" rel="noreferrer" className="btn btn--outline">
-                Ver certificado energético
-              </a>
+              <span
+                className="btn btn--outline"
+                style={{ cursor: 'default', opacity: 0.8 }}
+                title="El certificado energético está disponible. Solicítalo a través de nuestro formulario de contacto."
+              >
+                🔒 Certificado energético disponible
+              </span>
+              <p style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '0.4rem' }}>
+                Solicítalo en nuestra <a href="/contacto" style={{ color: '#00439c' }}>página de contacto</a>.
+              </p>
             </div>
           )}
 

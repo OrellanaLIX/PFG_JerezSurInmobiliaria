@@ -12,8 +12,8 @@ export const useDashboard = () => {
       setError(null);
       const dashboard = await dashboardService.get();
       setData(dashboard);
-    } catch {
-      setError('Error al cargar el dashboard');
+    } catch (err: any) {
+      setError(err?.response?.data?.error || 'No se pudo cargar el dashboard. Inténtalo de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -25,17 +25,17 @@ export const useDashboard = () => {
 
   const crearTarea = async (tarea: NuevaTarea) => {
     await dashboardService.crearTarea(tarea);
-    cargar();
+    await cargar();
   };
 
   const completarTarea = async (id: number) => {
     await dashboardService.completarTarea(id);
-    cargar();
+    await cargar();
   };
 
   const eliminarTarea = async (id: number) => {
     await dashboardService.eliminarTarea(id);
-    cargar();
+    await cargar();
   };
 
   return { data, loading, error, cargar, crearTarea, completarTarea, eliminarTarea };

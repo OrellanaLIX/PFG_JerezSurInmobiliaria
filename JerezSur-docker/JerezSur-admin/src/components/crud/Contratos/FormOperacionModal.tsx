@@ -37,6 +37,7 @@ export const FormOperacionModal = ({ onCrear, onCancelar }: Props) => {
     admiteMascotas: false,
   });
   const [guardando, setGuardando] = useState(false);
+  const [errorValidacion, setErrorValidacion] = useState('');
 
   // --- Estado búsqueda interesados ---
   const [interesados, setInteresados] = useState<InteresadoResumen[]>([]);
@@ -84,33 +85,38 @@ export const FormOperacionModal = ({ onCrear, onCancelar }: Props) => {
     setForm(f => ({ ...f, interesadosRol: { ...f.interesadosRol, [id]: rol } }));
   };
 
+  const setError = (msg: string, tab?: Tab) => {
+    setErrorValidacion(msg);
+    if (tab) setTab(tab);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorValidacion('');
+
     if (form.precioAcordado <= 0) {
-      setTab('datos');
-      return alert('Indica un precio acordado válido.');
+      return setError('El precio acordado debe ser mayor que 0 €.', 'datos');
     }
     if (!form.inmuebleId) {
-      setTab('inmueble');
-      return alert('Indica el ID del inmueble.');
+      return setError('Debes indicar el ID del inmueble vinculado al expediente.', 'inmueble');
     }
     if (Object.keys(form.interesadosRol).length === 0) {
-      setTab('interesados');
-      return alert('Añade al menos un interesado.');
+      return setError('Añade al menos un interesado a la operación.', 'interesados');
     }
     if (form.categoria_operacion === 'VENTA' && (!form.depositoArras || !form.fechaLimiteEscritura)) {
-      setTab('datos');
-      return alert('Para ventas añade depósito de arras y fecha límite de escritura.');
+      return setError('Para una compraventa debes indicar el depósito de arras y la fecha límite de escritura.', 'datos');
     }
     if (form.categoria_operacion === 'ALQUILER' && !form.fianza) {
-      setTab('datos');
-      return alert('Para alquileres indica una fianza válida.');
+      return setError('Para un arrendamiento debes indicar el importe de la fianza.', 'datos');
     }
 
     setGuardando(true);
     try {
       await onCrear(form);
       onCancelar();
+    } catch (err: any) {
+      const msg = err?.response?.data?.error || 'No se pudo crear el expediente. Inténtalo de nuevo.';
+      setErrorValidacion(msg);
     } finally {
       setGuardando(false);
     }
@@ -341,6 +347,21 @@ export const FormOperacionModal = ({ onCrear, onCancelar }: Props) => {
             </>
           )}
         </div>
+
+        {errorValidacion && (
+          <div style={{
+            margin: '0 0 0.5rem',
+            padding: '0.6rem 1rem',
+            background: '#fef2f2',
+            border: '1px solid #fca5a5',
+            borderRadius: '6px',
+            color: '#7f1d1d',
+            fontSize: '0.875rem',
+            fontWeight: 500,
+          }}>
+            ⚠ {errorValidacion}
+          </div>
+        )}
 
         <div className="form-modal__footer">
           <button type="button" onClick={onCancelar} className="btn">Cancelar</button>

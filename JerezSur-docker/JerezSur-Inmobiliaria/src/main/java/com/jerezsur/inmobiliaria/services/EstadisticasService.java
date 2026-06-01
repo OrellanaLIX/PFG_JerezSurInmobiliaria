@@ -21,15 +21,30 @@ public class EstadisticasService {
         System.out.println("🐍 Python URL configurada: " + pythonUrl);
     }
 
-    @SuppressWarnings("rawtypes") // Para quitar el aviso amarillo del Map.class sin genéricos
+    @SuppressWarnings("rawtypes")
     public String generarGrafico(String endpoint, Map<String, Object> datos) {
         try {
             String url = pythonUrl + endpoint;
-            System.out.println("🐍 Llamando a Python: " + url);
-            ResponseEntity<Map> respuesta = restTemplate.postForEntity(url, datos, Map.class);
-            return (String) respuesta.getBody().get("imagen");
+            ResponseEntity<Map> resp = restTemplate.postForEntity(url, datos, Map.class);
+            return (String) resp.getBody().get("imagen");
         } catch (Exception e) {
-            System.err.println("⚠️ Python stats service no disponible: " + e.getMessage());
+            System.err.println("⚠️ Python stats no disponible: " + e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Llama al endpoint /grafico/panel de Python que devuelve los 4 gráficos
+     * en un único Map: { kpis, barras, dona, evolucion } → todos base64.
+     */
+    @SuppressWarnings("rawtypes")
+    public Map<?, ?> generarGraficoPanel(String endpoint, Map<String, Object> datos) {
+        try {
+            String url = pythonUrl + endpoint;
+            ResponseEntity<Map> resp = restTemplate.postForEntity(url, datos, Map.class);
+            return resp.getBody();
+        } catch (Exception e) {
+            System.err.println("⚠️ Python panel no disponible: " + e.getMessage());
             return null;
         }
     }

@@ -102,10 +102,10 @@ public class CitaPublicaService {
         Tarea tarea = Tarea.builder()
                 .titulo(titulo)
                 .descripcion(descripcion.toString())
-                .fecha(LocalDate.now().plusDays(1)) // fecha de vencimiento al día siguiente
+                .fecha(LocalDate.now().plusDays(1))
                 .prioridad("ALTA")
-                .enlace("/dashboard/citas/" + cita.getId() + "/aceptar")
-                .etiquetaEnlace("Aceptar cita")
+                .enlace("/citas")
+                .etiquetaEnlace("Ver citas")
                 .fechaCreacion(LocalDate.now())
                 .build();
 

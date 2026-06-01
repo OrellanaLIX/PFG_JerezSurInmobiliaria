@@ -430,8 +430,8 @@ public class PerfilService {
                 .descripcion(descripcion.toString())
                 .fecha(LocalDate.now().plusDays(2))
                 .prioridad("MEDIA")
-                .enlace("/dashboard/usuarios/" + usuario.getId() + "/ver")
-                .etiquetaEnlace("Ver usuario")
+                .enlace("/usuarios")
+                .etiquetaEnlace("Ver usuarios")
                 .fechaCreacion(LocalDate.now())
                 .build();
 

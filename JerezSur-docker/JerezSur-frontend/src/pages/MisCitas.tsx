@@ -1,3 +1,6 @@
+// Página "Mis Citas" del frontend público
+// Permite al usuario ver sus citas y pedir una nueva cita en la oficina.
+// Si el usuario no ha iniciado sesión muestra un aviso para que lo haga.
 import React, { useEffect, useState, type ChangeEvent, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -5,39 +8,41 @@ import '../styles/MisCitas.scss';
 
 // --- TIPOS ---
 
+// Estructura que devuelve el backend en /api/citas/usuario/{id}
 type CitaDTO = {
   id: number;
   fechaHora: string;
   motivo?: string;
-  estado: string;
-  nombreTrabajador?: string;
+  estado: string;           // "PENDIENTE" | "CONFIRMADA" | "REALIZADA" | "CANCELADA"
+  nombreTrabajador?: string; // null si aún no hay agente asignado
   direccionInmueble?: string;
   inmuebleId?: number;
   inmuebleTitulo?: string;
 };
 
+// Estado del formulario de nueva cita en oficina
 type NuevaCitaForm = {
-  fechaDate: string;
-  fechaTime: string;
+  fechaDate: string; // "2026-06-15"
+  fechaTime: string; // "10:30"
   motivo: string;
 };
 
-// --- CONSTANTES ---
-
 const API_BASE = '/api';
 
-// --- GOOGLE CALENDAR ---
-
+// --- HELPER: URL de Google Calendar ---
+// Construye la URL de Google Calendar para añadir la cita al calendario del usuario.
+// Los parámetros action=TEMPLATE hacen que se abra un formulario pre-relleno.
 const buildGoogleCalendarUrl = (fechaHoraISO: string, titulo: string, lugar: string): string => {
+  // Formato que espera Google: YYYYMMDDTHHmmssZ (sin guiones ni dos puntos)
   const start = fechaHoraISO.replace(/[-:]/g, '').slice(0, 15) + '00Z';
   const end = new Date(new Date(fechaHoraISO).getTime() + 60 * 60 * 1000)
     .toISOString().replace(/[-:]/g, '').slice(0, 15) + '00Z';
   const params = new URLSearchParams({
-    action: 'TEMPLATE',
-    text: titulo,
-    details: 'Cita en JerezSur Inmobiliaria',
+    action:   'TEMPLATE',
+    text:     titulo,
+    details:  'Cita en JerezSur Inmobiliaria',
     location: lugar,
-    dates: `${start}/${end}`,
+    dates:    `${start}/${end}`,
   });
   return `https://calendar.google.com/calendar/render?${params.toString()}`;
 };

@@ -1,16 +1,38 @@
+# Orquestación de contenedores Docker para JerezSur Inmobiliaria
+#
+# Este archivo define todos los servicios de la aplicación y cómo se conectan entre sí.
+# Para arrancar todo: docker compose up --build
+# Para reconstruir un servicio concreto: docker compose build --no-cache backend
+#
+# Arquitectura de capas:
+#   Internet → Nginx (proxy) → Frontend React / Backend Spring Boot / Python Flask
+#                                    ↕ (solo la red interna red-datos)
+#                               MySQL (base de datos)
+#
+# Las redes separan el tráfico:
+#   red-publica: todos los servicios que necesitan hablar entre sí
+#   red-datos:   solo el backend y la BD (la BD no es accesible desde fuera)
+
 version: '3.8'
 
 services:
-  # ----------------------------------------------------
-  # CAPA DE ENTRADA (EL PROXY INVERSO)
-  # ----------------------------------------------------
+
+  # ============================================================
+  # PROXY INVERSO (Nginx)
+  # El único servicio expuesto en el puerto 80 al exterior.
+  # Enruta las peticiones según la URL:
+  #   / → frontend público (React)
+  #   /admin/ → frontend de administración (React)
+  #   /api/ → backend (Spring Boot)
+  #   /grafico/ → microservicio de estadísticas (Python)
+  # ============================================================
   proxy:
     image: nginx:alpine
     container_name: proxy_nginx
     ports:
-      - "80:80"
+      - "80:80"         # mapea el puerto 80 del contenedor al 80 de la máquina host
     volumes:
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro   # :ro = solo lectura
     networks:
       - red-publica
     depends_on:
@@ -18,11 +40,12 @@ services:
       - front-admin
       - backend
       - python-stats
-    restart: always
+    restart: always     # se reinicia automáticamente si falla
 
-  # ----------------------------------------------------
-  # CAPA DE FRONTENDS (REACT)
-  # ----------------------------------------------------
+  # ============================================================
+  # FRONTEND PÚBLICO (React + Vite en modo dev)
+  # La web que ven los clientes: listado de inmuebles, contacto, citas...
+  # ============================================================
   front-publico:
     build:
       context: ./JerezSur-frontend
@@ -32,6 +55,11 @@ services:
       - red-publica
     restart: always
 
+  # ============================================================
+  # FRONTEND DE ADMINISTRACIÓN (React + Vite en modo dev)
+  # El panel interno: gestión de inmuebles, citas, contratos, etc.
+  # Solo accesible en localhost/admin/
+  # ============================================================
   front-admin:
     build:
       context: ./JerezSur-admin
@@ -41,30 +69,37 @@ services:
       - red-publica
     restart: always
 
-  # ----------------------------------------------------
-  # CAPA LÓGICA / NEGOCIO (SPRING BOOT)
-  # ----------------------------------------------------
+  # ============================================================
+  # BACKEND (Spring Boot + Java 21)
+  # La API REST que gestiona toda la lógica de negocio.
+  # Se conecta a la BD y al microservicio de Python.
+  # Las variables de entorno sobreescriben los valores de application.properties.
+  # ============================================================
   backend:
     build:
       context: ./JerezSur-Inmobiliaria
       dockerfile: dockerfile
     container_name: spring_backend
     environment:
+      # URL de conexión a MySQL dentro de la red Docker interna
       - SPRING_DATASOURCE_URL=jdbc:mysql://bd:3306/jerezsur_db?createDatabaseIfNotExist=true&serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true
       - SPRING_DATASOURCE_USERNAME=jerezsur_user
       - SPRING_DATASOURCE_PASSWORD=jerezsur_pass
+      # URL del microservicio de Python (nombre del servicio en Docker = hostname)
       - PYTHON_STATS_URL=http://python-stats:5000
     networks:
-      - red-publica
-      - red-datos
+      - red-publica   # para hablar con Nginx y Python
+      - red-datos     # para hablar con MySQL
     depends_on:
       bd:
-        condition: service_healthy
+        condition: service_healthy  # espera a que MySQL esté listo antes de arrancar
     restart: always
 
-  # ----------------------------------------------------
-  # CAPA DE ESTADÍSTICAS (PYTHON FLASK)
-  # ----------------------------------------------------
+  # ============================================================
+  # MICROSERVICIO DE ESTADÍSTICAS (Python + Flask + matplotlib)
+  # Genera los gráficos del dashboard en formato PNG base64.
+  # Solo accesible desde el backend, no desde el exterior.
+  # ============================================================
   python-stats:
     build:
       context: ./Python
@@ -74,9 +109,12 @@ services:
       - red-publica
     restart: always
 
-  # ----------------------------------------------------
-  # CAPA DE DATOS (BASE DE DATOS - MySQL)
-  # ----------------------------------------------------
+  # ============================================================
+  # BASE DE DATOS (MySQL 8.0)
+  # Los datos se guardan en un volumen Docker persistente (data-bd).
+  # Así aunque paremos el contenedor los datos no se pierden.
+  # El healthcheck hace que el backend espere a que MySQL esté listo.
+  # ============================================================
   bd:
     image: mysql:8.0
     container_name: mysql_db
@@ -86,9 +124,9 @@ services:
       - MYSQL_USER=jerezsur_user
       - MYSQL_PASSWORD=jerezsur_pass
     volumes:
-      - data-bd:/var/lib/mysql
+      - data-bd:/var/lib/mysql   # volumen nombrado para persistencia
     networks:
-      - red-datos
+      - red-datos   # solo accesible desde el backend, nunca desde Internet
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot_password_seguro"]
       interval: 10s
@@ -96,14 +134,21 @@ services:
       retries: 10
     restart: always
 
-# ----------------------------------------------------
-# DEFINICIÓN DE REDES Y VOLÚMENES
-# ----------------------------------------------------
+# ============================================================
+# REDES
+# red-publica: para comunicación entre frontend, backend, proxy y Python
+# red-datos: aislada, solo backend y BD (mayor seguridad)
+# ============================================================
 networks:
   red-publica:
     driver: bridge
   red-datos:
     driver: bridge
 
+# ============================================================
+# VOLÚMENES
+# data-bd: almacena los archivos de MySQL de forma persistente
+# Si borras este volumen con "docker volume rm", pierdes todos los datos
+# ============================================================
 volumes:
   data-bd:

@@ -24,32 +24,64 @@ public class MensajeContactoService {
     @Autowired
     private TareaRepository tareaRepository;
 
+    @Autowired
+    private WhatsappService whatsappService;
+
     // ENVIAR MENSAJE (Público)
     @Transactional
     public MensajeContacto enviarMensaje(MensajeContacto mensaje) {
+        // Guardar primero para obtener el ID generado por la BD
+        MensajeContacto guardado = mensajeRepository.save(mensaje);
 
-        String titulo = "🆕 Nuevo mensaje de contacto de " + mensaje.getNombre() + ":";
+        // Construimos el texto del WhatsApp con los datos del remitente y el mensaje
+        StringBuilder msgWhatsApp = new StringBuilder();
+        msgWhatsApp.append("📩 *Nuevo mensaje de contacto*\n\n");
+        msgWhatsApp.append("👤 *Nombre:* ").append(guardado.getNombre()).append("\n");
 
-        StringBuilder descripcion = new StringBuilder();
-        descripcion.append("Teléfono: ").append(mensaje.getTelefono()).append("\n");
+        if (guardado.getTelefono() != null && !guardado.getTelefono().isBlank()) {
+            msgWhatsApp.append("📞 *Teléfono:* ").append(guardado.getTelefono()).append("\n");
+        }
+        if (guardado.getEmail() != null && !guardado.getEmail().isBlank()) {
+            msgWhatsApp.append("✉️ *Email:* ").append(guardado.getEmail()).append("\n");
+        }
+        if (guardado.getMensaje() != null && !guardado.getMensaje().isBlank()) {
+            // Limitamos el mensaje a 300 caracteres para que no sea demasiado largo
+            String textoMensaje = guardado.getMensaje().length() > 300
+                    ? guardado.getMensaje().substring(0, 300) + "…"
+                    : guardado.getMensaje();
+            msgWhatsApp.append("\n💬 *Mensaje:*\n").append(textoMensaje);
+        }
 
-        if (mensaje.getMensaje() != null && !mensaje.getMensaje().isBlank()) {
-            descripcion.append("Mensaje: ").append(mensaje.getMensaje());
+        // Enviamos el WhatsApp al número del admin (configurado en application.properties)
+        whatsappService.enviarAlAdmin(msgWhatsApp.toString());
+
+        // Creamos también una tarea en el dashboard para no perder el rastro
+        String titulo = "📩 Mensaje de " + guardado.getNombre();
+
+        StringBuilder descripcionTarea = new StringBuilder();
+        if (guardado.getTelefono() != null) {
+            descripcionTarea.append("Teléfono: ").append(guardado.getTelefono()).append("\n");
+        }
+        if (guardado.getEmail() != null) {
+            descripcionTarea.append("Email: ").append(guardado.getEmail()).append("\n");
+        }
+        if (guardado.getMensaje() != null && !guardado.getMensaje().isBlank()) {
+            descripcionTarea.append("Mensaje: ").append(guardado.getMensaje());
         }
 
         Tarea tarea = Tarea.builder()
                 .titulo(titulo)
-                .descripcion(descripcion.toString())
-                .fecha(LocalDate.now().plusDays(3))
+                .descripcion(descripcionTarea.toString())
+                .fecha(LocalDate.now().plusDays(2))
                 .prioridad("MEDIA")
-                .enlace("/dashboard/mensajes/" + mensaje.getId())
-                .etiquetaEnlace("Ver mensaje")
+                .enlace("/contactos")
+                .etiquetaEnlace("Ver mensajes")
                 .fechaCreacion(LocalDate.now())
                 .build();
 
         tareaRepository.save(tarea);
 
-        return mensajeRepository.save(mensaje);
+        return guardado;
     }
 
     // LISTAR TODOS PARA LOS TRABAJADORES
@@ -93,11 +125,20 @@ public class MensajeContactoService {
         MensajeContacto mensajeExistente = mensajeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Mensaje no encontrado"));
 
-        mensajeExistente.setNombre(mensajeActualizado.getNombre());
-        mensajeExistente.setEmail(mensajeActualizado.getEmail());
-        mensajeExistente.setTelefono(mensajeActualizado.getTelefono());
-        mensajeExistente.setMensaje(mensajeActualizado.getMensaje());
-        mensajeExistente.setInmueble(mensajeActualizado.getInmueble());
+        // Actualización parcial: solo sobreescribimos campos que vienen rellenos
+        if (mensajeActualizado.getNombre() != null && !mensajeActualizado.getNombre().isBlank()) {
+            mensajeExistente.setNombre(mensajeActualizado.getNombre());
+        }
+        if (mensajeActualizado.getEmail() != null && !mensajeActualizado.getEmail().isBlank()) {
+            mensajeExistente.setEmail(mensajeActualizado.getEmail());
+        }
+        if (mensajeActualizado.getTelefono() != null && !mensajeActualizado.getTelefono().isBlank()) {
+            mensajeExistente.setTelefono(mensajeActualizado.getTelefono());
+        }
+        if (mensajeActualizado.getMensaje() != null && !mensajeActualizado.getMensaje().isBlank()) {
+            mensajeExistente.setMensaje(mensajeActualizado.getMensaje());
+        }
+        // leido siempre se actualiza (es el campo principal de este PUT)
         mensajeExistente.setLeido(mensajeActualizado.isLeido());
 
         return mensajeRepository.save(mensajeExistente);

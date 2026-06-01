@@ -4,10 +4,10 @@
 export interface MensajeContacto {
   id: number;
   nombre: string;
-  email: string;
-  telefono?: string;
+  email?: string | null;
+  telefono?: string | null;
   leido: boolean;
-  fechaEnvio: string; // ISO Date String
+  fechaEnvio?: string | null;
 }
 
 // ==========================================

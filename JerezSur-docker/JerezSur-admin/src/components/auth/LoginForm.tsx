@@ -50,10 +50,7 @@ const LoginForm = ({ onSwitchToRegister, onLoginSuccess }: LoginFormProps) => {
     }
   };
 
-  const handleForgotPassword = (e: React.MouseEvent) => {
-    e.preventDefault();
-    alert('Funcionalidad en desarrollo: Se enviará un enlace de recuperación a su contacto.');
-  };
+  const [mostrarAyuda, setMostrarAyuda] = useState(false);
 
   return (
     <form className="auth-form" onSubmit={handleSubmit}>
@@ -132,9 +129,14 @@ const LoginForm = ({ onSwitchToRegister, onLoginSuccess }: LoginFormProps) => {
           />
           <span>Recordarme</span>
         </label>
-        <button type="button" onClick={handleForgotPassword} className="auth-form__link">
+        <button type="button" onClick={() => setMostrarAyuda(v => !v)} className="auth-form__link">
           ¿Olvidaste tu contraseña?
         </button>
+        {mostrarAyuda && (
+          <p style={{ fontSize: '0.82rem', color: '#64748b', marginTop: '0.5rem' }}>
+            Contacta con el administrador del sistema para restablecer tu acceso.
+          </p>
+        )}
       </div>
 
       <button

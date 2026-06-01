@@ -13,7 +13,7 @@ export const useCitas = () => {
       const data = await citaService.getMisCitas();
       setCitas(data);
     } catch {
-      setError('Error al cargar las citas');
+      setError('No se pudieron cargar las citas. Comprueba tu conexión.');
     } finally {
       setLoading(false);
     }
@@ -22,6 +22,9 @@ export const useCitas = () => {
   useEffect(() => {
     cargar();
   }, [cargar]);
+
+  // Todas las mutaciones propagan el error al componente que llama
+  // para que pueda mostrarlo con FeedbackBanner
 
   const crear = async (cita: NuevaCita) => {
     await citaService.crear(cita);

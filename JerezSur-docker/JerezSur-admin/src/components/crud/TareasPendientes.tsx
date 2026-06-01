@@ -1,207 +1,206 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { Tarea, NuevaTarea } from '../../types/dashboard';
-import '../../styles/App.scss'; // Asegura la consistencia visual
 
-interface TareasPendientesProps {
+interface Props {
   tareas: Tarea[];
   onCrear: (tarea: NuevaTarea) => Promise<void>;
   onCompletar: (id: number) => Promise<void>;
 }
 
-export const TareasPendientes = ({
-  tareas,
-  onCrear,
-  onCompletar,
-}: TareasPendientesProps) => {
-  const [mostrarForm, setMostrarForm] = useState(false);
-  const [titulo, setTitulo] = useState('');
-  const [descripcion, setDescripcion] = useState('');
-  const [fecha, setFecha] = useState(new Date().toISOString().split('T')[0]);
-  const [prioridad, setPrioridad] = useState<'ALTA' | 'MEDIA' | 'BAJA'>('MEDIA');
-  const [enlace, setEnlace] = useState('');
-  const [etiquetaEnlace, setEtiquetaEnlace] = useState('');
-  const [guardando, setGuardando] = useState(false);
+const PRIORIDAD_META: Record<string, { label: string; color: string; dot: string }> = {
+  ALTA:  { label: 'Alta',  color: '#c0392b', dot: '🔴' },
+  MEDIA: { label: 'Media', color: '#d97706', dot: '🟡' },
+  BAJA:  { label: 'Baja',  color: '#4a9e2f', dot: '🟢' },
+};
 
-  const handleSubmit = async (e: React.FormEvent) => {
+function formatFecha(raw: string) {
+  const d = new Date(raw + 'T00:00:00');
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+  const diff = Math.ceil((d.getTime() - hoy.getTime()) / 86400000);
+  if (diff < 0)  return { txt: `Vencida hace ${Math.abs(diff)}d`, overdue: true };
+  if (diff === 0) return { txt: 'Hoy', overdue: false };
+  if (diff === 1) return { txt: 'Mañana', overdue: false };
+  return { txt: d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }), overdue: false };
+}
+
+export const TareasPendientes = ({ tareas, onCrear, onCompletar }: Props) => {
+  const navigate = useNavigate();
+  const [abrirForm, setAbrirForm] = useState(false);
+  const [titulo,    setTitulo]    = useState('');
+  const [desc,      setDesc]      = useState('');
+  const [fecha,     setFecha]     = useState(new Date().toISOString().split('T')[0]);
+  const [prioridad, setPrioridad] = useState<'ALTA' | 'MEDIA' | 'BAJA'>('MEDIA');
+  const [enlace,    setEnlace]    = useState('');
+  const [etiqueta,  setEtiqueta]  = useState('');
+  const [guardando, setGuardando] = useState(false);
+  const [completando, setCompletando] = useState<number | null>(null);
+
+  const reset = () => {
+    setTitulo(''); setDesc('');
+    setFecha(new Date().toISOString().split('T')[0]);
+    setPrioridad('MEDIA'); setEnlace(''); setEtiqueta('');
+    setAbrirForm(false);
+  };
+
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!titulo.trim()) return;
-
     setGuardando(true);
     try {
-      await onCrear({
-        titulo,
-        descripcion,
-        fecha,
-        prioridad,
+      await onCrear({ titulo, descripcion: desc, fecha, prioridad,
         enlace: enlace.trim() || undefined,
-        etiquetaEnlace: etiquetaEnlace.trim() || undefined,
-      });
-
-      setTitulo('');
-      setDescripcion('');
-      setFecha(new Date().toISOString().split('T')[0]);
-      setPrioridad('MEDIA');
-      setEnlace('');
-      setEtiquetaEnlace('');
-      setMostrarForm(false);
-    } finally {
-      setGuardando(false);
-    }
+        etiquetaEnlace: etiqueta.trim() || undefined });
+      reset();
+    } finally { setGuardando(false); }
   };
 
-  const abrirEnlace = (url: string) => {
+  const completar = async (id: number) => {
+    setCompletando(id);
+    try { await onCompletar(id); }
+    finally { setCompletando(null); }
+  };
+
+  const abrirLink = (url: string) => {
     if (/^(https?:|mailto:|tel:|wa\.me)/.test(url)) {
-      window.open(url, '_blank', 'noopener,noreferrer');
+      window.open(url, '_blank', 'noopener');
     } else {
-      window.location.href = url;
+      // Rutas internas del panel → React Router (respeta el basename /admin)
+      navigate(url);
     }
   };
+
+  // Ordenar: ALTA primero, luego MEDIA, luego BAJA, dentro de cada grupo por fecha
+  const sorted = [...tareas].sort((a, b) => {
+    const prio = { ALTA: 0, MEDIA: 1, BAJA: 2 };
+    const pa = prio[a.prioridad as keyof typeof prio] ?? 1;
+    const pb = prio[b.prioridad as keyof typeof prio] ?? 1;
+    if (pa !== pb) return pa - pb;
+    return a.fecha.localeCompare(b.fecha);
+  });
+
+  const alta  = sorted.filter(t => t.prioridad === 'ALTA');
+  const media = sorted.filter(t => t.prioridad === 'MEDIA');
+  const baja  = sorted.filter(t => t.prioridad === 'BAJA');
 
   return (
-    <section className="dashboard-card tasks-section">
-      
-      {/* Cabecera del bloque */}
-      <header className="dashboard-card__header">
-        <div className="title-group">
-          <h2>Tareas pendientes</h2>
-          <span className="badge badge-info">{tareas.length}</span>
+    <div className="tareas">
+
+      {/* Header */}
+      <div className="tareas__header">
+        <div className="tareas__header-left">
+          <h2 className="tareas__titulo">Agenda y tareas</h2>
+          <div className="tareas__counters">
+            {alta.length  > 0 && <span className="t-badge t-badge--alta">{alta.length} urgente{alta.length > 1 ? 's':''}</span>}
+            {media.length > 0 && <span className="t-badge t-badge--media">{media.length} media{media.length > 1 ? 's':''}</span>}
+            {baja.length  > 0 && <span className="t-badge t-badge--baja">{baja.length} baja{baja.length > 1 ? 's':''}</span>}
+            {tareas.length === 0 && <span className="t-badge t-badge--ok">Todo al día ✓</span>}
+          </div>
         </div>
-        <button 
-          onClick={() => setMostrarForm(!mostrarForm)} 
-          className={`btn ${mostrarForm ? 'btn-ghost' : 'btn-primary btn-sm'}`}
+        <button
+          className={`t-btn ${abrirForm ? 't-btn--ghost' : 't-btn--primary'}`}
+          onClick={() => setAbrirForm(v => !v)}
         >
-          {mostrarForm ? 'Cancelar' : '+ Nueva Tarea'}
+          {abrirForm ? '✕ Cancelar' : '+ Nueva tarea'}
         </button>
-      </header>
+      </div>
 
-      {/* Formulario de Alta Inline (Desplegable) */}
-      {mostrarForm && (
-        <form onSubmit={handleSubmit} className="tasks-form-inline">
-          <div className="form-row">
-            <Field label="Título *">
-              <input
-                type="text"
-                placeholder="Ej: Llamar a notaría por Juan"
-                value={titulo}
-                onChange={(e) => setTitulo(e.target.value)}
-                required
-              />
-            </Field>
-            <Field label="Vencimiento *">
-              <input
-                type="date"
-                value={fecha}
-                onChange={(e) => setFecha(e.target.value)}
-                required
-              />
-            </Field>
-            <Field label="Prioridad">
-              <select
-                value={prioridad}
-                onChange={(e) => setPrioridad(e.target.value as any)}
-              >
-                <option value="ALTA">🚨 Alta</option>
+      {/* Formulario inline */}
+      {abrirForm && (
+        <form onSubmit={submit} className="tareas__form">
+          <div className="t-form-row">
+            <div className="t-field t-field--grow">
+              <label>Título *</label>
+              <input type="text" value={titulo} onChange={e => setTitulo(e.target.value)}
+                     placeholder="Describe la tarea…" required autoFocus />
+            </div>
+            <div className="t-field">
+              <label>Vencimiento *</label>
+              <input type="date" value={fecha} onChange={e => setFecha(e.target.value)} required />
+            </div>
+            <div className="t-field">
+              <label>Prioridad</label>
+              <select value={prioridad} onChange={e => setPrioridad(e.target.value as any)}>
+                <option value="ALTA">🔴 Alta</option>
                 <option value="MEDIA">🟡 Media</option>
-                <option value="BAJA">📉 Baja</option>
+                <option value="BAJA">🟢 Baja</option>
               </select>
-            </Field>
+            </div>
           </div>
-
-          <Field label="Descripción (opcional)">
-            <input
-              type="text"
-              placeholder="Añade detalles adicionales de la tarea..."
-              value={descripcion}
-              onChange={(e) => setDescripcion(e.target.value)}
-            />
-          </Field>
-
-          <div className="form-row">
-            <Field label="Enlace de Acción (opcional)">
-              <input
-                type="text"
-                placeholder="https://... o id de cliente"
-                value={enlace}
-                onChange={(e) => setEnlace(e.target.value)}
-              />
-            </Field>
-            <Field label="Texto del Botón">
-              <input
-                type="text"
-                placeholder="Ej: Ver Ficha"
-                value={etiquetaEnlace}
-                onChange={(e) => setEtiquetaEnlace(e.target.value)}
-              />
-            </Field>
+          <div className="t-form-row">
+            <div className="t-field t-field--grow">
+              <label>Descripción (opcional)</label>
+              <input type="text" value={desc} onChange={e => setDesc(e.target.value)}
+                     placeholder="Detalles adicionales…" />
+            </div>
+            <div className="t-field">
+              <label>Enlace (opcional)</label>
+              <input type="text" value={enlace} onChange={e => setEnlace(e.target.value)}
+                     placeholder="https://… o ruta interna" />
+            </div>
+            <div className="t-field">
+              <label>Texto del botón</label>
+              <input type="text" value={etiqueta} onChange={e => setEtiqueta(e.target.value)}
+                     placeholder="Ver ficha" />
+            </div>
           </div>
-
-          <div className="form-actions" style={{ justifyContent: 'flex-end', marginTop: '1rem' }}>
-            <button type="submit" disabled={guardando} className="btn btn-primary btn-sm">
-              {guardando ? 'Guardando...' : 'Guardar Tarea'}
+          <div className="t-form-actions">
+            <button type="button" className="t-btn t-btn--ghost" onClick={reset}>Cancelar</button>
+            <button type="submit" className="t-btn t-btn--primary" disabled={guardando}>
+              {guardando ? 'Guardando…' : 'Guardar tarea'}
             </button>
           </div>
         </form>
       )}
 
-      {/* Lista de Tareas */}
-      <div className="tasks-container">
-        {tareas.length === 0 ? (
-          <p className="no-data-text">No tienes tareas pendientes para hoy. ¡Buen trabajo!</p>
-        ) : (
-          <ul className="tasks-list">
-            {tareas.map((tarea) => (
-              <li key={tarea.id} className="tasks-item">
-                
-                {/* Bloque izquierdo: Información */}
-                <div className="tasks-item__content">
-                  <div className="tasks-item__title-row">
-                    <span className={`priority-tag priority-tag--${tarea.prioridad.toLowerCase()}`}>
-                      {tarea.prioridad}
+      {/* Lista de tareas */}
+      {tareas.length === 0 ? (
+        <div className="tareas__empty">
+          <p className="tareas__empty-icon">🎉</p>
+          <p className="tareas__empty-text">No hay tareas pendientes. ¡Buen trabajo!</p>
+        </div>
+      ) : (
+        <ul className="tareas__lista">
+          {sorted.map(tarea => {
+            const pm = PRIORIDAD_META[tarea.prioridad] ?? PRIORIDAD_META.MEDIA;
+            const { txt: fechaTxt, overdue } = formatFecha(tarea.fecha);
+            return (
+              <li key={tarea.id} className={`t-card ${overdue ? 't-card--overdue' : ''}`}
+                  style={{ '--p-color': pm.color } as React.CSSProperties}>
+                <div className="t-card__stripe" />
+                <div className="t-card__body">
+                  <div className="t-card__top">
+                    <span className="t-card__prio-dot">{pm.dot}</span>
+                    <strong className="t-card__titulo">{tarea.titulo}</strong>
+                    <span className={`t-card__fecha ${overdue ? 't-card__fecha--late' : ''}`}>
+                      {overdue ? '⚠️ ' : '📅 '}{fechaTxt}
                     </span>
-                    <strong>{tarea.titulo}</strong>
                   </div>
-                  
                   {tarea.descripcion && (
-                    <p className="tasks-item__description">{tarea.descripcion}</p>
+                    <p className="t-card__desc">{tarea.descripcion}</p>
                   )}
-                  
-                  <div className="tasks-item__meta">
-                    <span className="meta-date">📅 {tarea.fecha}</span>
-                  </div>
                 </div>
-
-                {/* Bloque derecho: Acciones de la tarea */}
-                <div className="tasks-item__actions">
+                <div className="t-card__actions">
                   {tarea.enlace && (
-                    <button 
-                      onClick={() => abrirEnlace(tarea.enlace!)}
-                      className="btn btn-ghost btn-sm"
-                      title={tarea.enlace}
-                    >
+                    <button className="t-btn t-btn--ghost t-btn--sm"
+                            onClick={() => abrirLink(tarea.enlace!)}>
                       🔗 {tarea.etiquetaEnlace || 'Abrir'}
                     </button>
                   )}
-                  <button 
-                    onClick={() => onCompletar(tarea.id)}
-                    className="btn btn-success btn-sm btn-done"
+                  <button
+                    className="t-btn t-btn--success t-btn--sm"
+                    disabled={completando === tarea.id}
+                    onClick={() => completar(tarea.id)}
                   >
-                    ✓ Hecho
+                    {completando === tarea.id ? '…' : '✓ Hecho'}
                   </button>
                 </div>
-
               </li>
-            ))}
-          </ul>
-        )}
-      </div>
-    </section>
+            );
+          })}
+        </ul>
+      )}
+    </div>
   );
 };
-
-// --- Helper UI Interno ---
-const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
-  <div className="form-group" style={{ marginBottom: '0.75rem' }}>
-    <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)' }}>{label}</label>
-    {children}
-  </div>
-);

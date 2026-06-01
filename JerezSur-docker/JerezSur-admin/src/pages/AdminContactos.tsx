@@ -49,9 +49,12 @@ const AdminContactos = () => {
       filtroLeido === 'TODOS' ||
       (filtroLeido === 'LEIDOS' && c.leido) ||
       (filtroLeido === 'PENDIENTES' && !c.leido);
+    const texto = busqueda.toLowerCase();
     const coincideTexto =
-      c.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
-      c.email.toLowerCase().includes(busqueda.toLowerCase());
+      !busqueda ||
+      (c.nombre?.toLowerCase().includes(texto) ?? false) ||
+      (c.email?.toLowerCase().includes(texto) ?? false) ||
+      (c.telefono?.toLowerCase().includes(texto) ?? false);
     return coincideEstado && coincideTexto;
   });
 

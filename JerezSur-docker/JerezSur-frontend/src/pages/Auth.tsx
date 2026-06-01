@@ -1,6 +1,7 @@
 // src/pages/Auth.tsx
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { useToast } from '../components/ui/Toast';
 import LoginForm from '../components/auth/LoginForm';
 import RegisterForm from '../components/auth/RegistroForm';
 import SocialAuth from '../components/auth/SocialAuth';
@@ -21,9 +22,11 @@ type AuthMode = 'login' | 'register';
 
 const Auth: React.FC = () => {
   const [authMode, setAuthMode] = useState<AuthMode>('login');
+  const [socialError, setSocialError] = useState('');
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const verificado = searchParams.get('verificado'); // 'ok' | 'error' | null
+  const verificado = searchParams.get('verificado');
+  const toast = useToast();
 
   useEffect(() => {
     document.body.classList.add('auth-page');
@@ -74,6 +77,7 @@ const Auth: React.FC = () => {
   };
 
   const handleSocialLogin = async (provider: 'google' | 'facebook' | 'apple', token: string): Promise<void> => {
+    setSocialError('');
     try {
       const response = await fetch(`/api/usuarios/auth/${provider}`, {
         method: 'POST',
@@ -83,32 +87,28 @@ const Auth: React.FC = () => {
 
       if (response.ok) {
         const userData: UserData = await response.json();
-        redirectByUserRole(userData); // Aplicamos la nueva lógica
+        redirectByUserRole(userData);
       } else {
-        const errorMsg = await response.text();
-        console.error(`Error en backend (${provider}):`, errorMsg);
-        alert("No se pudo completar la autenticación social.");
+        const data = await response.json().catch(() => ({}));
+        setSocialError(data?.error || 'No se pudo completar la autenticación. Inténtalo de nuevo.');
       }
-    } catch (error) {
-      console.error("Error de conexión:", error);
-      alert("Error de red.");
+    } catch {
+      setSocialError('Error de conexión. Comprueba tu red e inténtalo de nuevo.');
     }
   };
 
   const handleLoginSuccess = (): void => {
     const userDataJson = localStorage.getItem('usuario');
     if (!userDataJson) {
-      console.error('Usuario no encontrado en localStorage al iniciar sesión.');
+      toast.error('No se pudo recuperar la sesión. Inicia sesión de nuevo.');
       return;
     }
-
     const userData: UserData = JSON.parse(userDataJson);
-    console.log('Sesión iniciada:', userData);
     redirectByUserRole(userData);
   };
 
   const handleRegisterSuccess = (): void => {
-    alert('Registro completado. Ahora puedes iniciar sesión con tus credenciales.');
+    toast.success('¡Cuenta creada! Revisa tu email para activarla e inicia sesión.');
     setAuthMode('login');
   };
 
@@ -175,6 +175,16 @@ const Auth: React.FC = () => {
             )}
           </div>
         </div>
+
+        {socialError && (
+          <div style={{
+            background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: '8px',
+            padding: '0.75rem 1.25rem', color: '#7f1d1d', fontSize: '0.88rem',
+            fontWeight: 500, textAlign: 'center',
+          }}>
+            ✕ {socialError}
+          </div>
+        )}
 
         <SocialAuth onSocialLogin={handleSocialLogin} />
 

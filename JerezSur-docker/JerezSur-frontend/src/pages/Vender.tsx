@@ -20,16 +20,39 @@ const Vender = () => {
   });
 
   const [submitted, setSubmitted] = useState(false);
+  const [enviando, setEnviando] = useState(false);
+  const [errorEnvio, setErrorEnvio] = useState('');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Formulario enviado:', formData);
-    setSubmitted(true);
+    setEnviando(true);
+    setErrorEnvio('');
+
+    try {
+      const res = await fetch('/api/contactos/enviar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nombre: `${formData.nombre.trim()} ${formData.apellidos.trim()}`.trim(),
+          email: formData.email.trim() || null,
+          telefono: formData.telefono.trim(),
+          mensaje: `[Quiero vender mi inmueble]\n${formData.detallesPropiedad.trim()}`,
+        }),
+      });
+
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      setSubmitted(true);
+    } catch {
+      setErrorEnvio('Ha ocurrido un error. Inténtalo de nuevo o llámanos directamente.');
+    } finally {
+      setEnviando(false);
+    }
   };
 
   return (
@@ -224,12 +247,17 @@ const Vender = () => {
                       </div>
                     </fieldset>
 
-                    <button type="submit" className="btn btn--primary">
+                    {errorEnvio && (
+                      <p style={{ color: '#d9534f', fontSize: '0.9rem', marginBottom: '0.5rem' }}>
+                        {errorEnvio}
+                      </p>
+                    )}
+                    <button type="submit" className="btn btn--primary" disabled={enviando}>
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <line x1="22" y1="2" x2="11" y2="13"></line>
                         <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
                       </svg>
-                      Solicitar información
+                      {enviando ? 'Enviando...' : 'Solicitar información'}
                     </button>
                   </form>
                 </div>

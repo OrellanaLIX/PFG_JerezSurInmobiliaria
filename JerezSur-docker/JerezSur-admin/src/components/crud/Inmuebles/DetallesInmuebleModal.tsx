@@ -343,6 +343,7 @@ export const DetalleInmuebleModal = ({ inmueble, loading, onCerrar, onEliminar }
                 editMode={editMode}
                 accept=".pdf"
                 onChange={setNuevoNotaSimple}
+                esPdf
               />
               <ArchivoFila
                 label="🟢 Certificado Energético"
@@ -352,6 +353,7 @@ export const DetalleInmuebleModal = ({ inmueble, loading, onCerrar, onEliminar }
                 editMode={editMode}
                 accept=".pdf"
                 onChange={setNuevoCertificado}
+                esPdf
               />
               <ArchivoFila
                 label="📐 Plano del Inmueble"
@@ -361,6 +363,7 @@ export const DetalleInmuebleModal = ({ inmueble, loading, onCerrar, onEliminar }
                 editMode={editMode}
                 accept=".pdf,image/*"
                 onChange={setNuevoPlano}
+                esPdf
               />
 
               <p className="section-title" style={{ marginTop: '1.5rem' }}>🖼️ Imágenes</p>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { OperacionBase, ContratoDetalle, CrearContratoData, ModeloContrato } from '../../../types/operacion';
 import { contratoService } from '../../../services/contratoService';
+import { descargarPdfCifrado } from '../Inmuebles/_shared';
 import '../../../styles/App.scss';
 
 interface Props {
@@ -118,7 +119,19 @@ export const ContratosModal = ({ operacion, onCerrar }: Props) => {
                       </td>
                       <td>
                         {c.urlDocumentoPdf
-                          ? <a href={c.urlDocumentoPdf} target="_blank" rel="noreferrer">Ver PDF</a>
+                          ? (
+                            <button
+                              type="button"
+                              onClick={() => descargarPdfCifrado(c.urlDocumentoPdf!)}
+                              style={{
+                                background: 'none', border: 'none', cursor: 'pointer',
+                                color: '#0d6efd', textDecoration: 'underline', padding: 0,
+                                fontSize: 'inherit',
+                              }}
+                            >
+                              🔒 Ver PDF
+                            </button>
+                          )
                           : '—'}
                       </td>
                     </tr>

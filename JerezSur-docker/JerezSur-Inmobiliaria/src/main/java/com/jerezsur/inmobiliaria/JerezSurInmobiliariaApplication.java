@@ -17,6 +17,15 @@ import org.springframework.core.annotation.Order;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+/**
+ * Clase principal de la aplicación Spring Boot.
+ *
+ * @SpringBootApplication activa el autoconfigurado de Spring, el escaneo de componentes
+ * y permite que todo funcione sin tener que configurar cada cosa manualmente.
+ *
+ * @EnableScheduling lo necesito para las tareas programadas (@Scheduled) que
+ * hacen limpieza automática de datos en la base de datos.
+ */
 @SpringBootApplication
 @EnableScheduling
 public class JerezSurInmobiliariaApplication {
@@ -25,6 +34,15 @@ public class JerezSurInmobiliariaApplication {
 		SpringApplication.run(JerezSurInmobiliariaApplication.class, args);
 	}
 
+	/**
+	 * CommandLineRunner que se ejecuta nada más arrancar la aplicación.
+	 *
+	 * Lo uso para asegurarme de que siempre exista un usuario administrador en la base
+	 * de datos. Si no existiera y se borrara la BD, no podría entrar al panel de admin.
+	 *
+	 * @Order(1) significa que este se ejecuta ANTES que el DataSeeder (que es @Order(2))
+	 * Así cuando el seeder intente crear datos, el admin ya existe.
+	 */
 	@Bean
 	@Order(1)
 	public CommandLineRunner initAdminUsuario(
@@ -34,9 +52,14 @@ public class JerezSurInmobiliariaApplication {
 	) {
 		return args -> {
 			String adminEmail = "admin@jerezsur.com";
+
+			// Buscamos si ya existe el admin en la BD
+			// Si usamos findByEmail devuelve Optional, por eso el orElse(null)
 			Usuario admin = usuarioRepository.findByEmail(adminEmail).orElse(null);
 
 			if (admin == null) {
+				// No existe, lo creamos con todos los datos necesarios
+				// La contraseña la ciframos con BCrypt (nunca en texto plano)
 				admin = Usuario.builder()
 					.email(adminEmail)
 					.nombre("Administrador")
@@ -54,6 +77,8 @@ public class JerezSurInmobiliariaApplication {
 				admin = usuarioRepository.save(admin);
 				System.out.println("✅ Usuario administrador inicial creado: " + adminEmail);
 			} else {
+				// Ya existe, comprobamos que tenga el rol correcto
+				// Esto lo añadí por si alguien cambia el rol por error en la BD
 				boolean updated = false;
 				if (!Role.ROLE_ADMIN.equals(admin.getRole())) {
 					admin.setRole(Role.ROLE_ADMIN);
@@ -69,6 +94,8 @@ public class JerezSurInmobiliariaApplication {
 				}
 			}
 
+			// El admin también necesita un perfil de Trabajador para poder entrar al panel
+			// Sin el Trabajador vinculado, el login del admin rechaza el acceso
 			if (!trabajadorRepository.existsByUsuario(admin)) {
 				Trabajador trabajador = Trabajador.builder()
 					.dni(admin.getDni() != null ? admin.getDni() : "00000000A")

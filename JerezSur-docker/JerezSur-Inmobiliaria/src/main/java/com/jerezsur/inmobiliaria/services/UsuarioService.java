@@ -2,15 +2,18 @@ package com.jerezsur.inmobiliaria.services;
 
 import com.jerezsur.inmobiliaria.exceptions.BusinessValidationException;
 import com.jerezsur.inmobiliaria.exceptions.ResourceNotFoundException;
+import com.jerezsur.inmobiliaria.models.Tarea;
 import com.jerezsur.inmobiliaria.models.Usuario;
 import com.jerezsur.inmobiliaria.models.enums.AuthProvider;
 import com.jerezsur.inmobiliaria.models.enums.Role;
+import com.jerezsur.inmobiliaria.repositories.TareaRepository;
 import com.jerezsur.inmobiliaria.repositories.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -28,6 +31,9 @@ public class UsuarioService {
 
     @Autowired
     private NotificacionService notificacionService;
+
+    @Autowired
+    private TareaRepository tareaRepository;
 
     // ------------------------------------------------------------------
     // CRUD BASICO
@@ -54,13 +60,26 @@ public class UsuarioService {
             Usuario nuevo = new Usuario();
             nuevo.setEmail(email);
             nuevo.setNombre(nombre);
-            nuevo.setRole(Role.ROLE_NOROL); // El rol base que creamos antes
+            nuevo.setRole(Role.ROLE_NOROL);
             nuevo.setProvider(provider);
             nuevo.setProviderId(providerId);
-            nuevo.setCambiarPasswd(false); // No necesita cambiar pass porque entra por Google
+            nuevo.setCambiarPasswd(false);
 
-            notificacionService.notificarNuevoUsuario(nuevo, providerId);
-            return usuarioRepository.save(nuevo);
+            notificacionService.notificarNuevoUsuario(nuevo, null);
+            Usuario guardado = usuarioRepository.save(nuevo);
+
+            // Crear tarea para que el equipo complete el perfil
+            tareaRepository.save(Tarea.builder()
+                .titulo("👤 Nuevo usuario OAuth: " + nombre)
+                .descripcion("Email: " + email + "\nProveedor: " + provider + "\nPendiente de completar perfil en onboarding.")
+                .fecha(LocalDate.now().plusDays(2))
+                .prioridad("MEDIA")
+                .enlace("/usuarios")
+                .etiquetaEnlace("Ver usuarios")
+                .fechaCreacion(LocalDate.now())
+                .build());
+
+            return guardado;
         } else {
             // Si ya existe, lo buscamos y actualizamos su provider info por si ha cambiado
             Usuario existente = usuarioRepository.findByEmail(email).get();
@@ -133,6 +152,21 @@ public class UsuarioService {
 
         Usuario guardado = usuarioRepository.save(usuario);
         notificacionService.notificarNuevoUsuario(guardado, token);
+
+        // Tarea para que el equipo revise el nuevo registro
+        tareaRepository.save(Tarea.builder()
+            .titulo("👤 Nuevo registro: " + guardado.getNombre())
+            .descripcion(
+                (guardado.getEmail() != null ? "Email: " + guardado.getEmail() + "\n" : "") +
+                (guardado.getTelefono() != null ? "Tel: " + guardado.getTelefono() + "\n" : "") +
+                "Pendiente de completar onboarding.")
+            .fecha(LocalDate.now().plusDays(2))
+            .prioridad("MEDIA")
+            .enlace("/usuarios")
+            .etiquetaEnlace("Ver usuarios")
+            .fechaCreacion(LocalDate.now())
+            .build());
+
         return guardado;
     }
 

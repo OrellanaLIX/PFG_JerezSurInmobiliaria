@@ -21,9 +21,18 @@ export const DetalleContactoModal = ({ contacto, loading, onCerrar, onEliminar }
         </header>
 
         <section className="modal-body">
-          <p><strong>Email:</strong> <a href={`mailto:${contacto.email}`}>{contacto.email}</a></p>
-          {contacto.telefono && <p><strong>Teléfono:</strong> {contacto.telefono}</p>}
-          <p className="text-soft"><small>Recibido el: {new Date(contacto.fechaEnvio).toLocaleString('es-ES')}</small></p>
+          {contacto.email
+            ? <p><strong>Email:</strong> <a href={`mailto:${contacto.email}`}>{contacto.email}</a></p>
+            : <p className="text-soft"><strong>Email:</strong> —</p>
+          }
+          {contacto.telefono && (
+            <p><strong>Teléfono:</strong>{' '}
+              <a href={`tel:${contacto.telefono}`}>{contacto.telefono}</a>
+            </p>
+          )}
+          <p className="text-soft">
+            <small>Recibido el: {contacto.fechaEnvio ? new Date(contacto.fechaEnvio).toLocaleString('es-ES') : '—'}</small>
+          </p>
 
           <div className="message-box">
             <strong>Mensaje original:</strong>

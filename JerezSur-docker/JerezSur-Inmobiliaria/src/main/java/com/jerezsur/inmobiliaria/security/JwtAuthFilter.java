@@ -7,6 +7,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -18,6 +19,19 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Filtro de autenticación JWT.
+ *
+ * En Spring Security los filtros se ejecutan antes de que la petición llegue al controlador.
+ * Este filtro lee el token JWT de la cabecera "Authorization", lo valida y,
+ * si es correcto, establece la identidad del usuario en el contexto de seguridad.
+ * Así los controladores pueden usar @PreAuthorize o simplemente funcionar seguros
+ * de que el usuario está autenticado.
+ *
+ * Extiende OncePerRequestFilter para garantizar que solo se ejecuta UNA vez por petición
+ * (Spring a veces aplica filtros varias veces si no se usa esta clase base).
+ */
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtAuthFilter extends OncePerRequestFilter {
@@ -31,60 +45,65 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             HttpServletResponse response,
             FilterChain filterChain) throws ServletException, IOException {
 
+        // Leemos la cabecera Authorization (donde el frontend manda el token)
         String authHeader = request.getHeader("Authorization");
 
-        // Si no hay header o no empieza por "Bearer ", continuar sin autenticar
+        // Si no hay header o no empieza por "Bearer ", esta petición es pública
+        // y simplemente la dejamos pasar sin autenticar
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
 
+        // Quitamos el prefijo "Bearer " (7 caracteres) para quedarnos solo con el token
         String token = authHeader.substring(7);
 
         try {
             if (jwtService.tokenValido(token)) {
                 String email = jwtService.extraerEmail(token);
-                System.out.println("✅ [JWT FILTER] Token válido. Email extraído: " + email);
 
-                // Solo autenticar si no hay autenticación ya en el contexto
+                // Solo procesamos si no hay autenticación ya establecida
+                // (puede pasar si hay otros filtros que actúan antes)
                 if (SecurityContextHolder.getContext().getAuthentication() == null) {
 
                     Optional<Usuario> usuarioOpt = usuarioRepository.findByEmail(email);
-                    System.out.println("   -> [JWT FILTER] Usuario encontrado en BD: " + usuarioOpt.isPresent());
 
                     if (usuarioOpt.isPresent()) {
                         Usuario usuario = usuarioOpt.get();
 
-                        String rolLimpio = usuario.getRole().name().startsWith("ROLE_") 
-                                ? usuario.getRole().name() 
+                        // Spring Security necesita que el rol empiece por "ROLE_"
+                        String rolLimpio = usuario.getRole().name().startsWith("ROLE_")
+                                ? usuario.getRole().name()
                                 : "ROLE_" + usuario.getRole().name();
-                                
-                        System.out.println("   -> [JWT FILTER] Asignando rol de seguridad: " + rolLimpio);
 
+                        // Creamos el objeto de autenticación con el usuario y su rol
+                        // El segundo parámetro (credentials) es null porque ya autenticamos con el token
                         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
                                 usuario,
                                 null,
                                 List.of(new SimpleGrantedAuthority(rolLimpio)));
-                                
-                        auth.setDetails(
-                                new WebAuthenticationDetailsSource().buildDetails(request));
+
+                        // Añadimos los detalles de la petición (IP, session ID...) al objeto de auth
+                        auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+                        // Ponemos la autenticación en el contexto: a partir de aquí Spring sabe quién es el usuario
                         SecurityContextHolder.getContext().setAuthentication(auth);
-                        System.out.println("✅ [JWT FILTER] Autenticación establecida en el contexto de Spring.");
                     } else {
-                        System.out.println("⚠️ [JWT FILTER] El email del token ya no existe en la base de datos.");
+                        // El token es válido pero el usuario fue borrado de la BD
+                        log.warn("[JWT] Token válido pero el usuario '{}' ya no existe en la base de datos", email);
                     }
-                } else {
-                    System.out.println("ℹ️ [JWT FILTER] Ya había autenticación en el contexto.");
                 }
             } else {
-                System.out.println("❌ [JWT FILTER] El token JWT enviado no es válido o ha expirado.");
+                log.debug("[JWT] Token inválido o expirado en la petición a {}", request.getRequestURI());
             }
-        } catch (Exception e) {
-            System.out.println("💥 [JWT FILTER] Excepción procesando el token: " + e.getMessage());
-            e.printStackTrace();
 
+        } catch (Exception e) {
+            // Si algo falla al procesar el token, simplemente no autenticamos
+            // La petición seguirá su curso y Spring Security decidirá si es accesible o no
+            log.warn("[JWT] Error al procesar el token: {}", e.getMessage());
         }
 
+        // Siempre pasamos la petición al siguiente filtro/controlador
         filterChain.doFilter(request, response);
     }
 }

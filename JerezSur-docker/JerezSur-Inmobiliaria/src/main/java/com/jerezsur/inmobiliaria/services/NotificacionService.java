@@ -23,15 +23,8 @@ public class NotificacionService {
     // ──────────────────────────────────────────
 
     public void notificarNuevoUsuario(Usuario usuario, String tokenVerificacion) {
-        // Al admin por WhatsApp
-        String msgAdmin = "🆕 Nuevo usuario registrado:\n"
-                + "Nombre: " + usuario.getNombre() + " " + (usuario.getApellidos() != null ? usuario.getApellidos() : "") + "\n"
-                + "Email: " + (usuario.getEmail() != null ? usuario.getEmail() : "—") + "\n"
-                + "Teléfono: " + (usuario.getTelefono() != null ? usuario.getTelefono() : "—") + "\n"
-                + "Origen: " + usuario.getOrigen();
-        whatsappService.enviarAlAdmin(msgAdmin);
-
-        // Al usuario por email si tiene (con enlace para validar cuenta)
+        // Solo enviamos email al usuario con el enlace de verificación
+        // No molestamos al admin por WhatsApp con cada registro
         if (usuario.getEmail() != null) {
             emailService.enviarAlUsuario(
                     usuario.getEmail(),
@@ -131,12 +124,10 @@ public class NotificacionService {
     // ──────────────────────────────────────────
 
     public void notificarNuevoInteresado(Usuario usuario) {
-        String msgAdmin = "🔍 Nuevo interesado registrado:\n"
-                + "Nombre: " + usuario.getNombre() + "\n"
-                + "Teléfono: " + (usuario.getTelefono() != null ? usuario.getTelefono() : "—") + "\n"
-                + "Email: " + (usuario.getEmail() != null ? usuario.getEmail() : "—");
-        whatsappService.enviarAlAdmin(msgAdmin);
+        // No enviamos WhatsApp al admin por cada interesado que completa el perfil
+        // El admin verá la tarea creada automáticamente en el dashboard
 
+        // Sí avisamos al usuario por su canal preferido
         if (usuario.getTelefono() != null) {
             whatsappService.enviarAlUsuario(usuario.getTelefono(),
                     "Hola " + usuario.getNombre() + " 👋\n"
@@ -156,12 +147,10 @@ public class NotificacionService {
     // ──────────────────────────────────────────
 
     public void notificarNuevoVendedor(Usuario usuario) {
-        String msgAdmin = "🏠 Nuevo vendedor/propietario registrado:\n"
-                + "Nombre: " + usuario.getNombre() + "\n"
-                + "Teléfono: " + (usuario.getTelefono() != null ? usuario.getTelefono() : "—") + "\n"
-                + "Email: " + (usuario.getEmail() != null ? usuario.getEmail() : "—");
-        whatsappService.enviarAlAdmin(msgAdmin);
+        // No enviamos WhatsApp al admin por cada vendedor que completa el perfil
+        // El admin verá la tarea creada automáticamente en el dashboard
 
+        // Sí confirmamos al propietario que hemos recibido su información
         if (usuario.getTelefono() != null) {
             whatsappService.enviarAlUsuario(usuario.getTelefono(),
                     "Hola " + usuario.getNombre() + " 👋\n"

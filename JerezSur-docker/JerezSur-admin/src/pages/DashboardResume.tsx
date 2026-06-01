@@ -1,49 +1,67 @@
 import { useDashboard } from '../hooks/useDashboard';
 import { useFeedback } from '../hooks/useFeedback';
 import { FeedbackBanner } from '../components/layout/FeedbackBanner';
-import { KpiCards } from '../components/crud/KpiCards';
+import { GraficosPanel } from '../components/crud/GraficosPanel';
 import { TareasPendientes } from '../components/crud/TareasPendientes';
-import '../styles/pages/CrudPages.scss';
+import '../styles/pages/Dashboard.scss';
 
 const DashboardResumen = () => {
   const { data, loading, error, crearTarea, eliminarTarea } = useDashboard();
   const { feedback, showSuccess, showError, clearFeedback } = useFeedback();
 
-  const handleCrearTarea = async (tarea: any) => {
-    try {
-      await crearTarea(tarea);
-      showSuccess('Tarea creada correctamente.');
-    } catch (e: any) {
-      showError(e?.response?.data?.message ?? 'Error al crear la tarea.');
-    }
+  const hora = new Date().getHours();
+  const saludo = hora < 13 ? 'Buenos días' : hora < 20 ? 'Buenas tardes' : 'Buenas noches';
+
+  const handleCrear = async (t: any) => {
+    try   { await crearTarea(t); showSuccess('Tarea creada.'); }
+    catch (e: any) { showError(e?.response?.data?.message ?? 'Error al crear la tarea.'); }
   };
 
-  const handleEliminarTarea = async (id: number) => {
-    try {
-      await eliminarTarea(id);
-      showSuccess('Tarea completada.');
-    } catch {
-      showError('Error al completar la tarea.');
-    }
+  const handleCompletar = async (id: number) => {
+    try   { await eliminarTarea(id); showSuccess('Tarea completada.'); }
+    catch { showError('Error al completar la tarea.'); }
   };
-
-  if (loading) return <p>Cargando...</p>;
-  if (error) return <p className="error-text">{error}</p>;
-  if (!data) return null;
 
   return (
-    <div>
-      <h1>Dashboard</h1>
+    <div className="dash">
+
+      {/* Header compacto */}
+      <header className="dash__header">
+        <div>
+          <p className="dash__saludo">{saludo} 👋</p>
+          <h1 className="dash__titulo">Panel de control</h1>
+        </div>
+        <span className="dash__badge">JerezSur Inmobiliaria</span>
+      </header>
 
       <FeedbackBanner feedback={feedback} onDismiss={clearFeedback} />
 
-      <KpiCards />
+      {/* Layout de dos columnas: stats izq | tareas der */}
+      <div className="dash__body">
 
-      <TareasPendientes
-        tareas={data.tareas}
-        onCrear={handleCrearTarea}
-        onCompletar={handleEliminarTarea}
-      />
+        {/* Columna izquierda — estadísticas */}
+        <section className="dash__col dash__col--stats">
+          <GraficosPanel />
+        </section>
+
+        {/* Columna derecha — tareas */}
+        <aside className="dash__col dash__col--tasks">
+          {loading && (
+            <div className="dash__loading">
+              <div className="dash__spinner" />
+              <span>Cargando…</span>
+            </div>
+          )}
+          {error && <p className="dash__error">{error}</p>}
+          {data && (
+            <TareasPendientes
+              tareas={data.tareas}
+              onCrear={handleCrear}
+              onCompletar={handleCompletar}
+            />
+          )}
+        </aside>
+      </div>
     </div>
   );
 };
