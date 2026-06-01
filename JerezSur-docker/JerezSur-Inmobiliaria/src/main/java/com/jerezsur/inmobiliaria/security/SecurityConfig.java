@@ -42,6 +42,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/usuarios/completar").permitAll()
                         .requestMatchers("/error").permitAll()
 
+                        // ── Feed XML para portales inmobiliarios ──
+                        .requestMatchers(HttpMethod.GET, "/api/portal/**").permitAll()
+
                         // ── Rutas del Negocio Inmobiliario ──
                         // Permitimos ver inmuebles sin loguearse (para la web pública)
                         .requestMatchers(HttpMethod.GET, "/api/inmuebles/**").permitAll()

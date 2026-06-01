@@ -47,4 +47,8 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     void deleteByCuentaActivadaFalseAndFechaEliminacionBefore(LocalDateTime haceUnAño);
 
     List<Usuario> findByFechaEliminacionIsNull();
+
+    Optional<Usuario> findByTokenVerificacion(String token);
+
+    Optional<Usuario> findByTokenRecuperacion(String token);
 }

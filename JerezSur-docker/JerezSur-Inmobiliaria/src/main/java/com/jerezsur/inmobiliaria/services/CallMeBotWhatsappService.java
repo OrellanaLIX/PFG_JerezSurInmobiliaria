@@ -1,10 +1,14 @@
 package com.jerezsur.inmobiliaria.services;
 
-import org.springframework.stereotype.Service;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
+@Slf4j
 @Service
 public class CallMeBotWhatsappService implements WhatsappService {
 
@@ -17,7 +21,7 @@ public class CallMeBotWhatsappService implements WhatsappService {
     @Override
     public void enviarAlUsuario(String telefono, String mensaje) {
         if (telefono == null || telefono.isBlank()) {
-            System.out.println("⚠️ [WHATSAPP] Sin teléfono, mensaje no enviado: " + mensaje);
+            log.warn("[WHATSAPP] Sin teléfono, mensaje no enviado.");
             return;
         }
         enviar(limpiarTelefono(telefono), mensaje);
@@ -25,31 +29,27 @@ public class CallMeBotWhatsappService implements WhatsappService {
 
     @Override
     public void enviarAlAdmin(String mensaje) {
-        enviar(telefonoAdmin, mensaje);
+        enviar(limpiarTelefono(telefonoAdmin), mensaje);
     }
 
-private void enviar(String telefono, String mensaje) {
-    try {
-        // Limpiamos el teléfono antes por si acaso viene con espacios o el '+'
-        String telefonoLimpio = limpiarTelefono(telefono);
+    private void enviar(String telefonoLimpio, String mensaje) {
+        try {
+            // CallMeBot requiere el texto URL-encodeado manualmente
+            String textoCodificado = URLEncoder.encode(mensaje, StandardCharsets.UTF_8);
 
-        // USAMOS fromUriString en lugar de fromHttpUrl
-        String url = org.springframework.web.util.UriComponentsBuilder
-                .fromUriString("https://api.callmebot.com/whatsapp.php")
-                .queryParam("phone", telefonoLimpio)
-                .queryParam("text", mensaje)
-                .queryParam("apikey", apiKey) // Asegúrate de tener esta variable inyectada con @Value
-                .build()
-                .toUriString();
+            String url = "https://api.callmebot.com/whatsapp.php"
+                    + "?phone=" + telefonoLimpio
+                    + "&text=" + textoCodificado
+                    + "&apikey=" + apiKey;
 
-        RestTemplate restTemplate = new RestTemplate();
-        restTemplate.getForObject(url, String.class);
-        System.out.println("✅ [WHATSAPP] Enviado a: " + telefonoLimpio);
+            RestTemplate restTemplate = new RestTemplate();
+            String respuesta = restTemplate.getForObject(url, String.class);
+            log.info("[WHATSAPP] Enviado a {}. Respuesta: {}", telefonoLimpio, respuesta);
 
-    } catch (Exception e) {
-        System.err.println("❌ [WHATSAPP] Error al enviar a " + telefono + ": " + e.getMessage());
+        } catch (Exception e) {
+            log.error("[WHATSAPP] Error al enviar a {}: {}", telefonoLimpio, e.getMessage());
+        }
     }
-}
 
     private String limpiarTelefono(String telefono) {
         // Elimina +, espacios y guiones → "34600000000"

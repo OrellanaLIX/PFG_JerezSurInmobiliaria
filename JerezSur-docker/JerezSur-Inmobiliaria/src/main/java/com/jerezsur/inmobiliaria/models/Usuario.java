@@ -91,6 +91,15 @@ public class Usuario {
     private AuthProvider provider;
     private String providerId;
 
+    // --- TOKENS TEMPORALES ---
+    @Column(unique = true, nullable = true)
+    private String tokenVerificacion;   // UUID para activar cuenta por email
+
+    @Column(unique = true, nullable = true)
+    private String tokenRecuperacion;   // UUID para resetear contraseña
+
+    private LocalDateTime tokenRecuperacionExpira; // Expiración del token de recuperación
+
     // --- RELACIONES DE PERFIL ---
     @OneToOne(mappedBy = "usuario", cascade = CascadeType.REMOVE, orphanRemoval = true)
     @ToString.Exclude

@@ -6,6 +6,7 @@ import Vender from '../pages/Vender';
 import Inmuebles from '../pages/Inmuebles';
 import InmuebleDetalle from '../pages/InmuebleDetalle';
 import MisCitas from '../pages/MisCitas';
+import RecuperarPassword from '../pages/RecuperarPassword';
 import Auth from '../pages/Auth';
 import Onboarding from '../pages/Onboarding';
 import Profile from '../pages/Profile';
@@ -24,6 +25,7 @@ export const AppRoutes = () => {
           <Route path="/inmuebles/:id" element={<InmuebleDetalle />} />
           <Route path="/mis-citas" element={<MisCitas />} />
           <Route path="/acceder" element={<Auth />} />
+          <Route path="/recuperar-password" element={<RecuperarPassword />} />
           <Route path="/onboarding" element={<Onboarding />} />
           <Route path="/perfil" element={<Profile />} />
         </Route>

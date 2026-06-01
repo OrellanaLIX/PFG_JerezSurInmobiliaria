@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 import com.jerezsur.inmobiliaria.dto.RegistroRequest;
 
 @Service
@@ -126,8 +127,13 @@ public class UsuarioService {
 
         usuario.setRole(Role.ROLE_NOROL);
 
-        notificacionService.notificarNuevoUsuario(usuario, null);
-        return usuarioRepository.save(usuario);
+        // Generar token de verificación de email
+        String token = UUID.randomUUID().toString();
+        usuario.setTokenVerificacion(token);
+
+        Usuario guardado = usuarioRepository.save(usuario);
+        notificacionService.notificarNuevoUsuario(guardado, token);
+        return guardado;
     }
 
     /**

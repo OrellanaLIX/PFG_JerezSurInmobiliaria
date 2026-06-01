@@ -1,5 +1,6 @@
 // src/components/propietarios/LoginForm.tsx
 import { useState, type FormEvent } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import '../../styles/AuthForms.scss';
 
@@ -86,10 +87,7 @@ const LoginForm = ({ onSwitchToRegister, onLoginSuccess }: LoginFormProps) => {
     }
   };
 
-  const handleForgotPassword = (e: React.MouseEvent) => {
-    e.preventDefault();
-    alert('Funcionalidad en desarrollo: Se enviará un enlace de recuperación a su contacto.');
-  };
+  // Ya no necesitamos handleForgotPassword aquí — se usa Link a /recuperar-password
 
   return (
     <form className="auth-form" onSubmit={handleSubmit}>
@@ -168,9 +166,9 @@ const LoginForm = ({ onSwitchToRegister, onLoginSuccess }: LoginFormProps) => {
           />
           <span>Recordarme</span>
         </label>
-        <button type="button" onClick={handleForgotPassword} className="auth-form__link">
+        <Link to="/recuperar-password" className="auth-form__link">
           ¿Olvidaste tu contraseña?
-        </button>
+        </Link>
       </div>
 
       <button

@@ -1,6 +1,7 @@
 package com.jerezsur.inmobiliaria.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.jerezsur.inmobiliaria.models.Usuario;
@@ -13,6 +14,9 @@ public class NotificacionService {
 
     @Autowired
     private WhatsappService whatsappService;
+
+    @Value("${app.base-url:http://localhost}")
+    private String baseUrl;
 
     // ──────────────────────────────────────────
     // REGISTRO DE NUEVO USUARIO (CON VALIDACIÓN)
@@ -42,7 +46,7 @@ public class NotificacionService {
 
     public void notificarRecuperarPassword(Usuario usuario, String tokenPassword) {
         if (usuario.getEmail() != null) {
-            String urlRecuperacion = "http://localhost:8080/api/auth/reset-password?token=" + tokenPassword;
+            String urlRecuperacion = baseUrl + "/recuperar-password?token=" + tokenPassword;
             
             String cuerpoHtml = "<div style='font-family:Arial,sans-serif;max-width:600px;margin:auto'>"
                     + "<h2 style='color:#1a1a2e'>Recuperación de contraseña</h2>"
@@ -70,7 +74,7 @@ public class NotificacionService {
             whatsappService.enviarAlUsuario(usuario.getTelefono(),
                     "📅 ¡Tu cita ha sido confirmada!\n"
                     + "Hola " + usuario.getNombre() + ", te confirmamos que tu cita ha sido validada correctamente por nuestro equipo.\n\n"
-                    + "📌 **Detalles:** " + detallesCita + "\n\n"
+                    + "📌 *Detalles:* " + detallesCita + "\n\n"
                     + "¡Te esperamos!");
         }
 
@@ -177,17 +181,35 @@ public class NotificacionService {
     // ──────────────────────────────────────────
 
     private String buildEmailBienvenida(Usuario usuario, String token) {
-        String urlVerificacion = "http://localhost:8080/api/auth/verificar?token=" + token;
-        
-        return "<div style='font-family:Arial,sans-serif;max-width:600px;margin:auto'>"
-                + "<h2 style='color:#1a1a2e'>Bienvenido/a, " + usuario.getNombre() + "</h2>"
-                + "<p>Gracias por registrarte en <strong>JerezSur Inmobiliaria</strong>.</p>"
-                + "<p>Para poder activar tu cuenta y acceder a todas las funciones de la plataforma, por favor confirma tu dirección de correo haciendo clic en el siguiente enlace:</p>"
-                + "<p style='text-align:center;margin:30px 0'>"
-                + "  <a href='" + urlVerificacion + "' style='background-color:#4cc9f0;color:white;padding:12px 24px;text-decoration:none;border-radius:5px;font-weight:bold'>Verificar Cuenta</a>"
-                + "</p>"
-                + "<p>Si el botón no funciona, puedes copiar y pegar esta dirección en tu navegador: " + urlVerificacion + "</p>"
-                + "<hr/><p style='color:#888;font-size:12px'>JerezSur Inmobiliaria</p>"
+        // Si no hay token (OAuth, admin manual) no incluir botón de verificación
+        String bloqueVerificacion = "";
+        if (token != null) {
+            String urlVerificacion = baseUrl + "/api/auth/verificar?token=" + token;
+            bloqueVerificacion = "<p>Para activar tu cuenta y acceder a todas las funciones de la plataforma, "
+                    + "confirma tu dirección de correo haciendo clic aquí:</p>"
+                    + "<p style='text-align:center;margin:30px 0'>"
+                    + "  <a href='" + urlVerificacion + "' "
+                    + "     style='background-color:#00439c;color:white;padding:14px 28px;"
+                    + "            text-decoration:none;border-radius:6px;font-weight:bold;font-size:15px'>"
+                    + "    ✅ Verificar mi cuenta"
+                    + "  </a>"
+                    + "</p>"
+                    + "<p style='color:#888;font-size:12px'>Si el botón no funciona, copia y pega esta URL en tu navegador:<br/>"
+                    + "<a href='" + urlVerificacion + "'>" + urlVerificacion + "</a></p>";
+        }
+
+        return "<div style='font-family:Arial,sans-serif;max-width:600px;margin:auto;background:#f7f9fc;padding:0'>"
+                + "<div style='background:#00439c;padding:28px 32px;border-radius:8px 8px 0 0'>"
+                + "  <h1 style='color:white;margin:0;font-size:22px'>JerezSur Inmobiliaria</h1>"
+                + "</div>"
+                + "<div style='background:white;padding:32px;border-radius:0 0 8px 8px;border:1px solid #e5e7eb'>"
+                + "  <h2 style='color:#1f2937;margin-top:0'>¡Bienvenido/a, " + usuario.getNombre() + "!</h2>"
+                + "  <p style='color:#374151'>Gracias por registrarte en <strong>JerezSur Inmobiliaria</strong>. "
+                + "  Ya puedes empezar a buscar el inmueble que mejor se adapte a ti.</p>"
+                + bloqueVerificacion
+                + "  <hr style='border:none;border-top:1px solid #e5e7eb;margin:24px 0'/>"
+                + "  <p style='color:#9ca3af;font-size:12px;margin:0'>JerezSur Inmobiliaria — Jerez de la Frontera</p>"
+                + "</div>"
                 + "</div>";
     }
 

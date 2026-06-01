@@ -1,6 +1,6 @@
 // src/pages/Auth.tsx
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import LoginForm from '../components/auth/LoginForm';
 import RegisterForm from '../components/auth/RegistroForm';
 import SocialAuth from '../components/auth/SocialAuth';
@@ -22,6 +22,8 @@ type AuthMode = 'login' | 'register';
 const Auth: React.FC = () => {
   const [authMode, setAuthMode] = useState<AuthMode>('login');
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const verificado = searchParams.get('verificado'); // 'ok' | 'error' | null
 
   useEffect(() => {
     document.body.classList.add('auth-page');
@@ -117,6 +119,25 @@ const Auth: React.FC = () => {
       </Link>
 
       <div className="auth__container">
+
+        {verificado === 'ok' && (
+          <div style={{
+            background: '#d1fae5', border: '1px solid #6ee7b7', borderRadius: '8px',
+            padding: '0.875rem 1.25rem', color: '#065f46', fontWeight: 600,
+            textAlign: 'center', fontSize: '0.95rem'
+          }}>
+            ✅ Tu cuenta ha sido verificada correctamente. Ya puedes iniciar sesión.
+          </div>
+        )}
+        {verificado === 'error' && (
+          <div style={{
+            background: '#fee2e2', border: '1px solid #fca5a5', borderRadius: '8px',
+            padding: '0.875rem 1.25rem', color: '#991b1b', fontWeight: 600,
+            textAlign: 'center', fontSize: '0.95rem'
+          }}>
+            ❌ El enlace de verificación no es válido o ya fue usado.
+          </div>
+        )}
 
         <div className="auth__logo" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
           <img src={logo} alt="JerezSur Inmobiliaria" />
