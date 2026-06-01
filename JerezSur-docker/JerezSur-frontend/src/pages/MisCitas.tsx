@@ -26,6 +26,22 @@ type NuevaCitaForm = {
 
 const API_BASE = '/api';
 
+// --- GOOGLE CALENDAR ---
+
+const buildGoogleCalendarUrl = (fechaHoraISO: string, titulo: string, lugar: string): string => {
+  const start = fechaHoraISO.replace(/[-:]/g, '').slice(0, 15) + '00Z';
+  const end = new Date(new Date(fechaHoraISO).getTime() + 60 * 60 * 1000)
+    .toISOString().replace(/[-:]/g, '').slice(0, 15) + '00Z';
+  const params = new URLSearchParams({
+    action: 'TEMPLATE',
+    text: titulo,
+    details: 'Cita en JerezSur Inmobiliaria',
+    location: lugar,
+    dates: `${start}/${end}`,
+  });
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+};
+
 const INITIAL_FORM: NuevaCitaForm = { fechaDate: '', fechaTime: '', motivo: '' };
 
 const ESTADO_LABEL: Record<string, string> = {
@@ -197,6 +213,20 @@ const MisCitas: React.FC = () => {
 
               {cita.motivo && <p><strong>Mensaje:</strong> {cita.motivo}</p>}
               {cita.nombreTrabajador && <p><strong>Agente asignado:</strong> {cita.nombreTrabajador}</p>}
+              {(cita.estado === 'CONFIRMADA' || cita.estado === 'PENDIENTE') && (
+                <a
+                  href={buildGoogleCalendarUrl(
+                    cita.fechaHora,
+                    cita.inmuebleTitulo ? `Visita: ${cita.inmuebleTitulo}` : 'Cita en JerezSur Inmobiliaria',
+                    'JerezSur Inmobiliaria, Jerez de la Frontera'
+                  )}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{ fontSize: '0.82rem', color: '#1a73e8', display: 'inline-block', marginTop: '0.4rem' }}
+                >
+                  📅 Añadir a Google Calendar
+                </a>
+              )}
             </article>
           ))}
         </section>
@@ -206,7 +236,26 @@ const MisCitas: React.FC = () => {
           <h2>Pedir cita en oficina</h2>
 
           {formExito ? (
-            <p>Cita solicitada correctamente. Nos pondremos en contacto contigo.</p>
+            <div>
+              <p style={{ color: '#2e9b4d', marginBottom: '0.75rem' }}>
+                ✅ Cita solicitada correctamente. Nos pondremos en contacto contigo.
+              </p>
+              {form.fechaDate && form.fechaTime && (
+                <a
+                  href={buildGoogleCalendarUrl(
+                    `${form.fechaDate}T${form.fechaTime}:00`,
+                    'Cita en JerezSur Inmobiliaria',
+                    'JerezSur Inmobiliaria, Jerez de la Frontera'
+                  )}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="btn btn--outline"
+                  style={{ display: 'inline-flex', fontSize: '0.9rem' }}
+                >
+                  📅 Añadir a Google Calendar
+                </a>
+              )}
+            </div>
           ) : (
             <form onSubmit={handleSubmit} noValidate>
               <div className="form-group">

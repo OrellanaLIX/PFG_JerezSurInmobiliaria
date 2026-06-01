@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import logo from '../assets/imgs/LogoAncho.png';
 import '../styles/Home.scss';
+import { useSEO } from '../hooks/useSEO';
 
 const API_BASE = '/api';
 const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80';
@@ -39,6 +40,12 @@ const testimonials: Testimonial[] = [
 ];
 
 const Home = () => {
+  useSEO({
+    title: 'Inicio',
+    description: 'Inmobiliaria en Jerez de la Frontera. Compra, vende o alquila tu vivienda con expertos locales. Pisos, casas, chalets y locales en Jerez y alrededores.',
+    canonical: 'http://localhost/',
+  });
+
   const [activeTestimonial, setActiveTestimonial] = useState(0);
   const [destacados, setDestacados] = useState<FeaturedProperty[]>([]);
 

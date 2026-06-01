@@ -2,6 +2,7 @@ import React, { useEffect, useState, type ChangeEvent, type FormEvent } from 're
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import '../styles/InmuebleDetalle.scss';
+import { useSEO } from '../hooks/useSEO';
 
 // --- TIPOS ---
 
@@ -65,6 +66,28 @@ const getMinDate = (): string => {
   return d.toISOString().split('T')[0];
 };
 
+const buildGoogleCalendarUrl = (
+  titulo: string,
+  descripcion: string,
+  lugar: string,
+  fechaHoraISO: string
+): string => {
+  const start = fechaHoraISO.replace(/[-:]/g, '').replace('.', '').slice(0, 15) + '00Z';
+  // Evento de 1 hora
+  const end = new Date(new Date(fechaHoraISO).getTime() + 60 * 60 * 1000)
+    .toISOString()
+    .replace(/[-:]/g, '')
+    .slice(0, 15) + '00Z';
+  const params = new URLSearchParams({
+    action: 'TEMPLATE',
+    text: titulo,
+    details: descripcion,
+    location: lugar,
+    dates: `${start}/${end}`,
+  });
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+};
+
 const OPERACION_LABEL: Record<string, string> = {
   VENTA: 'Venta',
   ALQUILER: 'Alquiler',
@@ -90,10 +113,21 @@ const InmuebleDetalle: React.FC = () => {
   const [error, setError] = useState('');
   const [imagenActiva, setImagenActiva] = useState(0);
 
+  useSEO({
+    title: inmueble
+      ? `${inmueble.titulo} — ${inmueble.ciudad}`
+      : 'Detalle de inmueble',
+    description: inmueble?.descripcion
+      ? inmueble.descripcion.slice(0, 155)
+      : 'Ficha detallada del inmueble con galería de imágenes, características, precio y formulario de visita.',
+    canonical: `http://localhost/inmuebles/${id}`,
+  });
+
   const [citaForm, setCitaForm] = useState<CitaForm>(INITIAL_CITA_FORM);
   const [citaLoading, setCitaLoading] = useState(false);
   const [citaError, setCitaError] = useState('');
   const [citaExito, setCitaExito] = useState(false);
+  const [copiado, setCopiado] = useState(false);
 
   // Carga del inmueble
   useEffect(() => {
@@ -109,6 +143,30 @@ const InmuebleDetalle: React.FC = () => {
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, [id]);
+
+  const handleCompartir = async () => {
+    const url = window.location.href;
+    const titulo = inmueble?.titulo || 'Inmueble en JerezSur';
+    const texto = `${titulo} — JerezSur Inmobiliaria`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: titulo, text: texto, url });
+      } catch {
+        // El usuario canceló el diálogo — no hacer nada
+      }
+    } else {
+      // Fallback: copiar URL al portapapeles
+      try {
+        await navigator.clipboard.writeText(url);
+        setCopiado(true);
+        setTimeout(() => setCopiado(false), 2500);
+      } catch {
+        // Fallback manual si clipboard API no disponible
+        prompt('Copia este enlace:', url);
+      }
+    }
+  };
 
   const handleCitaChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -232,18 +290,45 @@ const InmuebleDetalle: React.FC = () => {
 
           {/* Cabecera */}
           <div className="inmueble-detalle__cabecera">
-            <div>
-              <span className="inmueble-detalle__ref">{inmueble.referencia}</span>
-              {inmueble.operacion && (
-                <span className="inmueble-detalle__badge">
-                  {OPERACION_LABEL[inmueble.operacion] || inmueble.operacion}
-                </span>
-              )}
-              {inmueble.estado && (
-                <span className="inmueble-detalle__badge inmueble-detalle__badge--estado">
-                  {ESTADO_LABEL[inmueble.estado] || inmueble.estado}
-                </span>
-              )}
+            <div className="inmueble-detalle__cabecera-top">
+              <div>
+                <span className="inmueble-detalle__ref">{inmueble.referencia}</span>
+                {inmueble.operacion && (
+                  <span className="inmueble-detalle__badge">
+                    {OPERACION_LABEL[inmueble.operacion] || inmueble.operacion}
+                  </span>
+                )}
+                {inmueble.estado && (
+                  <span className="inmueble-detalle__badge inmueble-detalle__badge--estado">
+                    {ESTADO_LABEL[inmueble.estado] || inmueble.estado}
+                  </span>
+                )}
+              </div>
+              <button
+                onClick={handleCompartir}
+                className="inmueble-detalle__share-btn"
+                title="Compartir este inmueble"
+              >
+                {copiado ? (
+                  <>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    Enlace copiado
+                  </>
+                ) : (
+                  <>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <circle cx="18" cy="5" r="3"></circle>
+                      <circle cx="6" cy="12" r="3"></circle>
+                      <circle cx="18" cy="19" r="3"></circle>
+                      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                      <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                    </svg>
+                    Compartir
+                  </>
+                )}
+              </button>
             </div>
             <h1>{inmueble.titulo}</h1>
             <p className="inmueble-detalle__ubicacion">
@@ -325,6 +410,24 @@ const InmuebleDetalle: React.FC = () => {
               </a>
             </div>
           )}
+
+          {/* MAPA INTERACTIVO */}
+          <div className="inmueble-detalle__mapa">
+            <h2>Ubicación</h2>
+            <div className="inmueble-detalle__mapa-wrapper">
+              <iframe
+                title={`Mapa de ${inmueble.titulo}`}
+                src={`https://maps.google.com/maps?q=${encodeURIComponent(
+                  [inmueble.direccion, inmueble.zona, inmueble.ciudad, inmueble.codigoPostal]
+                    .filter(Boolean)
+                    .join(', ')
+                )}&output=embed`}
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+            </div>
+          </div>
         </div>
 
         {/* COLUMNA DERECHA: FORMULARIO CITA */}
@@ -340,8 +443,27 @@ const InmuebleDetalle: React.FC = () => {
             </div>
           ) : citaExito ? (
             <div>
-              <p>Cita solicitada correctamente. Nos pondremos en contacto contigo para confirmarla.</p>
-              <button className="btn btn--outline" onClick={() => setCitaExito(false)} style={{ marginTop: '1rem' }}>
+              <p style={{ color: '#2e9b4d', marginBottom: '0.75rem' }}>
+                ✅ Cita solicitada correctamente. Nos pondremos en contacto contigo para confirmarla.
+              </p>
+              <a
+                href={buildGoogleCalendarUrl(
+                  `Visita: ${inmueble.titulo}`,
+                  `Solicitud de visita al inmueble ${inmueble.referencia} en JerezSur Inmobiliaria.\nDirección: ${inmueble.direccion}, ${inmueble.ciudad}`,
+                  inmueble.direccion + ', ' + inmueble.ciudad,
+                  citaForm.fechaDate && citaForm.fechaTime
+                    ? `${citaForm.fechaDate}T${citaForm.fechaTime}:00`
+                    : new Date(Date.now() + 86400000).toISOString()
+                )}
+                target="_blank"
+                rel="noreferrer"
+                className="btn btn--outline"
+                style={{ display: 'inline-flex', marginBottom: '0.5rem' }}
+              >
+                📅 Añadir a Google Calendar
+              </a>
+              <br />
+              <button className="btn btn--ghost btn--ghost--dark btn--sm" onClick={() => setCitaExito(false)} style={{ marginTop: '0.5rem' }}>
                 Solicitar otra cita
               </button>
             </div>

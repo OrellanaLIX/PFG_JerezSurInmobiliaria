@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import PropertyCard from '../components/inmuebles/PropertyCard';
 import PropertyFilters from '../components/inmuebles/PropertyFilters';
 import '../styles/Inmuebles.scss';
+import { useSEO } from '../hooks/useSEO';
 
 // ==========================================
 // TIPOS DEL FRONTEND
@@ -198,6 +199,12 @@ const mapInmuebleToProperty = (item: InmuebleBackend): Property => {
 // COMPONENT
 // ==========================================
 const Inmuebles = () => {
+  useSEO({
+    title: 'Inmuebles en Jerez de la Frontera',
+    description: 'Busca pisos, casas, chalets y locales en venta y alquiler en Jerez de la Frontera. Filtros avanzados por precio, zona, habitaciones y más.',
+    canonical: 'http://localhost/inmuebles',
+  });
+
   const [properties, setProperties] = useState<Property[]>([]);
   const [filteredProperties, setFilteredProperties] = useState<Property[]>([]);
 

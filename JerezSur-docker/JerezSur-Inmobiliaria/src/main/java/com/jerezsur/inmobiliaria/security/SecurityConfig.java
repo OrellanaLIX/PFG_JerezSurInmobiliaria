@@ -41,6 +41,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/usuarios/auth/**").permitAll()
                         .requestMatchers("/api/usuarios/completar").permitAll()
                         .requestMatchers("/error").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/sitemap.xml").permitAll()
 
                         // ── Feed XML para portales inmobiliarios ──
                         .requestMatchers(HttpMethod.GET, "/api/portal/**").permitAll()
