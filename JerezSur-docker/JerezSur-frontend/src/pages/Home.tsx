@@ -26,9 +26,6 @@ type Testimonial = {
   text: string;
 };
 
-const slugify = (text: string) =>
-  text.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
-
 const formatPrecio = (precio: number, operacion?: string): string => {
   const formatted = new Intl.NumberFormat('es-ES').format(precio);
   return operacion === 'ALQUILER' ? `${formatted} €/mes` : `${formatted} €`;
@@ -105,7 +102,6 @@ const Home = () => {
             </p>
           ) : (
             destacados.map((p) => {
-              const slug = `${slugify(p.referencia)}-${slugify(p.titulo.substring(0, 40))}`;
               const tipo = p.operacion === 'ALQUILER' ? 'Alquiler' : 'Venta';
               const location = [p.zona, p.ciudad].filter(Boolean).join(', ');
               return (
@@ -123,7 +119,7 @@ const Home = () => {
                       {p.superficieUtil != null && <span>{p.superficieUtil} m²</span>}
                     </div>
                     <span className="price">{formatPrecio(p.precio, p.operacion)}</span>
-                    <Link to={`/inmuebles/${slug}`} className="btn btn--primary btn--full">Ver detalles</Link>
+                    <Link to={`/inmuebles/${p.id}`} className="btn btn--primary btn--full">Ver detalles</Link>
                   </div>
                 </article>
               );

@@ -1,25 +1,19 @@
 HORARIO:
-31/05 -> Documentación
-01/06 -> Enviar y comenzar con mini mejoras
+01/06 -> Resvision general del proyecto y enviar
 Hasta el 08/06 -> Presentación, aprender código, seguir con mini mejoras
-¡¡¡¡¡¡CREAR ARQUITECTURA (DOCKER)!!!!!
 
 MINIMEJORAS POSTENTREGA:
-Cambiar form inicio sesion por form de venta como el de compra
 Cambiar telefono etc de contacto, ponerlo debajo del form como cta
 Cambiar textos
 
 SECUNDARIAS:
-Quitar cosas para mapa interactivo de búsqueda de inmueble de la docu
 Mejorar botón de tareas para no tener que poner enlace
 
 FIXES:
 Revisr Filtros de busqueda del panel de admin
-Hemos tocado bastantes cosas del back y ahora el front publico no funciona correctamente (arreglarlo)
 Repaso general
 Comprobar funcionamiento de las apis
-Añadir campo de zona a inmueble
-Login con provider asigna telefono erroneo
+Revisar funcionamiento de correos electronicos
 
 HECHO:
 Al crear un usuario lo crea pero visualmente no esta del todo bien
@@ -27,3 +21,7 @@ Revisar relaciones y types
 Cambiar contratos por operacion y crear cotratos para cada operacion (un formmodel de creacion de contrato para cada operacion en el front de admin)
 CRUD completo funcional
 No crea Imagen a la vez que inmueble
+Hemos tocado bastantes cosas del back y ahora el front publico no funciona correctamente (arreglarlo)
+Añadir campo de zona a inmueble
+Cambiar form inicio sesion por form de venta como el de compra
+Login con provider asigna telefono erroneo

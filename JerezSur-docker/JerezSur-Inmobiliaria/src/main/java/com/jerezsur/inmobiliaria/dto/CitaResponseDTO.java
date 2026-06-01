@@ -20,7 +20,8 @@ public class CitaResponseDTO {
 
     private String motivo;
     private String estado;
-    private String nombreTrabajador;     // null si no asignada
-    private String direccionInmueble;    // null si genérica
+    private String nombreTrabajador;
+    private String direccionInmueble;
     private Long inmuebleId;
+    private String inmuebleTitulo;
 }

@@ -2,12 +2,14 @@ package com.jerezsur.inmobiliaria.controllers;
 
 import com.jerezsur.inmobiliaria.dto.CitaResponseDTO;
 import com.jerezsur.inmobiliaria.dto.SolicitudCitaPublicaDTO;
+import com.jerezsur.inmobiliaria.dto.SolicitudCitaUsuarioDTO;
 import com.jerezsur.inmobiliaria.services.CitaPublicaService;
 import com.jerezsur.inmobiliaria.services.CitaService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -58,5 +60,16 @@ public class CitaController {
     public ResponseEntity<CitaResponseDTO> solicitarCita(
             @Valid @RequestBody SolicitudCitaPublicaDTO dto) {
         return ResponseEntity.ok(citaPublicaService.solicitarCitaAnonima(dto));
+    }
+
+    @GetMapping("/usuario/{usuarioId}")
+    public ResponseEntity<List<CitaResponseDTO>> citasDelUsuario(@PathVariable Long usuarioId) {
+        return ResponseEntity.ok(citaService.getCitasDelUsuario(usuarioId));
+    }
+
+    @PostMapping("/usuario/solicitar")
+    public ResponseEntity<CitaResponseDTO> solicitarCitaUsuario(
+            @Valid @RequestBody SolicitudCitaUsuarioDTO dto) {
+        return new ResponseEntity<>(citaService.crearCitaDeUsuario(dto), HttpStatus.CREATED);
     }
 }

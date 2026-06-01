@@ -1,7 +1,6 @@
 package com.jerezsur.inmobiliaria.repositories;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,24 +18,22 @@ import java.time.LocalDateTime;
 @Repository
 public interface CitaRepository extends JpaRepository<Cita, Long> {
 
-    // Encontramos las cita para cada inmueble
     List<Cita> findByInmueble(Inmueble inmueble);
 
-    // Encontramos la lista de citas en unas fechas
     Page<Cita> findByFechaHoraBetween(LocalDateTime fechaHoraMin, LocalDateTime fechaHoraMax, Pageable pageable);
 
-    // Comprobacion para que no se pisen las fechas
     Boolean existsByTrabajadorAndFechaHoraBetween(Trabajador trabajador, LocalDateTime inicioRango,
             LocalDateTime finRango);
 
-    // Query para limpieza de datos inutiles
     @Modifying
     @Query("DELETE FROM Cita c WHERE c.estado = 'CANCELADA' AND c.fechaHora < :fecha")
     void borrarCitasCanceladasAntiguas(LocalDateTime fecha);
 
     long countByFechaHoraGreaterThanEqual(LocalDateTime fechaHora);
 
-    Optional<Cita> findByTrabajadorIdOrderByFechaHoraAsc(Long trabajadorId);
+    List<Cita> findByTrabajadorIdOrderByFechaHoraAsc(Long trabajadorId);
+
+    List<Cita> findByUsuarioIdOrderByFechaHoraDesc(Long usuarioId);
 
     @Query("SELECT COUNT(c) FROM Cita c WHERE c.fechaHora >= CURRENT_TIMESTAMP")
     long countProximas();

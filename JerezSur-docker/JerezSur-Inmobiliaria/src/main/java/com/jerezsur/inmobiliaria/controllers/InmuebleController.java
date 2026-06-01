@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import com.jerezsur.inmobiliaria.dto.InmuebleActualizarDTO;
 import com.jerezsur.inmobiliaria.dto.InmuebleCrearDTO;
+import com.jerezsur.inmobiliaria.dto.InmuebleDetallePublicoDTO;
 import com.jerezsur.inmobiliaria.dto.InmuebleDestacadoDTO;
 import com.jerezsur.inmobiliaria.models.Inmueble;
 import com.jerezsur.inmobiliaria.models.enums.EstadoInmueble;
@@ -71,6 +72,11 @@ public class InmuebleController {
     @GetMapping("/{id}")
     public ResponseEntity<Inmueble> getInmuebleById(@PathVariable Long id) {
         return ResponseEntity.ok(inmuebleService.buscarPorId(id));
+    }
+
+    @GetMapping("/{id}/detalle")
+    public ResponseEntity<InmuebleDetallePublicoDTO> getDetalle(@PathVariable Long id) {
+        return ResponseEntity.ok(inmuebleService.buscarDetallePublico(id));
     }
 
     @PostMapping

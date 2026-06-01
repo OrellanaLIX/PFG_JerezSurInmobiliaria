@@ -1,0 +1,279 @@
+@use '../globals/_Variables' as *;
+
+.inmueble-detalle {
+  background-color: $color-bg;
+
+  &__back {
+    max-width: $container-max;
+    margin: 0 auto;
+    padding: 1.5rem 2rem 0;
+  }
+
+  // --- GALERÍA ---
+  &__galeria {
+    max-width: $container-max;
+    margin: 0 auto;
+    padding: 1.5rem 2rem;
+  }
+
+  &__imagen-principal {
+    width: 100%;
+    border-radius: $radius-lg;
+    overflow: hidden;
+    max-height: 520px;
+
+    img {
+      width: 100%;
+      height: 100%;
+      max-height: 520px;
+      object-fit: cover;
+      display: block;
+    }
+  }
+
+  &__miniaturas {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+    overflow-x: auto;
+    padding-bottom: 0.25rem;
+
+    &::-webkit-scrollbar { height: 4px; }
+    &::-webkit-scrollbar-track { background: $color-border; border-radius: 2px; }
+    &::-webkit-scrollbar-thumb { background: $color-primary; border-radius: 2px; }
+  }
+
+  &__miniatura {
+    flex-shrink: 0;
+    width: 90px;
+    height: 65px;
+    border-radius: $radius-xs;
+    overflow: hidden;
+    border: 2px solid $color-border;
+    cursor: pointer;
+    background: none;
+    padding: 0;
+    transition: border-color $transition-fast, transform $transition-fast;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    &--activa {
+      border-color: $color-primary;
+      transform: scale(1.04);
+    }
+
+    &:hover {
+      border-color: $color-primary;
+    }
+  }
+
+  // --- CONTENIDO ---
+  &__contenido {
+    max-width: $container-max;
+    margin: 0 auto;
+    padding: 0 2rem 4rem;
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 2rem;
+    align-items: start;
+
+    @media (max-width: $laptop) {
+      grid-template-columns: 1fr;
+    }
+
+    @media (max-width: $tablet) {
+      padding: 0 1rem 3rem;
+    }
+  }
+
+  // --- COLUMNA INFO ---
+  &__info {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  &__cabecera {
+    & > div {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 0.75rem;
+    }
+
+    h1 {
+      font-size: clamp(1.4rem, 3vw, 2rem);
+      margin-bottom: 0.4rem;
+      color: $color-primary-dark;
+    }
+  }
+
+  &__ref {
+    font-size: 0.8rem;
+    color: $color-text-muted;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+
+  &__badge {
+    display: inline-block;
+    padding: 0.2rem 0.7rem;
+    border-radius: $radius-pill;
+    font-size: 0.78rem;
+    font-weight: 700;
+    background-color: $color-primary;
+    color: $color-white;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+
+    &--estado {
+      background-color: $color-secondary;
+    }
+  }
+
+  &__ubicacion {
+    color: $color-text-soft;
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+  }
+
+  &__precio {
+    font-size: clamp(1.6rem, 3vw, 2.1rem);
+    font-weight: 700;
+    color: $color-primary;
+    margin: 0;
+  }
+
+  // --- CARACTERÍSTICAS ---
+  &__caracteristicas {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 0.75rem;
+    background-color: $color-surface;
+    border-radius: $radius-md;
+    padding: 1.5rem;
+    box-shadow: $shadow-xs;
+    border: 1px solid $color-border;
+  }
+
+  &__caract-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.2rem;
+
+    strong {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: $color-primary;
+    }
+
+    span {
+      font-size: 0.78rem;
+      color: $color-text-soft;
+    }
+  }
+
+  // --- SECCIONES ---
+  &__descripcion,
+  &__gastos,
+  &__extras {
+    background-color: $color-surface;
+    border-radius: $radius-md;
+    padding: 1.5rem;
+    box-shadow: $shadow-xs;
+    border: 1px solid $color-border;
+
+    h2 {
+      font-size: 1.15rem;
+      margin-bottom: 0.75rem;
+      color: $color-primary-dark;
+    }
+
+    p {
+      margin-bottom: 0.3rem;
+      font-size: 0.95rem;
+    }
+  }
+
+  &__extras {
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+
+      li {
+        font-size: 0.95rem;
+        color: $color-text;
+      }
+    }
+  }
+
+  // --- COLUMNA CITA ---
+  &__cita {
+    background-color: $color-surface;
+    border-radius: $radius-lg;
+    padding: 2rem;
+    box-shadow: $shadow-sm;
+    border: 1px solid $color-border;
+    border-top: 4px solid $color-primary;
+    position: sticky;
+    top: 6rem;
+
+    h2 {
+      font-size: 1.2rem;
+      margin-bottom: 1.5rem;
+      color: $color-primary-dark;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      margin-bottom: 1rem;
+
+      label {
+        font-size: 0.88rem;
+        font-weight: 600;
+        color: $color-text;
+      }
+
+      input,
+      textarea {
+        padding: 0.75rem 1rem;
+        border: 1.5px solid $color-border;
+        border-radius: $radius-sm;
+        font-size: 0.95rem;
+        font-family: inherit;
+        color: $color-text;
+        background: $color-white;
+        transition: border-color $transition-fast, box-shadow $transition-fast;
+
+        &:focus {
+          outline: none;
+          border-color: $color-primary;
+          box-shadow: 0 0 0 3px rgba($color-primary, 0.08);
+        }
+      }
+
+      textarea {
+        resize: vertical;
+        min-height: 80px;
+      }
+    }
+
+    p {
+      font-size: 0.95rem;
+      color: $color-text-soft;
+    }
+  }
+}

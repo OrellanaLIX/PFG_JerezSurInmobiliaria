@@ -17,7 +17,7 @@ const PropertyCard = ({ property, viewMode }: PropertyCardProps) => {
   return (
     <article className={`property-card property-card--${viewMode}`}>
       <div className="property-card__media">
-        <Link to={`/inmuebles/${property.slug}`}>
+        <Link to={`/inmuebles/${property.id}`}>
           <img src={property.image} alt={property.title} loading="lazy" />
         </Link>
         <div className="property-card__badges">
@@ -40,7 +40,7 @@ const PropertyCard = ({ property, viewMode }: PropertyCardProps) => {
       <div className="property-card__content">
         <div className="property-card__header">
           <h3 className="property-card__title">
-            <Link to={`/inmuebles/${property.slug}`}>{property.title}</Link>
+            <Link to={`/inmuebles/${property.id}`}>{property.title}</Link>
           </h3>
           <p className="property-card__location">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -122,7 +122,7 @@ const PropertyCard = ({ property, viewMode }: PropertyCardProps) => {
 
         <div className="property-card__footer">
           <span className="property-card__price">{formatPrice(property.price, property.type)}</span>
-          <Link to={`/inmuebles/${property.slug}`} className="btn btn--primary btn--small">
+          <Link to={`/inmuebles/${property.id}`} className="btn btn--primary btn--small">
             Ver detalles
           </Link>
         </div>

@@ -15,7 +15,7 @@ const PageLoader = () => <div>Cargando...</div>;
 
 export const AppRoutes = () => {
   return (
-    <BrowserRouter basename="/dashboard">
+    <BrowserRouter basename="/admin">
       <Suspense fallback={<PageLoader />}>
         <Routes>
           {/* Ruta pública */}

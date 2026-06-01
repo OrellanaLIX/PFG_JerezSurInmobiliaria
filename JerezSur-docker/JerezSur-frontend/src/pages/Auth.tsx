@@ -112,7 +112,7 @@ const Auth: React.FC = () => {
 
   return (
     <main className="auth" data-header-transparent data-footer-hidden>
-      <Link to="/" className='btn--ghost' >
+      <Link to="/" className='btn btn--ghost' >
         <i className="fas fa-arrow-left"></i> Volver
       </Link>
 

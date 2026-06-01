@@ -83,4 +83,51 @@
   &--full {
     width: 100%;
   }
+
+  &--sm {
+    min-height: 36px;
+    padding: 0.5rem 1rem;
+    font-size: $font-size-sm;
+  }
+
+  &--danger {
+    background-color: $color-error;
+    color: $color-white;
+
+    &:hover {
+      background-color: darken($color-error, 8%);
+    }
+  }
+
+  &--ghost--dark {
+    background-color: rgba($color-primary, 0.06);
+    color: $color-primary-dark;
+    border-color: rgba($color-primary, 0.18);
+
+    &:hover {
+      background-color: rgba($color-primary, 0.12);
+    }
+  }
+}
+
+/* =========================
+   FORM MESSAGES
+========================= */
+.form-message {
+  padding: 0.875rem 1.25rem;
+  border-radius: $radius-sm;
+  font-size: 0.9rem;
+  font-weight: 600;
+
+  &--error {
+    background-color: rgba($color-error, 0.1);
+    border: 1px solid rgba($color-error, 0.3);
+    color: darken($color-error, 10%);
+  }
+
+  &--success {
+    background-color: rgba($color-success, 0.1);
+    border: 1px solid rgba($color-success, 0.3);
+    color: darken($color-success, 5%);
+  }
 }

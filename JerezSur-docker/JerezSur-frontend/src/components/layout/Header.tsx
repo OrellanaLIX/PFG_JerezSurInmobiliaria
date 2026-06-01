@@ -58,6 +58,10 @@ const Header = () => {
     { to: "/contacto", label: "Contacto" },
   ];
 
+  const authNavLinks = [
+    { to: "/mis-citas", label: "Mis citas" },
+  ];
+
   const headerClasses = [
     'site-header',
     isScrolled ? 'site-header--scrolled' : '',
@@ -80,6 +84,15 @@ const Header = () => {
                 key={link.to}
                 to={link.to}
                 end={link.end}
+                className={({ isActive }) => isActive ? 'is-active' : ''}
+              >
+                {link.label}
+              </NavLink>
+            ))}
+            {isAuthenticated && authNavLinks.map(link => (
+              <NavLink
+                key={link.to}
+                to={link.to}
                 className={({ isActive }) => isActive ? 'is-active' : ''}
               >
                 {link.label}
@@ -113,6 +126,11 @@ const Header = () => {
         <nav className="mobile-menu__nav">
           {navLinks.map(link => (
             <NavLink key={link.to} to={link.to} end={link.end} onClick={() => setMenuOpen(false)}>
+              {link.label}
+            </NavLink>
+          ))}
+          {isAuthenticated && authNavLinks.map(link => (
+            <NavLink key={link.to} to={link.to} onClick={() => setMenuOpen(false)}>
               {link.label}
             </NavLink>
           ))}

@@ -56,7 +56,6 @@ public class UsuarioService {
             nuevo.setRole(Role.ROLE_NOROL); // El rol base que creamos antes
             nuevo.setProvider(provider);
             nuevo.setProviderId(providerId);
-            nuevo.setTelefono("social_" + System.currentTimeMillis()); // Evitar constraint null
             nuevo.setCambiarPasswd(false); // No necesita cambiar pass porque entra por Google
 
             notificacionService.notificarNuevoUsuario(nuevo, providerId);

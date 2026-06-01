@@ -51,6 +51,7 @@ public class Imagen {
     // Relación N:1 con Inmueble
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "inmueble_id", nullable = false)
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private Inmueble inmueble;
 
         // --- AUDITORÍA ---

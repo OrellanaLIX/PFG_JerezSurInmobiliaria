@@ -2,6 +2,7 @@ package com.jerezsur.inmobiliaria.services;
 
 import com.jerezsur.inmobiliaria.dto.InmuebleActualizarDTO;
 import com.jerezsur.inmobiliaria.dto.InmuebleCrearDTO;
+import com.jerezsur.inmobiliaria.dto.InmuebleDetallePublicoDTO;
 import com.jerezsur.inmobiliaria.dto.InmuebleDestacadoDTO;
 import com.jerezsur.inmobiliaria.exceptions.BusinessValidationException;
 import com.jerezsur.inmobiliaria.exceptions.ResourceNotFoundException;
@@ -105,6 +106,51 @@ public class InmuebleService {
                     .imagenPortadaUrl(imagenUrl)
                     .build();
         }).collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public InmuebleDetallePublicoDTO buscarDetallePublico(Long id) {
+        Inmueble i = inmuebleRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("El inmueble con ID " + id + " no existe."));
+
+        List<InmuebleDetallePublicoDTO.ImagenPublicaDTO> imagenesDTO = i.getImagenes().stream()
+                .sorted((a, b) -> {
+                    if (Boolean.TRUE.equals(a.getEsPortada())) return -1;
+                    if (Boolean.TRUE.equals(b.getEsPortada())) return 1;
+                    return 0;
+                })
+                .map(img -> InmuebleDetallePublicoDTO.ImagenPublicaDTO.builder()
+                        .id(img.getId())
+                        .url(img.getUrl())
+                        .esPortada(img.getEsPortada())
+                        .build())
+                .collect(Collectors.toList());
+
+        return InmuebleDetallePublicoDTO.builder()
+                .id(i.getId())
+                .referencia(i.getReferencia())
+                .titulo(i.getTitulo())
+                .descripcion(i.getDescripcion())
+                .precio(i.getPrecio())
+                .operacion(i.getOperacion() != null ? i.getOperacion().name() : null)
+                .estado(i.getEstado() != null ? i.getEstado().name() : null)
+                .tipo(i.getTipo() != null ? i.getTipo().name() : null)
+                .superficieUtil(i.getSuperficieUtil())
+                .mConstruidos(i.getMConstruidos())
+                .habitaciones(i.getHabitaciones())
+                .banos(i.getBanos())
+                .direccion(i.getDireccion())
+                .zona(i.getZona())
+                .codigoPostal(i.getCodigoPostal())
+                .ciudad(i.getCiudad())
+                .comunidad(i.getComunidad())
+                .tieneDerrama(i.getTieneDerrama())
+                .valorDerrama(i.getValorDerrama())
+                .ibi(i.getIbi())
+                .urlCertificadoEnergetico(i.getUrlCertificadoEnergetico())
+                .caracteristicasExtra(i.getCaracteristicasExtra())
+                .imagenes(imagenesDTO)
+                .build();
     }
 
     private void enforceDestacadoLimit(Long exceptoId) {

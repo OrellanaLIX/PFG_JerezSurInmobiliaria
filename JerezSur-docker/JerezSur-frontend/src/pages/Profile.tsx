@@ -524,7 +524,7 @@ const Profile: React.FC = () => {
       <div className="profile-section__container">
 
         {/* BOTÓN VOLVER (ESTILO GHOST DE TU SISTEMA) */}
-        <Link to="/" className="btn--ghost">
+        <Link to="/" className="btn btn--ghost btn--ghost--dark">
           <i className="fas fa-arrow-left"></i> Volver
         </Link>
 
