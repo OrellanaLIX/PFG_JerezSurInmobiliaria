@@ -99,7 +99,7 @@ type InmuebleBackend = {
 // ==========================================
 // CONFIG
 // ==========================================
-const API_BASE = 'http://localhost:8080/api';
+const API_BASE = '/api';
 const DEFAULT_IMAGE =
   'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80';
 

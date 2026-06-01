@@ -1,29 +1,22 @@
-# --- ETAPA 1: Compilación ---
-FROM maven:3.9-eclipse-temurin-17-alpine AS build
+# --- ETAPA 1: Compilación (Java 21 para Spring Boot 4.x) ---
+FROM maven:3.9-eclipse-temurin-21-alpine AS build
 WORKDIR /app
 
-# Copiar el archivo de configuración de Maven y el código fuente
 COPY pom.xml .
 COPY src ./src
 
-# Compilar y empaquetar saltándose los tests para acelerar el proceso
 RUN mvn clean package -DskipTests
 
 # --- ETAPA 2: Imagen de Ejecución Real ---
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
-# 🔒 SEGURIDAD: Crear un grupo y un usuario del sistema sin privilegios
 RUN addgroup -S springgroup && adduser -S springuser -G springgroup
 
-# Copiar el .jar generado en la etapa anterior
 COPY --from=build /app/target/*.jar app.jar
 
-# Cambiar al usuario seguro
 USER springuser
 
-# Puerto interno de Spring Boot
 EXPOSE 8080
 
-# Comando para ejecutar la aplicación
 ENTRYPOINT ["java", "-jar", "app.jar"]

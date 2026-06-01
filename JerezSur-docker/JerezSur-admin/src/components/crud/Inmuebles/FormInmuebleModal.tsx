@@ -78,7 +78,7 @@ export const FormInmuebleModal = ({ onCrear, onCancelar, error: externalError }:
       setCargandoVendedores(true);
       try {
         const token = localStorage.getItem('token');
-        const url = `http://localhost:8080/api/vendedores?page=${paginaActual}&size=${TAMANO_PAGINA}&search=${encodeURIComponent(filtroBusqueda)}&sortBy=id&sortDir=asc`;
+        const url = `/api/vendedores?page=${paginaActual}&size=${TAMANO_PAGINA}&search=${encodeURIComponent(filtroBusqueda)}&sortBy=id&sortDir=asc`;
         const res = await fetch(url, { headers: { Authorization: token ? `Bearer ${token}` : '' } });
         if (!res.ok) throw new Error();
         const data = await res.json();

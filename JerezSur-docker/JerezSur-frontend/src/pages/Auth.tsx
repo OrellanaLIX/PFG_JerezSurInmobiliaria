@@ -73,7 +73,7 @@ const Auth: React.FC = () => {
 
   const handleSocialLogin = async (provider: 'google' | 'facebook' | 'apple', token: string): Promise<void> => {
     try {
-      const response = await fetch(`http://localhost:8080/api/usuarios/auth/${provider}`, {
+      const response = await fetch(`/api/usuarios/auth/${provider}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token }),

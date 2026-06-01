@@ -1,7 +1,7 @@
 # 1. Imagen base de Python optimizada
 FROM python:3.10-slim
 
-# 2. Evita que Python escriba archivos .pyc en el disco y fuerza el buffer de salida
+# 2. Evita archivos .pyc y fuerza el buffer de salida
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
@@ -11,15 +11,15 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 4. Copiar el script de Flask y el resto del código
+# 4. Copiar el código de la aplicación
 COPY . .
 
-# 5. 🔒 SEGURIDAD: Crear un usuario limitado para ejecutar la app
+# 5. Seguridad: usuario sin privilegios
 RUN useradd -m pythonuser
 USER pythonuser
 
-# 6. Puerto en el que corre tu Flask
+# 6. Puerto de Flask
 EXPOSE 5000
 
-# 7. Arrancar el script (asumiendo que tu archivo se llama main.py)
-CMD ["python", "main.py"]
+# 7. Arrancar Flask vinculado a todas las interfaces del contenedor
+CMD ["flask", "--app", "app.py", "run", "--host=0.0.0.0", "--port=5000"]

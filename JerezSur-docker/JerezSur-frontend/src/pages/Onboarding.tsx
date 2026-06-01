@@ -52,7 +52,7 @@ interface StoredUser {
 
 // --- CONSTANTES ---
 
-const API_BASE = 'http://localhost:8080/api';
+const API_BASE = '/api';
 
 const INITIAL_FORM: OnboardingFormData = {
   nombre: '',

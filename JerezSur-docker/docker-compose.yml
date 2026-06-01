@@ -8,9 +8,9 @@ services:
     image: nginx:alpine
     container_name: proxy_nginx
     ports:
-      - "80:80"   # Exponemos el puerto HTTP estándar al mundo exterior
+      - "80:80"
     volumes:
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro # Mapeamos tu configuración como Solo Lectura
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
     networks:
       - red-publica
     depends_on:
@@ -25,8 +25,8 @@ services:
   # ----------------------------------------------------
   front-publico:
     build:
-      context: ./front-publico
-      dockerfile: Dockerfile
+      context: ./JerezSur-frontend
+      dockerfile: dockerfile
     container_name: react_front_publico
     networks:
       - red-publica
@@ -34,8 +34,8 @@ services:
 
   front-admin:
     build:
-      context: ./front-admin
-      dockerfile: Dockerfile
+      context: ./JerezSur-admin
+      dockerfile: dockerfile
     container_name: react_front_admin
     networks:
       - red-publica
@@ -46,19 +46,20 @@ services:
   # ----------------------------------------------------
   backend:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      context: ./JerezSur-Inmobiliaria
+      dockerfile: dockerfile
     container_name: spring_backend
     environment:
-      # Spring Boot buscará la BD usando el nombre del servicio de abajo ("bd")
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://bd:5432/mi_base_datos
-      - SPRING_DATASOURCE_USERNAME=usuario_seguro
-      - SPRING_DATASOURCE_PASSWORD=un_password_muy_seguro_y_largo
+      - SPRING_DATASOURCE_URL=jdbc:mysql://bd:3306/jerezsur_db?createDatabaseIfNotExist=true&serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=jerezsur_user
+      - SPRING_DATASOURCE_PASSWORD=jerezsur_pass
+      - PYTHON_STATS_URL=http://python-stats:5000
     networks:
-      - red-publica # Para recibir peticiones de Nginx
-      - red-datos   # Para hablar con la Base de Datos
+      - red-publica
+      - red-datos
     depends_on:
-      - bd
+      bd:
+        condition: service_healthy
     restart: always
 
   # ----------------------------------------------------
@@ -66,29 +67,33 @@ services:
   # ----------------------------------------------------
   python-stats:
     build:
-      context: ./python-stats
-      dockerfile: Dockerfile
+      context: ./Python
+      dockerfile: dockerfile
     container_name: flask_python_stats
     networks:
-      - red-publica # Solo necesita escuchar a Nginx (recibe los JSON por POST)
+      - red-publica
     restart: always
 
   # ----------------------------------------------------
-  # CAPA DE DATOS (BASE DE DATOS)
+  # CAPA DE DATOS (BASE DE DATOS - MySQL)
   # ----------------------------------------------------
   bd:
-    image: postgres:15-alpine # Ejemplo con PostgreSQL, puedes cambiarlo por MySQL/Mongo
-    container_name: postgres_db
+    image: mysql:8.0
+    container_name: mysql_db
     environment:
-      - POSTGRES_DB=mi_base_datos
-      - POSTGRES_USER=usuario_seguro
-      - POSTGRES_PASSWORD=un_password_muy_seguro_y_largo
+      - MYSQL_ROOT_PASSWORD=root_password_seguro
+      - MYSQL_DATABASE=jerezsur_db
+      - MYSQL_USER=jerezsur_user
+      - MYSQL_PASSWORD=jerezsur_pass
     volumes:
-      - data-bd:/var/lib/postgresql/data # Para que los datos no se borren al apagar el contenedor
+      - data-bd:/var/lib/mysql
     networks:
       - red-datos
-    # 🔒 CRITICAL SECURITY: No hay apartado "ports". 
-    # Esta base de datos es invisible para el exterior y para los frontends.
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot_password_seguro"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
     restart: always
 
 # ----------------------------------------------------
@@ -98,7 +103,7 @@ networks:
   red-publica:
     driver: bridge
   red-datos:
-    driver: bridge # Red interna aislada
+    driver: bridge
 
 volumes:
-  data-bd: # Espacio en el disco real para guardar la BD
+  data-bd:
