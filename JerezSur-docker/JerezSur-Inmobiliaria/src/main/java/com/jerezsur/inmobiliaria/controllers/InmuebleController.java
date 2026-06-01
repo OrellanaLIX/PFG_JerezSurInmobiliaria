@@ -14,6 +14,7 @@ import com.jerezsur.inmobiliaria.dto.InmuebleActualizarDTO;
 import com.jerezsur.inmobiliaria.dto.InmuebleCrearDTO;
 import com.jerezsur.inmobiliaria.dto.InmuebleDetallePublicoDTO;
 import com.jerezsur.inmobiliaria.dto.InmuebleDestacadoDTO;
+import com.jerezsur.inmobiliaria.dto.InmuebleListadoDTO;
 import com.jerezsur.inmobiliaria.models.Inmueble;
 import com.jerezsur.inmobiliaria.models.enums.EstadoInmueble;
 import com.jerezsur.inmobiliaria.models.enums.TipoOperacion;
@@ -36,7 +37,7 @@ public class InmuebleController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<Inmueble>> filtrar(
+    public ResponseEntity<Page<InmuebleListadoDTO>> filtrar(
             @RequestParam(required = false) String ref,
             @RequestParam(required = false) String tit,
             @RequestParam(required = false) String desc,
@@ -64,8 +65,8 @@ public class InmuebleController {
             sortBy = "id";
         }
 
-        Page<Inmueble> result = inmuebleService.buscarConFiltros(ref, tit, desc, operacion, estado, precioMin,
-                precioMax, habitaciones, banos, superficieMin, ciudad, cp, page, size, sortBy, sortDir);
+        Page<InmuebleListadoDTO> result = inmuebleService.buscarConFiltrosDTO(ref, tit, desc, operacion, estado,
+                precioMin, precioMax, habitaciones, banos, superficieMin, ciudad, cp, page, size, sortBy, sortDir);
         return ResponseEntity.ok(result);
     }
 

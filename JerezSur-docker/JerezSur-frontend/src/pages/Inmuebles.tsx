@@ -50,16 +50,9 @@ export type FilterOptions = {
 type SortOption = 'recent' | 'price-asc' | 'price-desc' | 'area-desc';
 
 // ==========================================
-// TIPOS DEL BACKEND (según tu entidad real)
+// TIPO DEL BACKEND — InmuebleListadoDTO
 // ==========================================
-type ImagenBackend = {
-  id?: number;
-  url?: string;
-  urlImagen?: string;
-  principal?: boolean;
-  orden?: number;
-};
-
+// DTO que ahora devuelve el backend (incluye imagenPortadaUrl directamente)
 type InmuebleBackend = {
   id: number;
   referencia: string;
@@ -67,8 +60,9 @@ type InmuebleBackend = {
   descripcion?: string;
   precio: number;
 
-  operacion?: 'VENTA' | 'ALQUILER' | 'AMBOS';
-  estado?: 'DISPONIBLE' | 'VENDIDO' | 'RESERVADO';
+  operacion?: 'VENTA' | 'ALQUILER' | 'CUALQUIERA';
+  estado?: 'DISPONIBLE' | 'VENDIDO' | 'RESERVADO' | 'RETIRADO';
+  tipo?: string;
 
   caracteristicasExtra?: Record<string, string>;
 
@@ -77,24 +71,11 @@ type InmuebleBackend = {
   habitaciones?: number;
   banos?: number;
 
-  direccion: string;
-  codigoPostal: string;
   ciudad: string;
+  zona?: string;
 
-  comunidad?: number;
-  tieneDerrama?: boolean;
-  valorDerrama?: number;
-  ibi?: number;
-
-  refCatastral?: string;
-  urlNotaSimple?: string;
-  urlCertificadoEnergetico?: string;
-  urlPlanoInmueble?: string;
-
-  imagenes?: ImagenBackend[];
-
-  fechaRegistro?: string;
-  fechaUltimaActualizacion?: string;
+  imagenPortadaUrl?: string | null;   // viene directo del DTO — null si no tiene imágenes
+  destacado?: boolean;
 };
 
 // ==========================================
@@ -127,73 +108,36 @@ const mapTipoOperacion = (raw?: string): 'Venta' | 'Alquiler' => {
   return 'Venta'; // VENTA y AMBOS muestran "Venta" por defecto
 };
 
-// Lee el "tipo" desde caracteristicasExtra (no existe como campo en la entidad)
-const mapTipoInmueble = (extras?: Record<string, string>): Property['propertyType'] => {
-  if (!extras) return 'Piso';
-  const valor = (extras['TIPO'] || extras['tipo'] || extras['Tipo'] || '').toUpperCase();
-  if (valor.includes('CASA')) return 'Casa';
-  if (valor.includes('ATICO') || valor.includes('ÁTICO')) return 'Ático';
-  if (valor.includes('DUPLEX') || valor.includes('DÚPLEX')) return 'Dúplex';
-  if (valor.includes('LOCAL')) return 'Local';
-  if (valor.includes('PARCELA')) return 'Parcela';
+// El backend ahora devuelve el tipo como string (PISO, CASA, CHALET…)
+const mapTipoInmueble = (tipoRaw?: string): Property['propertyType'] => {
+  if (!tipoRaw) return 'Piso';
+  const t = tipoRaw.toUpperCase();
+  if (t.includes('CASA')) return 'Casa';
+  if (t.includes('ATICO') || t.includes('ÁTICO')) return 'Ático';
+  if (t.includes('DUPLEX') || t.includes('DÚPLEX')) return 'Dúplex';
+  if (t.includes('LOCAL')) return 'Local';
+  if (t.includes('PARCELA') || t.includes('TERRENO') || t.includes('FINCA')) return 'Parcela';
   return 'Piso';
 };
 
-// Extrae URL de una Imagen del backend
-const getImageUrl = (img?: ImagenBackend): string | undefined => {
-  if (!img) return undefined;
-  return img.url || img.urlImagen;
-};
-
-// Convierte una lista de Imagen del backend a string[]
-const mapImagenes = (imgs?: ImagenBackend[]): string[] => {
-  if (!imgs || imgs.length === 0) return [];
-
-  // Ordenar: la principal primero, luego por "orden"
-  const sorted = [...imgs].sort((a, b) => {
-    if (a.principal && !b.principal) return -1;
-    if (!a.principal && b.principal) return 1;
-    return (a.orden ?? 0) - (b.orden ?? 0);
-  });
-
-  return sorted.map(getImageUrl).filter((u): u is string => !!u);
-};
-
-const mapInmuebleToProperty = (item: InmuebleBackend): Property => {
-  const extras = item.caracteristicasExtra || {};
-  const imagenes = mapImagenes(item.imagenes);
-
-  return {
-    id: item.id,
-    title: item.titulo || item.referencia || `Inmueble #${item.id}`,
-    location: `${item.direccion}, ${item.ciudad}`,
-    zone: item.ciudad,
-    price: item.precio ?? 0,
-    type: mapTipoOperacion(item.operacion),
-    propertyType: mapTipoInmueble(extras),
-    image: imagenes[0] || DEFAULT_IMAGE,
-    images: imagenes,
-    beds: item.habitaciones ?? 0,
-    baths: item.banos ?? 0,
-    area: item.superficieUtil ?? 0,
-    slug: slugify(item.referencia || item.titulo),
-    featured: parseBoolFromExtra(extras['DESTACADO'] || extras['Destacado']),
-    description: item.descripcion,
-    yearBuilt: extras['AÑO'] ? Number(extras['AÑO']) : undefined,
-    floor: extras['PLANTA'] || extras['Planta'],
-    hasElevator: parseBoolFromExtra(extras['ASCENSOR'] || extras['Ascensor']),
-    hasParking: parseBoolFromExtra(
-      extras['PARKING'] || extras['GARAJE'] || extras['Garaje'] || extras['APARCAMIENTO']
-    ),
-    hasGarden: parseBoolFromExtra(extras['JARDIN'] || extras['JARDÍN'] || extras['Jardín']),
-    hasPool: parseBoolFromExtra(extras['PISCINA'] || extras['Piscina']),
-    energyRating:
-      extras['CERTIFICADO_ENERGETICO'] ||
-      extras['CERTIFICADO'] ||
-      extras['Certificado'] ||
-      undefined,
-  };
-};
+// El backend resuelve la imagen de portada: null si no hay imágenes asignadas
+const mapInmuebleToProperty = (item: InmuebleBackend): Property => ({
+  id: item.id,
+  title: item.titulo || item.referencia || `Inmueble #${item.id}`,
+  location: item.zona ? `${item.zona}, ${item.ciudad}` : item.ciudad,
+  zone: item.zona || item.ciudad,
+  price: item.precio ?? 0,
+  type: mapTipoOperacion(item.operacion),
+  propertyType: mapTipoInmueble(item.tipo),
+  image: item.imagenPortadaUrl ?? '',   // '' → PropertyCard mostrará placeholder
+  images: item.imagenPortadaUrl ? [item.imagenPortadaUrl] : [],
+  beds: item.habitaciones ?? 0,
+  baths: item.banos ?? 0,
+  area: item.superficieUtil ?? 0,
+  slug: slugify(item.referencia || item.titulo),
+  featured: item.destacado ?? false,
+  description: item.descripcion,
+});
 
 // ==========================================
 // COMPONENT

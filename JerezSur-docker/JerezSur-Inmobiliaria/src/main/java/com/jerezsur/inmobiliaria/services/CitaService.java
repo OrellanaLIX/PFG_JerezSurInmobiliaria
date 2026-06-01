@@ -82,7 +82,13 @@ public class CitaService {
 
     @Transactional(readOnly = true)
     public List<CitaResponseDTO> getCitasDelUsuario(Long usuarioId) {
-        return citaRepository.findByUsuarioIdOrderByFechaHoraDesc(usuarioId)
+        // Busca las citas directamente por ID del usuario
+        // Y también las que comparten su email o teléfono (citas anónimas previas)
+        Usuario usuario = usuarioRepository.findById(usuarioId).orElse(null);
+        String email    = usuario != null ? usuario.getEmail()    : null;
+        String telefono = usuario != null ? usuario.getTelefono() : null;
+
+        return citaRepository.findCitasPorUsuarioEmailOTelefono(usuarioId, email, telefono)
                 .stream()
                 .map(this::mapearACitaResponse)
                 .toList();

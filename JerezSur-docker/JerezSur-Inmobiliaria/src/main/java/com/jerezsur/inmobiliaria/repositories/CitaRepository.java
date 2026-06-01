@@ -35,6 +35,19 @@ public interface CitaRepository extends JpaRepository<Cita, Long> {
 
     List<Cita> findByUsuarioIdOrderByFechaHoraDesc(Long usuarioId);
 
+    @Query("""
+        SELECT DISTINCT c FROM Cita c
+        WHERE c.usuario.id = :usuarioId
+           OR (:email IS NOT NULL AND c.usuario.email = :email)
+           OR (:telefono IS NOT NULL AND c.usuario.telefono = :telefono)
+        ORDER BY c.fechaHora DESC
+        """)
+    List<Cita> findCitasPorUsuarioEmailOTelefono(
+        @org.springframework.data.repository.query.Param("usuarioId") Long usuarioId,
+        @org.springframework.data.repository.query.Param("email") String email,
+        @org.springframework.data.repository.query.Param("telefono") String telefono
+    );
+
     @Query("SELECT COUNT(c) FROM Cita c WHERE c.fechaHora >= CURRENT_TIMESTAMP")
     long countProximas();
 }

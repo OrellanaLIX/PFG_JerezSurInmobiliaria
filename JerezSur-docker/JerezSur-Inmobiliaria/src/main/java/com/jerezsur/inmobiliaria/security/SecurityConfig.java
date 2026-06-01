@@ -42,6 +42,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/usuarios/completar").permitAll()
                         .requestMatchers("/error").permitAll()
                         .requestMatchers(HttpMethod.GET, "/sitemap.xml").permitAll()
+                        // Citas anónimas (sin cuenta registrada)
+                        .requestMatchers(HttpMethod.POST, "/api/citas/solicitar").permitAll()
 
                         // ── Feed XML para portales inmobiliarios ──
                         .requestMatchers(HttpMethod.GET, "/api/portal/**").permitAll()

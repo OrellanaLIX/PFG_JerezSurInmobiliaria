@@ -4,6 +4,7 @@ import com.jerezsur.inmobiliaria.dto.InmuebleActualizarDTO;
 import com.jerezsur.inmobiliaria.dto.InmuebleCrearDTO;
 import com.jerezsur.inmobiliaria.dto.InmuebleDetallePublicoDTO;
 import com.jerezsur.inmobiliaria.dto.InmuebleDestacadoDTO;
+import com.jerezsur.inmobiliaria.dto.InmuebleListadoDTO;
 import com.jerezsur.inmobiliaria.exceptions.BusinessValidationException;
 import com.jerezsur.inmobiliaria.exceptions.ResourceNotFoundException;
 import com.jerezsur.inmobiliaria.models.Imagen;
@@ -17,6 +18,7 @@ import com.jerezsur.inmobiliaria.repositories.VendedorRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -50,6 +52,56 @@ public class InmuebleService {
 
         return inmuebleRepository.busquedaFiltrada(ref, tit, desc, op, est, pMin, pMax, hab, ban, sMin, ciu, cp,
                 pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<InmuebleListadoDTO> buscarConFiltrosDTO(String ref, String tit, String desc, TipoOperacion op,
+            EstadoInmueble est, BigDecimal pMin, BigDecimal pMax, Integer hab, Integer ban, Double sMin,
+            String ciu, String cp, int page, int size, String sortBy, String sortDir) {
+
+        Sort sort = Sort.by(Sort.Direction.fromString(sortDir), sortBy);
+        PageRequest pageable = PageRequest.of(page, size, sort);
+
+        if (pMin != null && pMax != null && pMin.compareTo(pMax) > 0) {
+            throw new BusinessValidationException("El precio mínimo no puede ser superior al máximo.");
+        }
+
+        Page<Inmueble> pageResult = inmuebleRepository.busquedaFiltrada(
+                ref, tit, desc, op, est, pMin, pMax, hab, ban, sMin, ciu, cp, pageable);
+
+        List<InmuebleListadoDTO> dtos = pageResult.getContent().stream()
+                .map(this::mapToListadoDTO)
+                .collect(Collectors.toList());
+
+        return new PageImpl<>(dtos, pageable, pageResult.getTotalElements());
+    }
+
+    private InmuebleListadoDTO mapToListadoDTO(Inmueble i) {
+        String portadaUrl = i.getImagenes().stream()
+                .filter(img -> Boolean.TRUE.equals(img.getEsPortada()))
+                .findFirst()
+                .or(() -> i.getImagenes().stream().findFirst())
+                .map(Imagen::getUrl)
+                .orElse(null);
+
+        return InmuebleListadoDTO.builder()
+                .id(i.getId())
+                .referencia(i.getReferencia())
+                .titulo(i.getTitulo())
+                .precio(i.getPrecio())
+                .operacion(i.getOperacion() != null ? i.getOperacion().name() : null)
+                .estado(i.getEstado() != null ? i.getEstado().name() : null)
+                .tipo(i.getTipo() != null ? i.getTipo().name() : null)
+                .ciudad(i.getCiudad())
+                .zona(i.getZona())
+                .habitaciones(i.getHabitaciones())
+                .banos(i.getBanos())
+                .superficieUtil(i.getSuperficieUtil())
+                .mConstruidos(i.getMConstruidos())
+                .descripcion(i.getDescripcion())
+                .imagenPortadaUrl(portadaUrl)
+                .destacado(i.getDestacado())
+                .build();
     }
 
     @Transactional(readOnly = true)

@@ -42,6 +42,11 @@ type CitaForm = {
   fechaDate: string;
   fechaTime: string;
   motivo: string;
+  // campos para usuarios no logueados
+  nombre: string;
+  telefono: string;
+  email: string;
+  aceptaPrivacidad: boolean;
 };
 
 // --- CONSTANTES ---
@@ -51,7 +56,10 @@ const API_BASE = '/api';
 const DEFAULT_IMAGE =
   'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80';
 
-const INITIAL_CITA_FORM: CitaForm = { fechaDate: '', fechaTime: '', motivo: '' };
+const INITIAL_CITA_FORM: CitaForm = {
+  fechaDate: '', fechaTime: '', motivo: '',
+  nombre: '', telefono: '', email: '', aceptaPrivacidad: false,
+};
 
 // --- HELPERS ---
 
@@ -169,14 +177,14 @@ const InmuebleDetalle: React.FC = () => {
   };
 
   const handleCitaChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setCitaForm((prev) => ({ ...prev, [name]: value }));
+    const target = e.target as HTMLInputElement;
+    const value = target.type === 'checkbox' ? target.checked : target.value;
+    setCitaForm((prev) => ({ ...prev, [target.name]: value }));
     if (citaError) setCitaError('');
   };
 
   const handleCitaSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!user) return;
 
     if (!citaForm.fechaDate || !citaForm.fechaTime) {
       setCitaError('La fecha y la hora son obligatorias.');
@@ -189,23 +197,48 @@ const InmuebleDetalle: React.FC = () => {
       return;
     }
 
+    // Para usuario anónimo validar nombre y teléfono
+    if (!isAuthenticated) {
+      if (!citaForm.nombre.trim()) { setCitaError('El nombre es obligatorio.'); return; }
+      if (!citaForm.telefono.trim()) { setCitaError('El teléfono es obligatorio.'); return; }
+      if (!citaForm.aceptaPrivacidad) { setCitaError('Debes aceptar la política de privacidad.'); return; }
+    }
+
     setCitaLoading(true);
     setCitaError('');
 
     try {
-      const token = localStorage.getItem('token') || '';
-      const res = await fetch(`${API_BASE}/citas/usuario/solicitar`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          usuarioId: user.id,
-          inmuebleId: inmueble?.id,
+      let body: Record<string, unknown>;
+
+      if (isAuthenticated && user) {
+        // Usuario logueado → usa sus datos del perfil
+        body = {
+          nombre: user.nombre,
+          telefono: user.telefono || citaForm.telefono.trim(),
+          email: user.email || citaForm.email.trim() || null,
           fechaHora,
           motivo: citaForm.motivo.trim() || null,
-        }),
+          inmuebleId: inmueble?.id ?? null,
+          aceptaPrivacidad: true,
+        };
+      } else {
+        // Anónimo
+        body = {
+          nombre: citaForm.nombre.trim(),
+          telefono: citaForm.telefono.trim(),
+          email: citaForm.email.trim() || null,
+          fechaHora,
+          motivo: citaForm.motivo.trim() || null,
+          inmuebleId: inmueble?.id ?? null,
+          aceptaPrivacidad: true,
+        };
+      }
+
+      // Siempre usamos el endpoint público que no requiere token
+      const res = await fetch(`${API_BASE}/citas/solicitar`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
       });
 
       if (!res.ok) {
@@ -434,14 +467,7 @@ const InmuebleDetalle: React.FC = () => {
         <aside className="inmueble-detalle__cita">
           <h2>Solicitar visita</h2>
 
-          {!isAuthenticated ? (
-            <div>
-              <p>Para solicitar una visita debes iniciar sesión.</p>
-              <Link to="/acceder" className="btn btn--primary" style={{ marginTop: '1rem', display: 'inline-block' }}>
-                Iniciar sesión
-              </Link>
-            </div>
-          ) : citaExito ? (
+          {citaExito ? (
             <div>
               <p style={{ color: '#2e9b4d', marginBottom: '0.75rem' }}>
                 ✅ Cita solicitada correctamente. Nos pondremos en contacto contigo para confirmarla.
@@ -469,46 +495,84 @@ const InmuebleDetalle: React.FC = () => {
             </div>
           ) : (
             <form onSubmit={handleCitaSubmit} noValidate>
+              {/* Campos de contacto solo para usuarios no logueados */}
+              {!isAuthenticated && (
+                <>
+                  <div className="form-group">
+                    <label htmlFor="citaNombre">Nombre *</label>
+                    <input
+                      id="citaNombre" type="text" name="nombre" required
+                      value={citaForm.nombre} onChange={handleCitaChange}
+                      placeholder="Tu nombre completo"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="citaTelefono">Teléfono *</label>
+                    <input
+                      id="citaTelefono" type="tel" name="telefono" required
+                      value={citaForm.telefono} onChange={handleCitaChange}
+                      placeholder="600 000 000"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="citaEmail">Email (opcional)</label>
+                    <input
+                      id="citaEmail" type="email" name="email"
+                      value={citaForm.email} onChange={handleCitaChange}
+                      placeholder="tu@email.com"
+                    />
+                  </div>
+                </>
+              )}
+              {isAuthenticated && user && (
+                <p style={{ fontSize: '0.85rem', color: '#6b7280', marginBottom: '0.75rem' }}>
+                  Solicitando como <strong>{user.nombre}</strong>
+                  {user.telefono ? ` · ${user.telefono}` : ''}
+                </p>
+              )}
               <div className="form-group">
                 <label htmlFor="fechaDate">Fecha *</label>
                 <input
-                  id="fechaDate"
-                  type="date"
-                  name="fechaDate"
-                  required
-                  min={getMinDate()}
-                  value={citaForm.fechaDate}
-                  onChange={handleCitaChange}
+                  id="fechaDate" type="date" name="fechaDate" required
+                  min={getMinDate()} value={citaForm.fechaDate} onChange={handleCitaChange}
                 />
               </div>
               <div className="form-group">
                 <label htmlFor="fechaTime">Hora *</label>
                 <input
-                  id="fechaTime"
-                  type="time"
-                  name="fechaTime"
-                  required
-                  min="09:00"
-                  max="20:00"
-                  value={citaForm.fechaTime}
-                  onChange={handleCitaChange}
+                  id="fechaTime" type="time" name="fechaTime" required
+                  min="09:00" max="20:00" value={citaForm.fechaTime} onChange={handleCitaChange}
                 />
               </div>
               <div className="form-group">
                 <label htmlFor="motivo">Mensaje (opcional)</label>
                 <textarea
-                  id="motivo"
-                  name="motivo"
-                  rows={3}
-                  value={citaForm.motivo}
-                  onChange={handleCitaChange}
+                  id="motivo" name="motivo" rows={3}
+                  value={citaForm.motivo} onChange={handleCitaChange}
                   placeholder="¿Algo que quieras comentarnos?"
                 />
               </div>
-              {citaError && <p style={{ color: 'red', marginBottom: '0.5rem' }}>{citaError}</p>}
+              {!isAuthenticated && (
+                <div className="form-group" style={{ flexDirection: 'row', alignItems: 'center', gap: '0.5rem' }}>
+                  <input
+                    id="privacidad" type="checkbox" name="aceptaPrivacidad"
+                    checked={citaForm.aceptaPrivacidad}
+                    onChange={e => setCitaForm(prev => ({ ...prev, aceptaPrivacidad: e.target.checked }))}
+                  />
+                  <label htmlFor="privacidad" style={{ fontWeight: 'normal', fontSize: '0.82rem', cursor: 'pointer' }}>
+                    Acepto la <Link to="/privacidad" style={{ color: '#00439c' }}>política de privacidad</Link>
+                  </label>
+                </div>
+              )}
+              {citaError && <p style={{ color: 'red', marginBottom: '0.5rem', fontSize: '0.88rem' }}>{citaError}</p>}
               <button type="submit" className="btn btn--primary btn--full" disabled={citaLoading}>
                 {citaLoading ? 'Enviando...' : 'Solicitar visita'}
               </button>
+              {!isAuthenticated && (
+                <p style={{ textAlign: 'center', marginTop: '0.75rem', fontSize: '0.82rem', color: '#6b7280' }}>
+                  ¿Tienes cuenta? <Link to="/acceder" style={{ color: '#00439c' }}>Inicia sesión</Link> para agilizar el proceso
+                </p>
+              )}
             </form>
           )}
         </aside>
