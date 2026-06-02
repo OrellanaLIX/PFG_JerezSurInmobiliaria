@@ -1,3 +1,5 @@
+// Tarjetas de KPIs (Key Performance Indicators) del dashboard del admin.
+// Muestra de forma visual los números clave: inmuebles disponibles, clientes nuevos, citas y contratos.
 import { useEffect, useState } from "react";
 import api from "../../services/api";
 

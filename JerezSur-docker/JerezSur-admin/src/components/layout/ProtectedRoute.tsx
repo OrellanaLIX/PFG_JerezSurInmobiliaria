@@ -1,3 +1,4 @@
+// Ruta protegida: redirige al login si el usuario no está autenticado en el panel admin.
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 

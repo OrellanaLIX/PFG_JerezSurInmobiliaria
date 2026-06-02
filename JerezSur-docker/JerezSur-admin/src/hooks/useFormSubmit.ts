@@ -1,3 +1,4 @@
+// Hook para gestionar el estado de envío de formularios (loading, error, success).
 import { useState } from 'react';
 import { toast } from 'react-toastify';
 

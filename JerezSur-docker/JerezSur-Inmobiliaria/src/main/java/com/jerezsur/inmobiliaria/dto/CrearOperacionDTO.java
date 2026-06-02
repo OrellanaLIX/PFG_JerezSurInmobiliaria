@@ -9,8 +9,11 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Map;
 
+// DTO para iniciar una nueva operación inmobiliaria (compraventa o alquiler).
 @Getter
+// DTO para iniciar una nueva operación inmobiliaria (compraventa o alquiler).
 @Setter
+// DTO para iniciar una nueva operación inmobiliaria (compraventa o alquiler).
 @NoArgsConstructor
 public class CrearOperacionDTO {
 

@@ -20,6 +20,8 @@ import java.io.StringWriter;
 import java.util.List;
 import java.util.Map;
 
+// Servicio que genera el XML del feed de inmuebles para portales como Fotocasa o Idealista.
+// Usa la API estándar DOM de Java para construir el XML y lo devuelve como String para el controlador.
 @Service
 public class PortalInmobiliarioXmlService {
 

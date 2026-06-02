@@ -26,6 +26,8 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.Builder.Default;
 
+// Entidad de interesado/comprador: perfil adicional de un usuario que busca comprar o alquilar.
+// Guarda sus preferencias de búsqueda (presupuesto, zona, habitaciones) para el equipo comercial.
 @Entity
 @Table(name = "compradores")
 @Data

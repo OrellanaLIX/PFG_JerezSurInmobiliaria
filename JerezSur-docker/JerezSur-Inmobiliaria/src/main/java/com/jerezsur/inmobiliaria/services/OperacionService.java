@@ -27,6 +27,8 @@ import com.jerezsur.inmobiliaria.repositories.InmuebleRepository;
 import com.jerezsur.inmobiliaria.repositories.InteresadoRepository;
 import com.jerezsur.inmobiliaria.repositories.OperacionRepository;
 
+// Servicio de operaciones inmobiliarias: gestiona el ciclo de vida de cada venta o alquiler.
+// Una operación vincula un inmueble con un interesado y pasa por varios estados hasta su cierre.
 @Service
 public class OperacionService {
 

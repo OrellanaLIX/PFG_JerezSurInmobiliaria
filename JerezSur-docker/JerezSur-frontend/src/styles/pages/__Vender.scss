@@ -1,6 +1,19 @@
 // src/styles/Propietarios.scss
 @use '../globals/_Variables' as *;
 
+/* Hero de propietarios — foto de casa moderna con llave/contrato */
+.propietarios-hero {
+  background:
+    linear-gradient(
+      165deg,
+      rgba(0, 20, 55, 0.80) 0%,
+      rgba(0, 50, 110, 0.45) 55%,
+      rgba(0, 20, 55, 0.75) 100%
+    ),
+    url('https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=1920&q=80&fm=webp')
+    center center / cover no-repeat;
+}
+
 /* =========================
    CONTENIDO PRINCIPAL
 ========================= */

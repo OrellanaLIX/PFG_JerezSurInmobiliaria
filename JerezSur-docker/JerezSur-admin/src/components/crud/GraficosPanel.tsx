@@ -1,3 +1,5 @@
+// Componente que muestra los gráficos del panel de estadísticas del admin.
+// Llama al backend que a su vez llama al microservicio Python (matplotlib) para generar las imágenes en base64.
 import { useEffect, useState } from 'react';
 import api from '../../services/api';
 

@@ -1,9 +1,13 @@
+// Formulario de registro de nuevos usuarios del frontend público.
+// El campo de contacto acepta tanto email como teléfono en el mismo input
+// y detecta automáticamente cuál es usando expresiones regulares.
 import { useState, type FormEvent } from 'react';
 import '../../styles/AuthForms.scss';
 
+// Datos que recoge el formulario
 type RegisterData = {
   name: string;
-  contact: string; // Campo único para email o teléfono
+  contact: string; // Campo único para email o teléfono — lo detectamos con regex
   passwd: string;
   consent: boolean;
 };
@@ -16,9 +20,11 @@ const RegisterForm = ({onRegisterSuccess }: any) => {
     consent: false,
   });
 
+  // Estado del formulario para deshabilitar el botón y mostrar mensajes de resultado
   const [formStatus, setFormStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
 
+  // Actualiza el estado del formulario de forma genérica para todos los inputs
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
@@ -33,6 +39,7 @@ const RegisterForm = ({onRegisterSuccess }: any) => {
     setErrorMessage('');
 
     // --- LÓGICA DE VALIDACIÓN DEL CAMPO ÚNICO ---
+    // Detectamos si el usuario escribió un email o un teléfono para enviarlo al campo correcto
     const input = formData.contact.trim();
 
     // Regex para Email básico
@@ -54,6 +61,7 @@ const RegisterForm = ({onRegisterSuccess }: any) => {
     }
 
     // --- CONSTRUCCIÓN DEL OBJETO PARA SPRING BOOT ---
+    // El backend acepta null en email o teléfono si no se proporcionó ese campo
     const dataToSend = {
       nombre: formData.name,
       email: finalEmail || null,     // Si no es email, se envía null

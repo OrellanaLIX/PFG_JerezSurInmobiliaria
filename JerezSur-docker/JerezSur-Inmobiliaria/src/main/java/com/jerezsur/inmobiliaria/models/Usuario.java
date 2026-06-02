@@ -32,6 +32,8 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+// Entidad de usuario: es la entidad central del sistema de autenticación.
+// Un usuario puede tener diferentes roles y subperfiles (Trabajador, Interesado, Vendedor) según sus necesidades.
 @Entity
 @Table(name = "usuarios")
 @Data

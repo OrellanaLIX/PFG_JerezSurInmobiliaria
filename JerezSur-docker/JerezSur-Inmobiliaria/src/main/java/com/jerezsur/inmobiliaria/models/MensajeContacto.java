@@ -23,6 +23,8 @@ import lombok.Builder.Default;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+// Entidad de mensaje de contacto: guarda los mensajes que los visitantes envían desde la web pública.
+// Al crearse, se notifica automáticamente al admin por WhatsApp y se genera una tarea pendiente.
 @Entity
 @Table(name = "mensajes_contacto")
 @Data

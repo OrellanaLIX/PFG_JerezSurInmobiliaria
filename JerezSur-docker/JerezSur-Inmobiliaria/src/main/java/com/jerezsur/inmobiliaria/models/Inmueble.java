@@ -46,6 +46,8 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.Builder.Default;
 
+// Entidad principal de la aplicación: representa un inmueble del catálogo.
+// Almacena todos los datos del piso/casa: precio, superficie, características y sus imágenes y documentos.
 @Entity
 @Table(name = "inmuebles")
 @Data

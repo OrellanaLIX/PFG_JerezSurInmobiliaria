@@ -49,6 +49,7 @@ public class AuthAdminService {
         return LoginResponseDTO.builder()
                 .token(token)
                 .userId(usuario.getId())
+                .trabajadorId(usuario.getTrabajador().getId())
                 .nombre(usuario.getNombre())
                 .email(usuario.getEmail())
                 .role(usuario.getRole().name())

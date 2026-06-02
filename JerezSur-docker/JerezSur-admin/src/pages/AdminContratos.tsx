@@ -1,3 +1,5 @@
+// Página de operaciones y contratos del panel de administración.
+// Una operación registra una compraventa o alquiler; el contrato es el documento PDF asociado.
 import { useState } from 'react';
 import { useOperaciones } from '../hooks/useOperaciones';
 import { useFeedback } from '../hooks/useFeedback';

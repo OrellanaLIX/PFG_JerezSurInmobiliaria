@@ -1,3 +1,4 @@
+// Excepción base de la aplicación: todas las excepciones personalizadas heredan de esta.
 package com.jerezsur.inmobiliaria.exceptions;
 
 //EXCEPCIÓN BASE PERSONALIZADA

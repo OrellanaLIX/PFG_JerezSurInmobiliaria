@@ -1,3 +1,5 @@
+// Hook que gestiona los mensajes de contacto en el panel admin.
+// Carga todos los mensajes al montarse y expone funciones para actualizar o eliminar cada uno.
 import { useState, useEffect, useCallback } from 'react';
 import { contactoService } from '../services/contactoService';
 import type { MensajeContacto, NuevoMensajeContacto, MensajeContactoDetalle } from '../types/contacto';

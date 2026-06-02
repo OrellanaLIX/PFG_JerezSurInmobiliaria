@@ -3,10 +3,15 @@ package com.jerezsur.inmobiliaria.dto;
 import java.math.BigDecimal;
 import lombok.*;
 
+// DTO ligero para los inmuebles destacados de la portada (solo los campos necesarios para la tarjeta).
 @Getter
+// DTO ligero para los inmuebles destacados de la portada (solo los campos necesarios para la tarjeta).
 @Setter
+// DTO ligero para los inmuebles destacados de la portada (solo los campos necesarios para la tarjeta).
 @Builder
+// DTO ligero para los inmuebles destacados de la portada (solo los campos necesarios para la tarjeta).
 @NoArgsConstructor
+// DTO ligero para los inmuebles destacados de la portada (solo los campos necesarios para la tarjeta).
 @AllArgsConstructor
 public class InmuebleDestacadoDTO {
     private Long id;

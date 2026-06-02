@@ -1,3 +1,4 @@
+// Tabla del catálogo de inmuebles del panel admin con búsqueda y filtros de operación/estado.
 import type { Inmueble, EstadoInmueble } from '../../../types/inmueble';
 import '../../../styles/App.scss';
 

@@ -1,15 +1,7 @@
 // Hook personalizado para gestionar los metadatos SEO de cada página.
 //
-// En React no podemos editar directamente el <head> del HTML como en PHP,
-// así que usamos useEffect para manipular el DOM del documento manualmente.
-// La alternativa profesional sería usar react-helmet-async, pero para evitar
-// añadir más dependencias lo hice a mano con la API del navegador.
-//
-// Se usa en páginas como Home, Inmuebles e InmuebleDetalle para:
-//   - Cambiar el <title> de la pestaña
-//   - Actualizar el meta description (para Google)
-//   - Actualizar el canonical (URL preferida para evitar duplicados en SEO)
-//   - Añadir Open Graph (para previsualización en WhatsApp, Twitter, etc.)
+// Actualiza dinámicamente: <title>, meta description, canonical,
+// Open Graph (Facebook/WhatsApp) y Twitter Card.
 
 import { useEffect } from 'react';
 
@@ -17,53 +9,72 @@ interface SEOOptions {
   title:        string;
   description?: string;
   canonical?:   string;
+  image?:       string;  // URL de imagen para OG/Twitter (ej: foto de portada del inmueble)
+  type?:        'website' | 'article'; // tipo OG (website por defecto)
 }
 
-const BASE_TITLE = 'JerezSur Inmobiliaria';
+const BASE_TITLE    = 'JerezSur Inmobiliaria';
+const DEFAULT_IMAGE = '/LogoCuadrado.png';
 
-export const useSEO = ({ title, description, canonical }: SEOOptions) => {
+export const useSEO = ({ title, description, canonical, image, type = 'website' }: SEOOptions) => {
   useEffect(() => {
-    // Actualizamos el <title> de la página (lo que aparece en la pestaña del navegador)
-    document.title = title ? `${title} | ${BASE_TITLE}` : BASE_TITLE;
+    const fullTitle = title ? `${title} | ${BASE_TITLE}` : BASE_TITLE;
+    const url       = canonical || window.location.href;
+    const imgUrl    = image || DEFAULT_IMAGE;
 
-    // Meta description: el texto que aparece debajo del título en Google
-    // Si ya existe el meta lo reutilizamos, si no lo creamos de cero
-    let metaDesc = document.querySelector<HTMLMetaElement>('meta[name="description"]');
-    if (!metaDesc) {
-      metaDesc = document.createElement('meta');
-      metaDesc.name = 'description';
-      document.head.appendChild(metaDesc);
-    }
-    if (description) metaDesc.content = description;
+    // Título de la pestaña
+    document.title = fullTitle;
 
-    // URL canónica: le dice a Google cuál es la URL "oficial" de esta página
-    // Evita problemas de contenido duplicado si la misma página se puede acceder por varias URLs
+    // Helper para meta con name
+    const setMeta = (name: string, content: string) => {
+      let el = document.querySelector<HTMLMetaElement>(`meta[name="${name}"]`);
+      if (!el) {
+        el = document.createElement('meta');
+        el.name = name;
+        document.head.appendChild(el);
+      }
+      el.content = content;
+    };
+
+    // Helper para meta con property (Open Graph)
+    const setOG = (property: string, content: string) => {
+      let el = document.querySelector<HTMLMetaElement>(`meta[property="${property}"]`);
+      if (!el) {
+        el = document.createElement('meta');
+        el.setAttribute('property', property);
+        document.head.appendChild(el);
+      }
+      el.content = content;
+    };
+
+    // URL canónica
     let link = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
     if (!link) {
       link = document.createElement('link');
       link.rel = 'canonical';
       document.head.appendChild(link);
     }
-    link.href = canonical || window.location.href;
+    link.href = url;
 
-    // Open Graph: metadatos que usan WhatsApp, Telegram, Twitter y Facebook
-    // para generar la previsualización cuando alguien comparte un enlace
-    const setOG = (property: string, content: string) => {
-      let og = document.querySelector<HTMLMetaElement>(`meta[property="${property}"]`);
-      if (!og) {
-        og = document.createElement('meta');
-        og.setAttribute('property', property);
-        document.head.appendChild(og);
-      }
-      og.content = content;
-    };
+    // Meta description
+    if (description) setMeta('description', description);
 
-    setOG('og:title',     title ? `${title} | ${BASE_TITLE}` : BASE_TITLE);
-    setOG('og:type',      'website');
-    setOG('og:url',       canonical || window.location.href);
-    setOG('og:site_name', BASE_TITLE);
+    // Open Graph
+    setOG('og:title',       fullTitle);
+    setOG('og:type',        type);
+    setOG('og:url',         url);
+    setOG('og:site_name',   BASE_TITLE);
+    setOG('og:image',       imgUrl);
+    setOG('og:image:alt',   title || BASE_TITLE);
+    setOG('og:locale',      'es_ES');
     if (description) setOG('og:description', description);
 
-  // El array de dependencias hace que se re-ejecute solo cuando cambian los metadatos
-  }, [title, description, canonical]);
+    // Twitter Card
+    setMeta('twitter:card',        'summary_large_image');
+    setMeta('twitter:title',       fullTitle);
+    setMeta('twitter:image',       imgUrl);
+    setMeta('twitter:image:alt',   title || BASE_TITLE);
+    if (description) setMeta('twitter:description', description);
+
+  }, [title, description, canonical, image, type]);
 };

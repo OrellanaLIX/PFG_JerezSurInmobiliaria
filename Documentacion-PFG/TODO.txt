@@ -10,7 +10,7 @@ Revisar filtros de busqueda del panel de admin
 Repaso general
 Comprobar funcionamiento de las apis
 Crear presentacion
-Comentarios
+Revisar Comentarios
 
 HECHO:
 Al crear un usuario lo crea pero visualmente no esta del todo bien
@@ -26,3 +26,5 @@ Revisar funcionamiento de correos electronicos
 Subir PDFs cifrados y privados
 Revisar GitHub
 Error handels
+Auth de apple y facebook
+Seguir mejorando lighthouse

@@ -1,3 +1,5 @@
+// Servicio de inmuebles del panel admin: agrupa todas las llamadas al backend relacionadas con el catálogo.
+// Usa la instancia de Axios configurada en api.ts para incluir el token JWT automáticamente.
 import api from './api';
 import type { Inmueble, NuevoInmueble, InmuebleDetalle } from '../types/inmueble';
 
@@ -14,7 +16,7 @@ export const inmuebleService = {
   getTodos: async (): Promise<Inmueble[]> => {
     try {
       // ✅ Tipamos correctamente la respuesta esperada de Spring Boot
-      const { data } = await api.get<SpringPageResponse<Inmueble>>('/inmuebles');
+      const { data } = await api.get<SpringPageResponse<Inmueble>>('/inmuebles?size=200&sortBy=id&sortDir=desc');
 
       if (data && Array.isArray(data.content)) {
         return data.content;

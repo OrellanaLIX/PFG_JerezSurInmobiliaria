@@ -6,6 +6,7 @@ import lombok.Data;
 
 import java.time.LocalDateTime;
 
+// DTO para solicitar una cita de forma anónima (sin cuenta): nombre, teléfono y fecha deseada.
 @Data
 public class SolicitudCitaPublicaDTO {
 

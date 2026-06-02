@@ -1,3 +1,4 @@
+// Hook que gestiona el estado de las operaciones inmobiliarias en el panel admin.
 import { useState, useEffect, useCallback } from 'react';
 import { operacionService } from '../services/operacionService';
 import type { OperacionBase, NuevaOperacion, OperacionDetalle, EstadoOperacion } from '../types/operacion';

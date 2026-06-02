@@ -1,3 +1,5 @@
+// Página de login del panel de administración.
+// Solo permite acceder a usuarios con perfil de Trabajador (el backend lo verifica).
 import { useState } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';

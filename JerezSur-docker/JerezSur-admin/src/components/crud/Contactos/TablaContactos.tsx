@@ -1,3 +1,4 @@
+// Tabla de mensajes de contacto del panel admin con filtros de búsqueda y estado.
 import type { MensajeContacto } from '../../../types/contacto';
 import '../../../styles/App.scss';
 

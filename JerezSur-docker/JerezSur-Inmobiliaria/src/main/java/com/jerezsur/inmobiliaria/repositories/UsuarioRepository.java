@@ -51,4 +51,10 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     Optional<Usuario> findByTokenVerificacion(String token);
 
     Optional<Usuario> findByTokenRecuperacion(String token);
+
+    // Busca un usuario por su ID de proveedor OAuth (Facebook ID, Google sub, Apple sub)
+    // Imprescindible para manejar logins sociales sin email obligatorio
+    Optional<Usuario> findByProviderAndProviderId(
+            com.jerezsur.inmobiliaria.models.enums.AuthProvider provider,
+            String providerId);
 }

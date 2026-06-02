@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
+// Repositorio de operaciones: consultas por inmueble, estado y tipo de operación.
 public interface OperacionRepository extends JpaRepository<Operacion, Long> {
 
     // Buscar todas las operaciones de un inmueble específico (historial)

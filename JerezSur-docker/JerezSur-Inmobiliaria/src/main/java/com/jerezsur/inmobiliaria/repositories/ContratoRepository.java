@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
+// Repositorio de contratos: consultas para listar contratos por operación y por estado.
 public interface ContratoRepository extends JpaRepository<Contrato, Long> {
 
     // Listar todos los documentos de una operación concreta (la bandeja de

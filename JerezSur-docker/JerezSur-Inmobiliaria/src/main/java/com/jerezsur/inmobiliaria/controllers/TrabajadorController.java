@@ -13,6 +13,8 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 
+// Controlador de trabajadores: gestiona el personal de la inmobiliaria (agentes, administrativos…)
+// Los trabajadores son los únicos que tienen acceso al panel de administración
 @RestController
 @RequestMapping("/api/trabajadores")
 public class TrabajadorController {

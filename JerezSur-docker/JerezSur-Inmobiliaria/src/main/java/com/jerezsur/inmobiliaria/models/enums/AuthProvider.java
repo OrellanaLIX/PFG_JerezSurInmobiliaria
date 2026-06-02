@@ -1,3 +1,4 @@
+// Enum de proveedor de autenticación: LOCAL (email+password), GOOGLE, FACEBOOK, APPLE.
 package com.jerezsur.inmobiliaria.models.enums;
 
 public enum AuthProvider {

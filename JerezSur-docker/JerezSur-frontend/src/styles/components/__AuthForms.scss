@@ -16,7 +16,15 @@ body.auth-page {
 ========================= */
 .auth {
   min-height: 100vh;
-  background: linear-gradient(135deg, $color-primary-dark 0%, $color-primary 50%, darken($color-primary, 5%) 100%);
+  background:
+    linear-gradient(
+      145deg,
+      rgba(0, 25, 70, 0.90) 0%,
+      rgba(0, 50, 130, 0.75) 50%,
+      rgba(0, 25, 70, 0.88) 100%
+    ),
+    url('https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=1920&q=80&fm=webp')
+    center center / cover no-repeat fixed;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -24,7 +32,6 @@ body.auth-page {
   position: relative;
   overflow: hidden;
 
-  // Patrón decorativo de fondo
   &::before {
     content: '';
     position: absolute;
@@ -32,7 +39,7 @@ body.auth-page {
     right: -20%;
     width: 800px;
     height: 800px;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.06) 0%, transparent 70%);
     border-radius: 50%;
     pointer-events: none;
   }

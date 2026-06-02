@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
+// Repositorio de tareas: listado de tareas pendientes y búsquedas por enlace o descripción.
 public interface TareaRepository extends JpaRepository<Tarea, Long> {
 
     List<Tarea> findAllByOrderByFechaAsc();

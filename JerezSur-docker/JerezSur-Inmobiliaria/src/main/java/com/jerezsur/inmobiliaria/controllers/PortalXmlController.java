@@ -2,11 +2,15 @@ package com.jerezsur.inmobiliaria.controllers;
 
 import com.jerezsur.inmobiliaria.models.enums.TipoOperacion;
 import com.jerezsur.inmobiliaria.services.PortalInmobiliarioXmlService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+// Controlador que genera los feeds XML para portales inmobiliarios (Fotocasa, Idealista, etc.).
+// Los feeds son públicos y sin autenticación para que los portales puedan importarlos automáticamente.
+@Slf4j
 @RestController
 @RequestMapping("/api/portal")
 public class PortalXmlController {
@@ -30,8 +34,8 @@ public class PortalXmlController {
                     .header("Content-Disposition", "inline; filename=\"feed.xml\"")
                     .body(xml);
         } catch (Exception e) {
-            return ResponseEntity.internalServerError()
-                    .body("<error>" + e.getMessage() + "</error>");
+            log.error("Error al generar feed XML completo", e);
+            return ResponseEntity.internalServerError().body("<error>Error al generar el feed</error>");
         }
     }
 

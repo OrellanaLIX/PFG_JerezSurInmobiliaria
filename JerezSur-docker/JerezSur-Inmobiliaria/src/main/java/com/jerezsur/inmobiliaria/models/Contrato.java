@@ -27,6 +27,8 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.Builder.Default;
 
+// Entidad de contrato: documento legal asociado a una operación de compraventa o alquiler.
+// El PDF del contrato se sube cifrado a Cloudinary y se accede a través de un endpoint protegido.
 @Entity
 @Table(name = "contratos")
 @Data

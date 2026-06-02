@@ -5,9 +5,13 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
+// DTO de respuesta para las citas: contiene los datos que el frontend necesita para mostrar una cita.
 @Data
+// DTO de respuesta para las citas: contiene los datos que el frontend necesita para mostrar una cita.
 @Builder
+// DTO de respuesta para las citas: contiene los datos que el frontend necesita para mostrar una cita.
 @NoArgsConstructor
+// DTO de respuesta para las citas: contiene los datos que el frontend necesita para mostrar una cita.
 @AllArgsConstructor
 public class CitaResponseDTO {
 

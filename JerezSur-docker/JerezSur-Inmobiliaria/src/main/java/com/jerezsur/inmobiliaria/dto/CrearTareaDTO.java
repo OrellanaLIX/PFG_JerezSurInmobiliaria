@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import java.time.LocalDate;
 
+// DTO para crear una tarea manual desde el panel de administración.
 @Data
 public class CrearTareaDTO {
 

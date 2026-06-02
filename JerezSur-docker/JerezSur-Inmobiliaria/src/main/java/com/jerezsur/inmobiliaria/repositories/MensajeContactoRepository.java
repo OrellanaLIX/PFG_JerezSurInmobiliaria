@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
+// Repositorio de mensajes de contacto: consultas por estado de lectura y paginadas.
 public interface MensajeContactoRepository extends JpaRepository<MensajeContacto, Long> {
     
     // Para que el admin vea primero los mensajes no leídos

@@ -6,6 +6,8 @@ import org.springframework.stereotype.Service;
 
 import com.jerezsur.inmobiliaria.models.Usuario;
 
+// Servicio de notificaciones: centraliza el envío de emails y mensajes de WhatsApp.
+// Usa EmailService y WhatsappService como interfaces para poder cambiar de proveedor fácilmente.
 @Service
 public class NotificacionService {
 

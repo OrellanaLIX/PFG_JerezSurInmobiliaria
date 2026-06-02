@@ -1,3 +1,5 @@
+// Página de detalle de un inmueble: muestra toda la información del inmueble (fotos,
+// características, ubicación) y el formulario para solicitar una visita (logueado o anónimo).
 import React, { useEffect, useState, type ChangeEvent, type FormEvent } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -53,8 +55,9 @@ type CitaForm = {
 
 const API_BASE = '/api';
 
+// WebP reduce el tamaño ~50% vs JPEG. w=1200 es suficiente para la galería.
 const DEFAULT_IMAGE =
-  'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80';
+  'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=75&fm=webp';
 
 const INITIAL_CITA_FORM: CitaForm = {
   fechaDate: '', fechaTime: '', motivo: '',
@@ -121,15 +124,65 @@ const InmuebleDetalle: React.FC = () => {
   const [error, setError] = useState('');
   const [imagenActiva, setImagenActiva] = useState(0);
 
+  const portadaUrl = inmueble?.imagenes?.find(img => img.esPortada)?.url
+                  ?? inmueble?.imagenes?.[0]?.url;
+
   useSEO({
-    title: inmueble
-      ? `${inmueble.titulo} — ${inmueble.ciudad}`
-      : 'Detalle de inmueble',
+    title:       inmueble ? `${inmueble.titulo} — ${inmueble.ciudad}` : 'Detalle de inmueble',
     description: inmueble?.descripcion
       ? inmueble.descripcion.slice(0, 155)
-      : 'Ficha detallada del inmueble con galería de imágenes, características, precio y formulario de visita.',
-    canonical: `http://localhost/inmuebles/${id}`,
+      : 'Ficha detallada con galería de imágenes, características, precio y formulario de visita.',
+    canonical: `${window.location.origin}/inmuebles/${id}`,
+    image:    portadaUrl,
+    type:     'article',
   });
+
+  // Inyectar JSON-LD Schema.org del inmueble para mejorar el SEO
+  // Google puede mostrar datos enriquecidos (precio, habitaciones…) en los resultados
+  useEffect(() => {
+    if (!inmueble) return;
+    const scriptId = 'jsonld-inmueble';
+    let el = document.getElementById(scriptId) as HTMLScriptElement | null;
+    if (!el) {
+      el = document.createElement('script');
+      el.id = scriptId;
+      el.type = 'application/ld+json';
+      document.head.appendChild(el);
+    }
+    const schema: Record<string, unknown> = {
+      '@context': 'https://schema.org',
+      '@type':    inmueble.tipo === 'LOCAL_COMERCIAL' ? 'Accommodation' : 'Residence',
+      name:        inmueble.titulo,
+      description: inmueble.descripcion,
+      url:         `${window.location.origin}/inmuebles/${id}`,
+      address: {
+        '@type':          'PostalAddress',
+        streetAddress:    inmueble.direccion,
+        addressLocality:  inmueble.ciudad,
+        postalCode:       inmueble.codigoPostal,
+        addressCountry:   'ES',
+      },
+      offers: {
+        '@type':         'Offer',
+        price:           inmueble.precio,
+        priceCurrency:   'EUR',
+        availability:    inmueble.estado === 'DISPONIBLE'
+          ? 'https://schema.org/InStock'
+          : 'https://schema.org/SoldOut',
+        priceSpecification: {
+          '@type':         'UnitPriceSpecification',
+          price:           inmueble.precio,
+          priceCurrency:   'EUR',
+          ...(inmueble.operacion === 'ALQUILER' && { referenceQuantity: { '@type': 'QuantitativeValue', value: 1, unitCode: 'MON' } }),
+        },
+      },
+    };
+    if (inmueble.habitaciones) schema.numberOfRooms = inmueble.habitaciones;
+    if (inmueble.superficieUtil) schema.floorSize = { '@type': 'QuantitativeValue', value: inmueble.superficieUtil, unitCode: 'MTK' };
+    if (portadaUrl) schema.image = portadaUrl;
+    el.textContent = JSON.stringify(schema);
+    return () => { el?.remove(); };
+  }, [inmueble, id, portadaUrl]);
 
   const [citaForm, setCitaForm] = useState<CitaForm>(INITIAL_CITA_FORM);
   const [citaLoading, setCitaLoading] = useState(false);
@@ -296,9 +349,15 @@ const InmuebleDetalle: React.FC = () => {
       </div>
 
       {/* GALERÍA */}
-      <section className="inmueble-detalle__galeria">
+      <section className="inmueble-detalle__galeria" aria-label="Galería de imágenes del inmueble">
         <div className="inmueble-detalle__imagen-principal">
-          <img src={imagenUrl} alt={inmueble.titulo} />
+          {/* fetchpriority="high" porque es el LCP de la página de detalle */}
+          <img
+            src={imagenUrl}
+            alt={inmueble.titulo}
+            fetchPriority="high"
+            decoding="async"
+          />
         </div>
         {imagenes.length > 1 && (
           <div className="inmueble-detalle__miniaturas">
@@ -307,8 +366,10 @@ const InmuebleDetalle: React.FC = () => {
                 key={img.id}
                 onClick={() => setImagenActiva(idx)}
                 className={`inmueble-detalle__miniatura${idx === imagenActiva ? ' inmueble-detalle__miniatura--activa' : ''}`}
+                aria-label={`Ver imagen ${idx + 1}`}
               >
-                <img src={img.url} alt={`Imagen ${idx + 1}`} />
+                {/* Las miniaturas no son LCP, las cargamos con lazy */}
+                <img src={img.url} alt={`Vista ${idx + 1} de ${inmueble.titulo}`} loading="lazy" />
               </button>
             ))}
           </div>

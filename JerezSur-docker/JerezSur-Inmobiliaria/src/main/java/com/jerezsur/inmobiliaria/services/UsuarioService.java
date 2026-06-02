@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.UUID;
 import com.jerezsur.inmobiliaria.dto.RegistroRequest;
 
+// Servicio principal de usuarios: gestiona el CRUD, el login local y el registro social.
+// Es el servicio más central del backend — casi todos los demás lo usan de alguna forma.
 @Service
 public class UsuarioService {
 
@@ -26,12 +28,15 @@ public class UsuarioService {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
+    // BCrypt es el algoritmo de hashing de contraseñas que usa Spring Security por defecto
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
 
+    // Envía emails y WhatsApp al usuario en distintos momentos del flujo
     @Autowired
     private NotificacionService notificacionService;
 
+    // Crea tareas automáticas en el dashboard cuando se registra un nuevo usuario
     @Autowired
     private TareaRepository tareaRepository;
 
@@ -52,41 +57,63 @@ public class UsuarioService {
                 .orElseThrow(() -> new ResourceNotFoundException("El usuario con ID " + id + " no existe."));
     }
 
-    // LOGIN POR PROVIDER
+    // LOGIN POR PROVIDER SOCIAL (Google, Facebook, Apple)
     @Transactional
     public Usuario procesarLoginSocial(String email, String nombre, AuthProvider provider, String providerId) {
 
-        if (!usuarioRepository.existsByEmail(email)) {
-            Usuario nuevo = new Usuario();
-            nuevo.setEmail(email);
-            nuevo.setNombre(nombre);
-            nuevo.setRole(Role.ROLE_NOROL);
-            nuevo.setProvider(provider);
-            nuevo.setProviderId(providerId);
-            nuevo.setCambiarPasswd(false);
-
-            notificacionService.notificarNuevoUsuario(nuevo, null);
-            Usuario guardado = usuarioRepository.save(nuevo);
-
-            // Crear tarea para que el equipo complete el perfil
-            tareaRepository.save(Tarea.builder()
-                .titulo("👤 Nuevo usuario OAuth: " + nombre)
-                .descripcion("Email: " + email + "\nProveedor: " + provider + "\nPendiente de completar perfil en onboarding.")
-                .fecha(LocalDate.now().plusDays(2))
-                .prioridad("MEDIA")
-                .enlace("/usuarios")
-                .etiquetaEnlace("Ver usuarios")
-                .fechaCreacion(LocalDate.now())
-                .build());
-
-            return guardado;
-        } else {
-            // Si ya existe, lo buscamos y actualizamos su provider info por si ha cambiado
-            Usuario existente = usuarioRepository.findByEmail(email).get();
-            existente.setProvider(provider);
-            existente.setProviderId(providerId);
+        // 1. Buscar por providerId (el ID único del proveedor — SIEMPRE presente)
+        //    Esto cubre logins repetidos aunque cambie el email o no haya email
+        var byProvider = usuarioRepository.findByProviderAndProviderId(provider, providerId);
+        if (byProvider.isPresent()) {
+            Usuario existente = byProvider.get();
+            // Actualizamos el nombre por si cambió en la cuenta social
+            if (nombre != null && !nombre.isBlank()) {
+                existente.setNombre(nombre);
+            }
             return usuarioRepository.save(existente);
         }
+
+        // 2. Buscar por email (usuario existente que nunca usó OAuth)
+        //    Solo si tenemos email válido
+        if (email != null && !email.isBlank()) {
+            var byEmail = usuarioRepository.findByEmail(email);
+            if (byEmail.isPresent()) {
+                Usuario existente = byEmail.get();
+                existente.setProvider(provider);
+                existente.setProviderId(providerId);
+                return usuarioRepository.save(existente);
+            }
+        }
+
+        // 3. Usuario nuevo — crear cuenta
+        String nombreFinal = (nombre != null && !nombre.isBlank()) ? nombre : "Usuario";
+        String emailFinal  = (email  != null && !email.isBlank())  ? email  : null;
+
+        Usuario nuevo = new Usuario();
+        nuevo.setEmail(emailFinal);
+        nuevo.setNombre(nombreFinal);
+        nuevo.setRole(Role.ROLE_NOROL);
+        nuevo.setProvider(provider);
+        nuevo.setProviderId(providerId);
+        nuevo.setCambiarPasswd(false);
+
+        notificacionService.notificarNuevoUsuario(nuevo, null);
+        Usuario guardado = usuarioRepository.save(nuevo);
+
+        // Tarea para que el equipo complete el perfil del nuevo usuario
+        tareaRepository.save(Tarea.builder()
+            .titulo("👤 Nuevo usuario OAuth: " + nombreFinal)
+            .descripcion("Proveedor: " + provider + "\n"
+                + (emailFinal != null ? "Email: " + emailFinal + "\n" : "Sin email\n")
+                + "Pendiente de completar perfil en onboarding.")
+            .fecha(LocalDate.now().plusDays(2))
+            .prioridad("MEDIA")
+            .enlace("/usuarios")
+            .etiquetaEnlace("Ver usuarios")
+            .fechaCreacion(LocalDate.now())
+            .build());
+
+        return guardado;
     }
 
     // LOGIN (BUSCAR POR EMAIL O TELEFONO + VALIDAR CONTRASEÑA)

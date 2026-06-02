@@ -1,3 +1,5 @@
+// Página de recuperación de contraseña: primer paso pide el email,
+// segundo paso (llegando desde el enlace del email) permite establecer la nueva contraseña.
 import React, { useState, useEffect, type FormEvent } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 

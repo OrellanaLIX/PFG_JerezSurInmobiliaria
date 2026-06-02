@@ -1,3 +1,4 @@
+// Tabla de citas del panel admin: lista todas las citas con sus acciones (aceptar, completar, cancelar).
 import type { Cita, EstadoCita } from '../../../types/cita';
 import { formatearFechaHora, traducirEstado, citaYaPasada } from '../../../utils/calendario';
 import '../../../styles/App.scss';

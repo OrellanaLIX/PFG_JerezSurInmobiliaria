@@ -15,6 +15,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+// Servicio de gestión de trabajadores: CRUD del personal de la inmobiliaria.
+// Solo los trabajadores activos pueden acceder al panel de administración.
 @Service
 public class TrabajadorService {
 

@@ -9,6 +9,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+// Subclase de Operacion para los contratos de alquiler.
+// Añade los campos específicos del arrendamiento: precio mensual, duración y fianza.
 @Entity
 @DiscriminatorValue("ALQUILER")
 @Data

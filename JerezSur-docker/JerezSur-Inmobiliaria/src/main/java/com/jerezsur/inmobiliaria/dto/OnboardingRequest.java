@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 
 import lombok.Data;
 
+// DTO del flujo de onboarding: completa el perfil del usuario después del primer login social.
 @Data
 public class OnboardingRequest {
 

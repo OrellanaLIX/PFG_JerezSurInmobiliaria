@@ -1,3 +1,4 @@
+// Enumeraciones y constantes del frontend admin para tipos y estados de inmuebles.
 export type TipoOperacion = 'VENTA' | 'ALQUILER' | 'CUALQUIERA';
 
 export type EstadoInmueble = 'DISPONIBLE' | 'VENDIDO' | 'RESERVADO';

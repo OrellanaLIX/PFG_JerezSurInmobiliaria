@@ -21,6 +21,8 @@ import jakarta.validation.constraints.Min;
 
 import org.springframework.web.bind.annotation.RequestParam;
 
+// Controlador de mensajes de contacto: gestiona los formularios que los visitantes
+// envían desde la página de contacto de la web pública
 @RestController
 @RequestMapping("/api/contactos")
 public class MensajeContactoController {
@@ -28,7 +30,7 @@ public class MensajeContactoController {
     @Autowired
     private MensajeContactoService mensajeService;
 
-    // Mapear mensajes
+    // Lista todos los mensajes de contacto con paginación y ordenación para el panel admin
     @GetMapping
     public ResponseEntity<Page<MensajeContacto>> listarTodos(
             @RequestParam(required = false, defaultValue = "0") @Min(0) int page,
@@ -40,23 +42,26 @@ public class MensajeContactoController {
                 size, sortBy, sortDir));
     }
 
-    // Enviar mensaje
+    // Recibe el mensaje del formulario público, lo guarda y envía notificación al admin por WhatsApp
     @PostMapping("/enviar")
     public ResponseEntity<Void> recibirMensaje(@RequestBody MensajeContacto mensaje) {
         mensajeService.enviarMensaje(mensaje);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
+    // Obtiene un mensaje concreto por su ID (para la vista de detalle en el admin)
     @GetMapping("/{id}")
     public ResponseEntity<MensajeContacto> obtenerMensaje(@PathVariable Long id) {
         return ResponseEntity.ok(mensajeService.obtenerPorId(id));
     }
 
+    // Actualiza el mensaje — principalmente para marcar como leído/no leído desde el admin
     @PutMapping("/{id}")
     public ResponseEntity<MensajeContacto> actualizarMensaje(@PathVariable Long id, @RequestBody MensajeContacto mensaje) {
         return ResponseEntity.ok(mensajeService.actualizarMensaje(id, mensaje));
     }
 
+    // Elimina el mensaje de la BD (borrado físico, no hay soft-delete aquí)
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminarMensaje(@PathVariable Long id) {
         mensajeService.eliminarMensaje(id);

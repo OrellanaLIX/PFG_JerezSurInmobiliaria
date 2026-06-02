@@ -1,3 +1,4 @@
+// Configuración de Cloudinary: conecta la app con el servicio de almacenamiento de imágenes en la nube.
 package com.jerezsur.inmobiliaria.config;
 
 import com.cloudinary.Cloudinary;

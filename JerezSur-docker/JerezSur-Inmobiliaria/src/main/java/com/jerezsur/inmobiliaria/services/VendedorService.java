@@ -10,6 +10,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+// Servicio de gestión de vendedores (propietarios): CRUD y búsquedas para el equipo comercial.
+// Un vendedor es el propietario que cede su inmueble a la inmobiliaria para su venta.
 @Service
 public class VendedorService {
 

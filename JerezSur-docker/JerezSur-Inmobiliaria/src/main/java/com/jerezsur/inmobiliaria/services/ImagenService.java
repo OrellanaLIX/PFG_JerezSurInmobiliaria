@@ -10,6 +10,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+// Servicio de gestión de imágenes de inmuebles.
+// Valida y gestiona las imágenes de los inmuebles (portada, galería), aunque la subida real la hace CloudinaryService.
 @Service
 public class ImagenService {
 

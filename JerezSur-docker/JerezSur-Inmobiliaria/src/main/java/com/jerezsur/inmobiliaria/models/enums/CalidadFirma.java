@@ -1,3 +1,4 @@
+// Enum de calidad de firma en contratos: SIMPLE, AVANZADA, CUALIFICADA.
 package com.jerezsur.inmobiliaria.models.enums;
 
 public enum CalidadFirma {

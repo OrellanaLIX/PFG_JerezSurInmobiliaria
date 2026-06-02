@@ -1,3 +1,4 @@
+// Modal con el detalle completo de un mensaje de contacto para el panel admin.
 import type { MensajeContactoDetalle } from '../../../types/contacto';
 import '../../../styles/App.scss';
 

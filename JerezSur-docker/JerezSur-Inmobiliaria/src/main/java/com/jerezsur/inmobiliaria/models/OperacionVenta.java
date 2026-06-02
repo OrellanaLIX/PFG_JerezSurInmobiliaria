@@ -10,6 +10,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+// Subclase de Operacion para las compraventas.
+// Añade los campos específicos de la venta: precio de venta acordado y fecha de firma prevista.
 @Entity
 @DiscriminatorValue("VENTA")
 @Data

@@ -1,11 +1,12 @@
-import { useEffect } from 'react';
+// Página "Sobre Nosotros": presenta al equipo, misión y valores de JerezSur Inmobiliaria
 import '../styles/SobreNosotros.scss';
 import { CtaSection } from '../components/CtaSection';
+import { useSEO } from '../hooks/useSEO';
 import teamMember1 from '../assets/imgs/placeholders/team1.jpg';
 import teamMember2 from '../assets/imgs/placeholders/team2.jpg';
 
 // --- DATA ---
-// Centralizamos todos los datos aquí para una fácil edición.
+// Centralizamos todos los datos aquí para facilitar su edición sin tocar el JSX
 
 const teamMembersData = [
     {
@@ -66,9 +67,11 @@ const ValueCard = ({ title, text }: ValueCardProps) => (
 // --- COMPONENTE PRINCIPAL DE LA PÁGINA ---
 
 const SobreNosotros = () => {
-    useEffect(() => {
-        window.scrollTo(0, 0);
-    }, []);
+    useSEO({
+        title: 'Sobre Nosotros | JerezSur Inmobiliaria',
+        description: 'Conoce al equipo de JerezSur Inmobiliaria. Más de 15 años de experiencia en el mercado inmobiliario de Jerez de la Frontera.',
+        canonical: window.location.origin + '/sobre-nosotros',
+    });
 
     return (
         // Usamos una clase contenedora para la página y el padding-top del header

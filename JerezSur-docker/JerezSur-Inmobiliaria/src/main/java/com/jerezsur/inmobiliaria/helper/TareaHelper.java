@@ -7,6 +7,8 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 
+// Componente auxiliar para crear tareas automáticas en la BD.
+// Lo usan los services para notificar al equipo cuando ocurre algo importante (nueva cita, mensaje, etc.).
 @Component
 @RequiredArgsConstructor
 public class TareaHelper {

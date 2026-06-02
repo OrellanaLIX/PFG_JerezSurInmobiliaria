@@ -44,6 +44,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
+// Clase abstracta base para las operaciones inmobiliarias.
+// Usa herencia SINGLE_TABLE: OperacionVenta y OperacionAlquiler se guardan en la misma tabla.
 @Entity
 @Table(name = "operaciones")
 @Getter

@@ -1,3 +1,4 @@
+// Banner de feedback: muestra mensajes de éxito o error después de acciones del admin.
 import type { FeedbackState } from '../../hooks/useFeedback';
 
 interface Props {

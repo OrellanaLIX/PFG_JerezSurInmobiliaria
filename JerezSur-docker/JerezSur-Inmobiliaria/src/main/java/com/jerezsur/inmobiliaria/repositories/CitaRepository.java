@@ -16,6 +16,7 @@ import com.jerezsur.inmobiliaria.models.Trabajador;
 import java.time.LocalDateTime;
 
 @Repository
+// Repositorio de citas: acceso a la BD para las operaciones CRUD y consultas especiales de citas.
 public interface CitaRepository extends JpaRepository<Cita, Long> {
 
     List<Cita> findByInmueble(Inmueble inmueble);

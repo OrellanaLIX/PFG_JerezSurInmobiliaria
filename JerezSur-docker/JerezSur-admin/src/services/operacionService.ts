@@ -1,3 +1,4 @@
+// Servicio de operaciones del admin: peticiones al backend para el CRUD de operaciones.
 import api from './api';
 import type { OperacionBase, NuevaOperacion, OperacionDetalle, EstadoOperacion, RolParticipante } from '../types/operacion';
 

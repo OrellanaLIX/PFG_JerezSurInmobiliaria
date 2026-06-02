@@ -1,6 +1,19 @@
 @use '../globals/_Variables' as *;
 @use '../components/_Buttons' as *;
 
+/* Hero de sobre nosotros — arquitectura española/Jerez */
+.about-hero {
+  background:
+    linear-gradient(
+      155deg,
+      rgba(0, 15, 45, 0.82) 0%,
+      rgba(0, 45, 95, 0.50) 55%,
+      rgba(0, 15, 45, 0.78) 100%
+    ),
+    url('https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1920&q=80&fm=webp')
+    center 40% / cover no-repeat;
+}
+
 // 2. Estilos de Sección Genéricos
 .page-section {
   padding: 4rem 1rem;

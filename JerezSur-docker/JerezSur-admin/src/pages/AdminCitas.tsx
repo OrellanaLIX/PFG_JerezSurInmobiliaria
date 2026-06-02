@@ -1,3 +1,5 @@
+// Página de gestión de citas del panel de administración.
+// Permite ver las citas en vista calendario o en lista, y gestionarlas (aceptar, completar, cancelar).
 import { useState, useCallback } from 'react';
 import { useCitas } from '../hooks/useCitas';
 import { useFeedback } from '../hooks/useFeedback';
@@ -9,9 +11,11 @@ import { FormCitaModal } from '../components/crud/Citas/FormCitaModal';
 import type { Cita, EstadoCita } from '../types/cita';
 import '../styles/pages/CrudPages.scss';
 
+// Tipo para alternar entre las dos vistas disponibles
 type Vista = 'calendario' | 'lista';
 
 const AdminCitas = () => {
+  // useCitas carga las citas del backend y expone las operaciones sobre ellas
   const {
     citas,
     loading,
@@ -26,14 +30,19 @@ const AdminCitas = () => {
   const { feedback, showSuccess, showError, clearFeedback } = useFeedback();
 
   const hoy = new Date();
+  // Estado para el mes y año que muestra el calendario
   const [año, setAño] = useState(hoy.getFullYear());
   const [mes, setMes] = useState(hoy.getMonth());
   const [vista, setVista] = useState<Vista>('calendario');
+  // filtroEstado permite ver solo citas de un estado concreto en la vista lista
   const [filtroEstado, setFiltroEstado] = useState<EstadoCita | 'TODAS'>('TODAS');
+  // Cita que se está viendo en el modal de detalle (null = ninguna)
   const [citaSeleccionada, setCitaSeleccionada] = useState<Cita | null>(null);
   const [mostrarForm, setMostrarForm] = useState(false);
+  // fechaInicialForm: cuando el trabajador pulsa un día del calendario, se pasa como fecha sugerida al formulario
   const [fechaInicialForm, setFechaInicialForm] = useState<Date | undefined>(undefined);
 
+  // Navega al mes anterior o siguiente gestionando el cambio de año automáticamente
   const cambiarMes = useCallback((delta: number) => {
     let nuevoMes = mes + delta;
     let nuevoAño = año;

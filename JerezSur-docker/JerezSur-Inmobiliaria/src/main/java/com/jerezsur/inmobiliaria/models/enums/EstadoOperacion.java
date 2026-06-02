@@ -1,3 +1,4 @@
+// Enum de estados de una operación: EN_PROCESO, CERRADA, CANCELADA.
 package com.jerezsur.inmobiliaria.models.enums;
 
 public enum EstadoOperacion {

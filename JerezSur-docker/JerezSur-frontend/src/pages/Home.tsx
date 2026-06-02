@@ -1,11 +1,16 @@
-import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+// Página principal (Home) de JerezSur Inmobiliaria.
+// Muestra el hero con buscador, inmuebles destacados y secciones informativas.
+import { useEffect, useState, type FormEvent } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import logo from '../assets/imgs/LogoAncho.png';
 import '../styles/Home.scss';
 import { useSEO } from '../hooks/useSEO';
 
 const API_BASE = '/api';
-const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80';
+// fm=webp → Unsplash sirve WebP (30-50% más ligero que JPEG)
+// w=600 → suficiente para una tarjeta de propiedad, no necesitamos 1200px
+// q=75 → calidad 75% es indistinguible visualmente y pesa mucho menos
+const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=600&q=75&fm=webp';
 
 type FeaturedProperty = {
   id: number;
@@ -40,10 +45,27 @@ const testimonials: Testimonial[] = [
 ];
 
 const Home = () => {
+  const navigate = useNavigate();
+  const [searchOp, setSearchOp]   = useState('compra');
+  const [searchZone, setSearchZone] = useState('');
+  const [searchPrice, setSearchPrice] = useState('');
+
+  const handleSearch = (e: FormEvent) => {
+    e.preventDefault();
+    const params = new URLSearchParams();
+    params.set('estado', 'DISPONIBLE');
+    if (searchOp === 'alquiler')  params.set('operacion', 'ALQUILER');
+    else if (searchOp === 'compra') params.set('operacion', 'VENTA');
+    if (searchZone)  params.set('zona', searchZone);
+    if (searchPrice) params.set('precioMax', searchPrice);
+    navigate(`/inmuebles?${params.toString()}`);
+  };
+
   useSEO({
     title: 'Inicio',
     description: 'Inmobiliaria en Jerez de la Frontera. Compra, vende o alquila tu vivienda con expertos locales. Pisos, casas, chalets y locales en Jerez y alrededores.',
-    canonical: 'http://localhost/',
+    canonical: window.location.origin + '/',
+    image: '/Hero.jpg',
   });
 
   const [activeTestimonial, setActiveTestimonial] = useState(0);
@@ -68,15 +90,43 @@ const Home = () => {
       {/* HERO */}
       <section className="hero home-hero">
         <div className="hero__content">
-          <img src={logo} alt="JerezSur Inmobiliaria" className="logo-hero" />
+          {/* fetchpriority="high" le indica al navegador que esta imagen es prioritaria (LCP) */}
+          <img src={logo} alt="JerezSur Inmobiliaria" className="logo-hero" fetchPriority="high" />
           <h1>Encuentra tu hogar ideal en Jerez de la Frontera</h1>
           <p>Compra, vende o alquila con una inmobiliaria cercana, profesional y con experiencia local.</p>
 
-          <form className="home-search" aria-label="Buscador rápido de inmuebles">
-            <select id="operation" defaultValue="compra"><option value="compra">Comprar</option><option value="alquiler">Alquilar</option></select>
-            <select id="zone" defaultValue="jerez fra."><option value="jerez fra.">Jerez de la Fra.</option><option value="puerto sta.">El Puerto Sta.</option></select>
-            <input id="price" type="number" placeholder="Precio maximo" />
-            <Link to="/inmuebles" className="btn btn--secondary">Buscar</Link>
+          {/* Los <label> ocultos visualmente pero presentes para lectores de pantalla
+              Esto corrige el error de accesibilidad "select sin label" de Lighthouse */}
+          <form className="home-search" aria-label="Buscador rápido de inmuebles"
+                onSubmit={handleSearch}>
+            <label htmlFor="operation" className="sr-only">Tipo de operación</label>
+            <select id="operation" value={searchOp}
+                    onChange={e => setSearchOp(e.target.value)}
+                    aria-label="Tipo de operación">
+              <option value="compra">Comprar</option>
+              <option value="alquiler">Alquilar</option>
+            </select>
+
+            <label htmlFor="zone" className="sr-only">Zona</label>
+            <select id="zone" value={searchZone}
+                    onChange={e => setSearchZone(e.target.value)}
+                    aria-label="Zona de Jerez">
+              <option value="">Todas las zonas</option>
+              <option value="Centro">Centro</option>
+              <option value="Chapin">Chapín</option>
+              <option value="MOPU">MOPU</option>
+              <option value="La Granja">La Granja</option>
+              <option value="La Cartuja">La Cartuja</option>
+              <option value="Ronda">Ronda</option>
+            </select>
+
+            <label htmlFor="price" className="sr-only">Precio máximo</label>
+            <input id="price" type="number" min="0" step="10000"
+                   placeholder="Precio máximo (€)" aria-label="Precio máximo en euros"
+                   value={searchPrice} onChange={e => setSearchPrice(e.target.value)} />
+            <button type="submit" className="btn btn--secondary" aria-label="Buscar inmuebles">
+              Buscar
+            </button>
           </form>
 
           <div className="home-hero__sell-box">
@@ -100,7 +150,7 @@ const Home = () => {
             <span className="section-heading__eyebrow">Selección destacada</span>
             <h2>Propiedades destacadas en Jerez</h2>
           </div>
-          <Link to="/inmuebles" className="btn btn--outline">Ver todas</Link>
+          <Link to="/inmuebles" className="btn btn--outline" aria-label="Ver todas las propiedades">Ver todas</Link>
         </div>
         <div className="properties-grid">
           {destacados.length === 0 ? (
@@ -114,7 +164,14 @@ const Home = () => {
               return (
                 <article key={p.id} className="property-card">
                   <div className="property-card__media">
-                    <img src={p.imagenPortadaUrl || DEFAULT_IMAGE} alt={p.titulo} loading="lazy" />
+                    {/* Las imágenes de las cards se cargan con lazy (no son LCP) */}
+                    <img
+                      src={p.imagenPortadaUrl || DEFAULT_IMAGE}
+                      alt={p.titulo}
+                      loading="lazy"
+                      width="400"
+                      height="280"
+                    />
                     <span className="property-card__tag">{tipo}</span>
                   </div>
                   <div className="property-card__content">
@@ -126,7 +183,13 @@ const Home = () => {
                       {p.superficieUtil != null && <span>{p.superficieUtil} m²</span>}
                     </div>
                     <span className="price">{formatPrecio(p.precio, p.operacion)}</span>
-                    <Link to={`/inmuebles/${p.id}`} className="btn btn--primary btn--full">Ver detalles</Link>
+                    <Link
+                      to={`/inmuebles/${p.id}`}
+                      className="btn btn--primary btn--full"
+                      aria-label={`Ver detalles de ${p.titulo}`}
+                    >
+                      Ver detalles
+                    </Link>
                   </div>
                 </article>
               );
@@ -143,7 +206,7 @@ const Home = () => {
               <h2>Vende tu vivienda en Jerez con expertos locales</h2>
               <p>Nos encargamos de todo el proceso para que vendas con tranquilidad y en las mejores condiciones. Solicita una tasación gratuita y sin compromiso.</p>
             </div>
-            <Link to="/propietarios" className="btn btn--secondary">Saber más</Link>
+            <Link to="/propietarios" className="btn btn--secondary" aria-label="Saber más sobre vender tu vivienda con JerezSur">Saber más</Link>
           </div>
         </div>
       </section>
@@ -172,15 +235,22 @@ const Home = () => {
               <h2>La confianza de nuestros clientes</h2>
               <p className='white'>Trabajamos cada operación con cercanía, claridad y profesionalidad para que cada cliente se sienta acompañado de principio a fin.</p>
             </div>
-            <div className="home-testimonials__carousel">
-              <div className="home-testimonials__slider">
-                <div className="home-testimonials__track" style={{ transform: `translateX(-${activeTestimonial * 100}%)` }}>
-                  {testimonials.map((testimonial) => (
-                    <article key={testimonial.id} className="home-testimonials__slide">
-                      <div className="home-testimonials__card">
-                        <span className="home-testimonials__quote">“</span>
-                        <p>{testimonial.text}</p>
-                        <strong>{testimonial.name}</strong>
+            {/* aria-live=”polite” anuncia el cambio de testimonio a lectores de pantalla
+                sin interrumpir lo que estén leyendo */}
+            <div className=”home-testimonials__carousel” role=”region”
+                 aria-label=”Testimonios de clientes” aria-live=”polite”>
+              <div className=”home-testimonials__slider”>
+                <div className=”home-testimonials__track”
+                     style={{ transform: `translateX(-${activeTestimonial * 100}%)` }}>
+                  {testimonials.map((testimonial, idx) => (
+                    <article key={testimonial.id} className=”home-testimonials__slide”
+                             aria-hidden={idx !== activeTestimonial}>
+                      <div className=”home-testimonials__card”>
+                        <span className=”home-testimonials__quote” aria-hidden=”true”>”</span>
+                        <blockquote>
+                          <p>{testimonial.text}</p>
+                          <footer><cite>{testimonial.name}</cite></footer>
+                        </blockquote>
                       </div>
                     </article>
                   ))}
@@ -198,15 +268,22 @@ const Home = () => {
             <span className="section-heading__eyebrow">Dónde estamos</span>
             <h2>Visítanos en nuestra oficina en Jerez</h2>
             <p>Estamos en Jerez para atenderte de forma cercana y personalizada. Si lo prefieres, también puedes contactar por teléfono o a través del formulario.</p>
-            <ul className="home-location__details">
-              <li><strong>Dirección:</strong> Calle Ejemplo 123, Jerez de la Frontera</li>
-              <li><strong>Teléfono:</strong> 000 000 000</li>
-              <li><strong>Email:</strong> info@jerezsurinmobiliaria.es</li>
-              <li><strong>Horario:</strong> L-V de 9:30 a 14:00 y 17:00 a 20:00</li>
-            </ul>
+            <address className="home-location__details">
+              <ul>
+                <li><strong>Dirección:</strong> Jerez de la Frontera, Cádiz</li>
+                <li><strong>Teléfono:</strong> <a href="tel:+34615061840">615 061 840</a></li>
+                <li><strong>Email:</strong> <a href="mailto:info@jerezsur.com">info@jerezsur.com</a></li>
+                <li><strong>Horario:</strong> L-V de 9:30 a 14:00 y 17:00 a 20:00</li>
+              </ul>
+            </address>
             <div className="home-location__actions">
               <Link to="/contacto" className="btn btn--primary">Contactar</Link>
-              <a href="https://www.google.com/maps" target="_blank" rel="noreferrer" className="btn btn--outline">Cómo llegar</a>
+              <a href="https://www.google.com/maps/dir//JEREZSUR+INMOBILIARIA"
+                 target="_blank" rel="noreferrer noopener"
+                 className="btn btn--outline"
+                 aria-label="Cómo llegar a JerezSur Inmobiliaria (abre Google Maps)">
+                Cómo llegar
+              </a>
             </div>
           </div>
           <div className="home-location__map">

@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 
+// DTO de registro de nuevos usuarios: contiene los campos del formulario de alta.
 @Data
 public class RegistroRequest {
     

@@ -23,6 +23,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+// Entidad que representa una cita de visita a un inmueble.
+// Puede ser solicitada por un usuario registrado o de forma anónima con solo nombre y teléfono.
 @Entity
 @Table(name = "citas")
 @Data

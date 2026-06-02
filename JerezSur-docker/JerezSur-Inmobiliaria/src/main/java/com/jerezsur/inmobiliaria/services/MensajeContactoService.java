@@ -15,6 +15,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+// Servicio de mensajes de contacto: gestiona los formularios que los visitantes envían
+// desde la web pública. Guarda el mensaje en BD y crea una tarea para el equipo.
 @Service
 public class MensajeContactoService {
 

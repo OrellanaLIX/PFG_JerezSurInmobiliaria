@@ -20,6 +20,8 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+// Entidad de vendedor: perfil del propietario que quiere vender su inmueble a través de la inmobiliaria.
+// Se crea cuando el propietario rellena el formulario de "Quiero vender" de la web pública.
 @Entity
 @Table(name = "vendedores")
 @Data

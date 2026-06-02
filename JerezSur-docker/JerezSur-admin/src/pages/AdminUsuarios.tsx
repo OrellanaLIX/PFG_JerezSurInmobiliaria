@@ -1,3 +1,5 @@
+// Página de gestión de usuarios del panel de administración.
+// Permite ver, crear, editar y eliminar cualquier usuario del sistema.
 import { useState } from 'react';
 import { useUsuarios } from '../hooks/useUsuarios';
 import { useFeedback } from '../hooks/useFeedback';

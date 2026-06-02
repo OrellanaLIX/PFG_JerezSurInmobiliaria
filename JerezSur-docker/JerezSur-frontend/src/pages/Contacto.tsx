@@ -1,3 +1,5 @@
+// Página de contacto: contiene el formulario para que los visitantes envíen un mensaje
+// al equipo de JerezSur. El mensaje se guarda en BD y se notifica al admin por WhatsApp.
 import { useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import '../styles/Contacto.scss';

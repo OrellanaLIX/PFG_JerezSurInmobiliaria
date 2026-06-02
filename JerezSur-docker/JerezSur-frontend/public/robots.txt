@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+Allow: /inmuebles
+Allow: /sobre-nosotros
+Allow: /contacto
+Allow: /propietarios
+
+# No indexar rutas privadas de usuario
+Disallow: /perfil
+Disallow: /onboarding
+Disallow: /mis-citas
+Disallow: /recuperar-password
+Disallow: /acceder
+
+Sitemap: http://localhost/sitemap.xml

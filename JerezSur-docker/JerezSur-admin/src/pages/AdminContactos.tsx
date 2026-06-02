@@ -1,3 +1,5 @@
+// Página de gestión de mensajes de contacto del panel de administración.
+// Muestra los mensajes que llegan desde el formulario de la web pública y permite marcarlos como leídos.
 import { useState } from 'react';
 import { useContactos } from '../hooks/useContactos';
 import { useFeedback } from '../hooks/useFeedback';

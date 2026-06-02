@@ -6,6 +6,7 @@ import com.jerezsur.inmobiliaria.repositories.ImagenRepository;
 import com.jerezsur.inmobiliaria.repositories.InmuebleRepository;
 import com.jerezsur.inmobiliaria.repositories.UsuarioRepository;
 import com.jerezsur.inmobiliaria.services.CloudinaryService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,6 +15,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Map;
 
+// Controlador que gestiona todas las subidas y descargas de archivos.
+// Las imágenes se suben directamente a Cloudinary (servicio cloud de almacenamiento).
+// Los PDFs se cifran con AES-256 antes de subir para proteger documentos sensibles.
+@Slf4j
 @RestController
 @RequestMapping("/api/media")
 public class MediaController {
@@ -24,8 +29,10 @@ public class MediaController {
     @Autowired private UsuarioRepository usuarioRepository;
     @Autowired private com.jerezsur.inmobiliaria.repositories.ContratoRepository contratoRepository;
 
-    // ── IMÁGENES DE INMUEBLES (públicas, sin cambios) ─────────────────
+    // ── IMÁGENES DE INMUEBLES ─────────────────────────────────────────
 
+    // Sube una imagen a Cloudinary y la asocia al inmueble en la BD
+    // Si esPortada=true, quita la portada anterior y pone esta como nueva portada
     @PostMapping("/inmueble/{id}/imagen")
     @Transactional
     public ResponseEntity<?> subirImagenInmueble(
@@ -56,10 +63,12 @@ public class MediaController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(Map.of("error", "Error al subir imagen: " + e.getMessage()));
+            log.error("Error al subir imagen del inmueble {}", id, e);
+            return ResponseEntity.status(500).body(Map.of("error", "Error al subir la imagen."));
         }
     }
 
+    // Elimina una imagen tanto de Cloudinary como de la base de datos
     @DeleteMapping("/imagen/{id}")
     public ResponseEntity<?> eliminarImagen(@PathVariable Long id) {
         try {
@@ -69,16 +78,15 @@ public class MediaController {
             imagenRepository.delete(imagen);
             return ResponseEntity.ok(Map.of("mensaje", "Imagen eliminada correctamente"));
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+            log.error("Error al eliminar imagen {}", id, e);
+            return ResponseEntity.status(500).body(Map.of("error", "Error al eliminar la imagen."));
         }
     }
 
     // ── PDFs DE INMUEBLES (cifrados) ──────────────────────────────────
 
-    /**
-     * Sube un PDF de inmueble cifrado con AES-256.
-     * tipo: certificado_energetico | nota_simple | plano
-     */
+    // Sube un PDF cifrado (certificado energético, nota simple o plano) asociado al inmueble
+    // El tipo determina qué campo de la entidad Inmueble se actualiza con la URL
     @PostMapping("/inmueble/{id}/documento")
     public ResponseEntity<?> subirDocumento(
             @PathVariable Long id,
@@ -108,12 +116,14 @@ public class MediaController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(Map.of("error", "Error al subir documento: " + e.getMessage()));
+            log.error("Error al subir documento del inmueble {}", id, e);
+            return ResponseEntity.status(500).body(Map.of("error", "Error al subir el documento."));
         }
     }
 
     // ── PDFs DE CONTRATOS (cifrados) ──────────────────────────────────
 
+    // Sube el PDF del contrato cifrado a Cloudinary y guarda la URL en la BD
     @PostMapping("/contrato/{id}/documento")
     public ResponseEntity<?> subirDocumentoContrato(
             @PathVariable Long id,
@@ -143,10 +153,12 @@ public class MediaController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(Map.of("error", "Error al subir contrato: " + e.getMessage()));
+            log.error("Error al subir documento del contrato {}", id, e);
+            return ResponseEntity.status(500).body(Map.of("error", "Error al subir el contrato."));
         }
     }
 
+    // Elimina el PDF del contrato de Cloudinary y pone la URL a null en la BD
     @DeleteMapping("/contrato/{id}")
     public ResponseEntity<?> eliminarDocumentoContrato(@PathVariable Long id) {
         try {
@@ -160,19 +172,13 @@ public class MediaController {
             }
             return ResponseEntity.ok(Map.of("mensaje", "Documento de contrato eliminado correctamente"));
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+            log.error("Error al eliminar documento del contrato {}", id, e);
+            return ResponseEntity.status(500).body(Map.of("error", "Error al eliminar el documento."));
         }
     }
 
     // ── DESCARGA Y DESCIFRADO DE PDFs ─────────────────────────────────
 
-    /**
-     * GET /api/media/documento/descargar?url=URL_CLOUDINARY
-     *
-     * Endpoint protegido (requiere JWT). Descarga el blob cifrado de Cloudinary,
-     * lo descifra con AES-256 y lo sirve como application/pdf al cliente.
-     * La URL de Cloudinary por sí sola es inútil: contiene contenido binario cifrado.
-     */
     @GetMapping("/documento/descargar")
     public ResponseEntity<byte[]> descargarDocumento(@RequestParam String url) {
         try {
@@ -192,11 +198,12 @@ public class MediaController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().build();
         } catch (Exception e) {
+            log.error("Error al descargar/descifrar documento", e);
             return ResponseEntity.status(500).build();
         }
     }
 
-    // ── FOTO DE PERFIL (pública, sin cambios) ─────────────────────────
+    // ── FOTO DE PERFIL ────────────────────────────────────────────────
 
     @PostMapping("/usuario/{id}/foto")
     public ResponseEntity<?> subirFotoPerfil(
@@ -212,7 +219,8 @@ public class MediaController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+            log.error("Error al subir foto de perfil del usuario {}", id, e);
+            return ResponseEntity.status(500).body(Map.of("error", "Error al subir la foto de perfil."));
         }
     }
 }

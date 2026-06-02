@@ -12,6 +12,12 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
+// Servicio para citas de usuarios anónimos (sin cuenta registrada).
+// Cuando alguien rellena el formulario público de cita, este servicio:
+//   1. Busca o crea un usuario preregistrado con su teléfono
+//   2. Lo registra como Interesado si no lo era ya
+//   3. Crea la cita en estado PENDIENTE (sin trabajador asignado)
+//   4. Crea una tarea en el dashboard para que un trabajador la coja y la acepte
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -24,7 +30,7 @@ public class CitaPublicaService {
     private final TareaRepository tareaRepository;
 
     public CitaResponseDTO solicitarCitaAnonima(SolicitudCitaPublicaDTO dto) {
-        // 1️⃣ Buscar o crear Usuario preregistrado por teléfono
+        // 1. Buscamos al usuario por teléfono — si ya existe lo reutilizamos para no duplicar
         Usuario usuario = usuarioRepository.findByTelefono(dto.getTelefono())
                 .orElseGet(() -> crearUsuarioPreregistrado(dto));
 
@@ -64,6 +70,9 @@ public class CitaPublicaService {
     // MÉTODOS PRIVADOS
     // ============================================================
 
+    // Crea un usuario mínimo con los datos del formulario de cita anónima.
+    // La cuenta no está activada porque aún no tiene contraseña — si decide registrarse
+    // después, el sistema lo detectará y vinculará las citas por teléfono.
     private Usuario crearUsuarioPreregistrado(SolicitudCitaPublicaDTO dto) {
         Usuario nuevo = Usuario.builder()
                 .telefono(dto.getTelefono())

@@ -1,3 +1,5 @@
+// Página para pedir cita sin necesidad de tener cuenta registrada.
+// Cualquier visitante puede introducir su nombre y teléfono para solicitar una visita.
 import React, { useState, type ChangeEvent, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import '../styles/Onboarding.scss';

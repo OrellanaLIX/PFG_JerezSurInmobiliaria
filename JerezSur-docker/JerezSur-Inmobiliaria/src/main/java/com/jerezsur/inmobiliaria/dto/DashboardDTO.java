@@ -4,6 +4,7 @@ import com.jerezsur.inmobiliaria.models.Tarea;
 import lombok.*;
 import java.util.List;
 
+// DTO que agrupa los KPIs y tareas pendientes para el panel de control del admin.
 @Data @Builder @AllArgsConstructor @NoArgsConstructor
 public class DashboardDTO {
     private long inmueblesActivos;

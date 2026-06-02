@@ -9,6 +9,7 @@ import com.jerezsur.inmobiliaria.models.enums.OrigenUsuario;
 import com.jerezsur.inmobiliaria.models.enums.Role;
 import com.jerezsur.inmobiliaria.repositories.TrabajadorRepository;
 import com.jerezsur.inmobiliaria.repositories.UsuarioRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -26,6 +27,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
  * @EnableScheduling lo necesito para las tareas programadas (@Scheduled) que
  * hacen limpieza automática de datos en la base de datos.
  */
+@Slf4j
 @SpringBootApplication
 @EnableScheduling
 public class JerezSurInmobiliariaApplication {
@@ -75,7 +77,7 @@ public class JerezSurInmobiliariaApplication {
 					.origen(OrigenUsuario.CRM_TRABAJADOR)
 					.build();
 				admin = usuarioRepository.save(admin);
-				System.out.println("✅ Usuario administrador inicial creado: " + adminEmail);
+				log.info("Admin inicial creado: {}", adminEmail);
 			} else {
 				// Ya existe, comprobamos que tenga el rol correcto
 				// Esto lo añadí por si alguien cambia el rol por error en la BD
@@ -90,7 +92,7 @@ public class JerezSurInmobiliariaApplication {
 				}
 				if (updated) {
 					usuarioRepository.save(admin);
-					System.out.println("✅ Usuario administrador existente actualizado con permisos de administrador.");
+					log.info("Admin existente actualizado con permisos correctos.");
 				}
 			}
 
@@ -105,7 +107,7 @@ public class JerezSurInmobiliariaApplication {
 					.usuario(admin)
 					.build();
 				trabajadorRepository.save(trabajador);
-				System.out.println("✅ Perfil de trabajador creado para el administrador.");
+				log.info("Perfil de trabajador creado para el admin.");
 			}
 		};
 	}

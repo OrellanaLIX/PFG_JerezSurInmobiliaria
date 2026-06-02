@@ -1,3 +1,4 @@
+// Tabla de operaciones inmobiliarias del panel admin: muestra las compraventas y alquileres en curso.
 import type { OperacionBase, EstadoOperacion } from '../../../types/operacion';
 import '../../../styles/App.scss';
 

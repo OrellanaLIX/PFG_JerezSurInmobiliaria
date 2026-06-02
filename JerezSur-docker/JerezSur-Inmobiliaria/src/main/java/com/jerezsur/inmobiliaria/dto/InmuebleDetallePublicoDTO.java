@@ -6,9 +6,13 @@ import java.util.Map;
 
 import lombok.*;
 
+// DTO de detalle público de un inmueble: excluye campos internos como notas privadas o costes del propietario.
 @Data
+// DTO de detalle público de un inmueble: excluye campos internos como notas privadas o costes del propietario.
 @Builder
+// DTO de detalle público de un inmueble: excluye campos internos como notas privadas o costes del propietario.
 @NoArgsConstructor
+// DTO de detalle público de un inmueble: excluye campos internos como notas privadas o costes del propietario.
 @AllArgsConstructor
 public class InmuebleDetallePublicoDTO {
 

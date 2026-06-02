@@ -9,6 +9,7 @@ import com.jerezsur.inmobiliaria.models.Imagen;
 import com.jerezsur.inmobiliaria.models.Inmueble;
 
 @Repository
+// Repositorio de imágenes: gestiona las fotos asociadas a cada inmueble.
 public interface ImagenRepository extends JpaRepository<Imagen, Long> {
     
     //Econtramos la imagen de portada del inmueble

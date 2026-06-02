@@ -111,11 +111,15 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        // Orígenes permitidos: el frontend público, el admin y Docker en producción
+        // Orígenes permitidos: HTTP y HTTPS para localhost (desarrollo)
+        // + puertos directos de Vite en caso de ejecutar sin Docker
         config.setAllowedOrigins(List.of(
+                "https://localhost",
                 "http://localhost",
                 "http://localhost:5173",
-                "http://localhost:5174"));
+                "http://localhost:5174",
+                "https://localhost:5173",
+                "https://localhost:5174"));
 
         // Métodos HTTP que permitimos desde el frontend
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));

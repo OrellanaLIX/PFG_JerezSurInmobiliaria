@@ -19,6 +19,8 @@ import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
 
+// Controlador de autenticación general: login del admin, verificación de email
+// y flujo de recuperación de contraseña (solicitar enlace + resetear con token).
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
@@ -27,13 +29,16 @@ public class AuthAdminController {
     private final AuthAdminService authAdminService;
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
+    // NotificacionService envía el email con el enlace de recuperación de contraseña
     private final NotificacionService notificacionService;
 
+    // URL base de la aplicación, usada para construir los enlaces de los emails
     @Value("${app.base-url:http://localhost}")
     private String baseUrl;
 
     // ── LOGIN ADMIN ───────────────────────────────────────────────────────────
 
+    // Solo los usuarios con perfil de Trabajador pueden entrar al panel
     @PostMapping("/login")
     public ResponseEntity<?> loginAdmin(@Valid @RequestBody LoginRequest dto) {
         try {

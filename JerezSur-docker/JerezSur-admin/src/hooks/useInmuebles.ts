@@ -1,3 +1,5 @@
+// Hook que gestiona el estado del catálogo de inmuebles en el panel admin.
+// Carga todos los inmuebles al montarse y expone funciones CRUD para que las páginas no llamen al servicio directamente.
 import { useState, useEffect, useCallback } from 'react';
 import { inmuebleService } from '../services/inmuebleService';
 import type { Inmueble, NuevoInmueble, InmuebleDetalle } from '../types/inmueble';

@@ -1,3 +1,5 @@
+// Hook que gestiona la lista de usuarios en el panel admin.
+// Carga todos los usuarios al montarse y expone funciones para crear, editar y eliminar.
 import { useState, useEffect, useCallback } from 'react';
 import { usuarioService } from '../services/usuarioService';
 import type { Usuario } from '../types/usuario';

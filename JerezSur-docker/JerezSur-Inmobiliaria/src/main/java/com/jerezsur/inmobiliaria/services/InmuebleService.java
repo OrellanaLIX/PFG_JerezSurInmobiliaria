@@ -27,8 +27,11 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import java.util.Map;
 import java.util.stream.Collectors;
 
+// Servicio principal de inmuebles: contiene toda la lógica de negocio relacionada
+// con inmuebles (búsqueda, creación, actualización, validaciones y generación de referencias)
 @Service
 public class InmuebleService {
 
@@ -38,6 +41,7 @@ public class InmuebleService {
     @Autowired
     private VendedorRepository vendedorRepository;
 
+    // Versión legada de búsqueda (sin filtro por tipo ni zona) — usada por algunos endpoints internos
     @Transactional(readOnly = true)
     public Page<Inmueble> buscarConFiltros(String ref, String tit, String desc, TipoOperacion op, EstadoInmueble est,
             BigDecimal pMin, BigDecimal pMax, Integer hab, Integer ban, Double sMin, String ciu, String cp,
@@ -54,10 +58,17 @@ public class InmuebleService {
                 pageable);
     }
 
+    // Versión principal con todos los filtros: tipo, zona, superficie máxima, etc.
+    // Devuelve DTOs (no entidades completas) para no exponer datos privados al frontend
     @Transactional(readOnly = true)
-    public Page<InmuebleListadoDTO> buscarConFiltrosDTO(String ref, String tit, String desc, TipoOperacion op,
-            EstadoInmueble est, BigDecimal pMin, BigDecimal pMax, Integer hab, Integer ban, Double sMin,
-            String ciu, String cp, int page, int size, String sortBy, String sortDir) {
+    public Page<InmuebleListadoDTO> buscarConFiltrosDTO(
+            String ref, String tit, String desc,
+            TipoOperacion op, EstadoInmueble est, TipoInmueble tipo,
+            BigDecimal pMin, BigDecimal pMax,
+            Integer hab, Integer ban,
+            Double sMin, Double sMax,
+            String zona, String ciu, String cp,
+            int page, int size, String sortBy, String sortDir) {
 
         Sort sort = Sort.by(Sort.Direction.fromString(sortDir), sortBy);
         PageRequest pageable = PageRequest.of(page, size, sort);
@@ -67,13 +78,31 @@ public class InmuebleService {
         }
 
         Page<Inmueble> pageResult = inmuebleRepository.busquedaFiltrada(
-                ref, tit, desc, op, est, pMin, pMax, hab, ban, sMin, ciu, cp, pageable);
+                ref, tit, desc, op, est, tipo,
+                pMin, pMax, hab, ban, sMin, sMax,
+                zona, ciu, cp, pageable);
 
         List<InmuebleListadoDTO> dtos = pageResult.getContent().stream()
                 .map(this::mapToListadoDTO)
                 .collect(Collectors.toList());
 
         return new PageImpl<>(dtos, pageable, pageResult.getTotalElements());
+    }
+
+    // Helper para detectar valores afirmativos en caracteristicasExtra
+    private boolean extraBool(Map<String, String> extras, String... keys) {
+        if (extras == null) return false;
+        for (String k : keys) {
+            String v = extras.get(k);
+            if (v != null) {
+                String s = v.trim().toLowerCase();
+                if (s.equals("si") || s.equals("sí") || s.equals("yes")
+                    || s.equals("1") || s.equals("true") || s.equals("x")) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private InmuebleListadoDTO mapToListadoDTO(Inmueble i) {
@@ -83,6 +112,8 @@ public class InmuebleService {
                 .or(() -> i.getImagenes().stream().findFirst())
                 .map(Imagen::getUrl)
                 .orElse(null);
+
+        Map<String, String> extras = i.getCaracteristicasExtra();
 
         return InmuebleListadoDTO.builder()
                 .id(i.getId())
@@ -101,6 +132,11 @@ public class InmuebleService {
                 .descripcion(i.getDescripcion())
                 .imagenPortadaUrl(portadaUrl)
                 .destacado(i.getDestacado())
+                // Características booleanas extraídas del mapa de extras
+                .tieneAscensor(extraBool(extras, "Ascensor", "ascensor"))
+                .tieneGaraje(extraBool(extras, "Garaje", "garaje", "Parking", "parking", "Aparcamiento"))
+                .tieneJardin(extraBool(extras, "Jardín", "Jardin", "jardín", "jardin"))
+                .tienePiscina(extraBool(extras, "Piscina", "piscina", "Piscina comunitaria", "Piscina privada"))
                 .build();
     }
 
@@ -134,6 +170,7 @@ public class InmuebleService {
         return inmuebleRepository.save(inmueble);
     }
 
+    // Devuelve los inmuebles marcados como destacados para mostrarlos en la portada de la web
     @Transactional(readOnly = true)
     public List<InmuebleDestacadoDTO> listarDestacadosDTO() {
         List<Inmueble> destacados = inmuebleRepository.findByDestacadoTrueOrderByFechaRegistroDesc();
@@ -205,6 +242,9 @@ public class InmuebleService {
                 .build();
     }
 
+    // Limita el número de destacados a un máximo de 3.
+    // Si ya hay 3, quita el más antiguo para hacer sitio al nuevo.
+    // exceptoId permite excluir el inmueble que estamos editando del conteo.
     private void enforceDestacadoLimit(Long exceptoId) {
         List<Inmueble> destacados = inmuebleRepository.findByDestacadoTrueOrderByFechaRegistroAsc();
         List<Inmueble> otros = destacados.stream()

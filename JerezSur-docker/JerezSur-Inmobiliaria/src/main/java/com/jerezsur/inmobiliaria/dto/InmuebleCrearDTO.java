@@ -9,6 +9,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
+// DTO para crear un nuevo inmueble desde el formulario del panel de administración.
 @Data
 public class InmuebleCrearDTO {
 

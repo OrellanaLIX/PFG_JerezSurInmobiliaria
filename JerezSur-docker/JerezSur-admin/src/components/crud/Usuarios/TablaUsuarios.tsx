@@ -1,3 +1,4 @@
+// Tabla de usuarios del panel admin: lista y permite gestionar todos los usuarios del sistema.
 import type { Usuario } from '../../../types/usuario';
 import '../../../styles/App.scss';
 

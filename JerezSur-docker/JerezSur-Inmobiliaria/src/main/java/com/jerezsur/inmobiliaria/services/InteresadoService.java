@@ -12,6 +12,8 @@ import com.jerezsur.inmobiliaria.models.Interesado;
 import com.jerezsur.inmobiliaria.models.enums.TipoOperacion;
 import com.jerezsur.inmobiliaria.repositories.InteresadoRepository;
 
+// Servicio de gestión de interesados (compradores/arrendatarios).
+// Gestiona el CRUD y la búsqueda con filtros opcionales para el equipo comercial.
 @Service
 public class InteresadoService {
 

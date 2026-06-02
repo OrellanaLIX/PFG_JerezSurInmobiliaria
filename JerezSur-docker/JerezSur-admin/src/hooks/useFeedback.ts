@@ -1,3 +1,4 @@
+// Hook de feedback: gestiona los mensajes de éxito y error del panel admin.
 import { useState, useCallback } from 'react';
 
 export interface FeedbackState {

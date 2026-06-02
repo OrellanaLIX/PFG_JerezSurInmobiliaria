@@ -1,3 +1,5 @@
+// Servicio de usuarios del panel admin: peticiones al backend para el CRUD de usuarios.
+// También gestiona la creación de perfiles de trabajador, interesado y vendedor.
 import api from './api';
 import type { Usuario, NuevoUsuario, UsuarioDetalle } from '../types/usuario';
 

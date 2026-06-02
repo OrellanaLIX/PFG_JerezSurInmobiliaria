@@ -14,6 +14,8 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 
+// Controlador de interesados: gestiona los clientes que buscan comprar o alquilar un inmueble
+// Guarda sus preferencias (zona, presupuesto, habitaciones) para facilitar la búsqueda del agente
 @RestController
 @RequestMapping("/api/interesados")
 public class InteresadoController {

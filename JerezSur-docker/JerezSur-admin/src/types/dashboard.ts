@@ -1,3 +1,4 @@
+// Tipos TypeScript para el dashboard: KPIs, tareas y datos del panel de control.
 export interface Tarea {
   id: number;
   titulo: string;

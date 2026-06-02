@@ -15,20 +15,26 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+// Controlador de citas: gestiona las solicitudes de visita tanto de usuarios registrados
+// como de personas anónimas que piden cita desde el formulario público
 @RestController
 @RequestMapping("/api/citas")
 @RequiredArgsConstructor
 public class CitaController {
 
+    // CitaService gestiona las citas de usuarios registrados
     private final CitaService citaService;
 
+    // CitaPublicaService gestiona las citas anónimas (sin cuenta)
     private final CitaPublicaService citaPublicaService;
 
+    // Devuelve las citas asignadas a un trabajador concreto (para su calendario personal)
     @GetMapping("/trabajador/{trabajadorId}")
     public ResponseEntity<List<CitaResponseDTO>> misCitas(@PathVariable Long trabajadorId) {
         return ResponseEntity.ok(citaService.getCitasDelTrabajador(trabajadorId));
     }
 
+    // Devuelve todas las citas del sistema (para el calendario general del panel admin)
     @GetMapping("/todas")
     public ResponseEntity<List<CitaResponseDTO>> todasLasCitas() {
         return ResponseEntity.ok(citaService.getAllCitas());
@@ -46,27 +52,32 @@ public class CitaController {
         return ResponseEntity.ok(citaService.aceptarCita(citaId, trabajadorId));
     }
 
+    // Marca la cita como REALIZADA cuando la visita ha tenido lugar
     @PatchMapping("/{citaId}/completar")
     public ResponseEntity<CitaResponseDTO> completarCita(@PathVariable Long citaId) {
         return ResponseEntity.ok(citaService.completarCita(citaId));
     }
 
+    // Cancela la cita pero la mantiene en BD para el histórico
     @PatchMapping("/{citaId}/cancelar")
     public ResponseEntity<CitaResponseDTO> cancelarCita(@PathVariable Long citaId) {
         return ResponseEntity.ok(citaService.cancelarCita(citaId));
     }
 
+    // Endpoint público: cualquier persona (sin cuenta) puede pedir una cita con teléfono y nombre
     @PostMapping("/solicitar")
     public ResponseEntity<CitaResponseDTO> solicitarCita(
             @Valid @RequestBody SolicitudCitaPublicaDTO dto) {
         return ResponseEntity.ok(citaPublicaService.solicitarCitaAnonima(dto));
     }
 
+    // Devuelve las citas de un usuario registrado (para "Mis citas" en el frontend)
     @GetMapping("/usuario/{usuarioId}")
     public ResponseEntity<List<CitaResponseDTO>> citasDelUsuario(@PathVariable Long usuarioId) {
         return ResponseEntity.ok(citaService.getCitasDelUsuario(usuarioId));
     }
 
+    // Crea una cita para un usuario ya registrado (desde la ficha del inmueble o desde su perfil)
     @PostMapping("/usuario/solicitar")
     public ResponseEntity<CitaResponseDTO> solicitarCitaUsuario(
             @Valid @RequestBody SolicitudCitaUsuarioDTO dto) {

@@ -13,6 +13,8 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 
+// Controlador de vendedores: gestiona los propietarios que quieren vender su inmueble a través de la inmobiliaria
+// El vendedor se registra, aporta sus datos y queda vinculado al inmueble que pone a la venta
 @RestController
 @RequestMapping("/api/vendedores")
 public class VendedorController {

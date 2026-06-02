@@ -1,3 +1,4 @@
+// Componente raíz de la aplicación pública: envuelve todo con el AuthProvider y las rutas.
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { useEffect } from 'react';
 import { AppRoutes } from './routes/AppRoutes';

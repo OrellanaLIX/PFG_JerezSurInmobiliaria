@@ -13,10 +13,15 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
+// DTO de respuesta para las operaciones: incluye datos del inmueble, interesado y el estado de la operación.
 @Getter
+// DTO de respuesta para las operaciones: incluye datos del inmueble, interesado y el estado de la operación.
 @Setter
+// DTO de respuesta para las operaciones: incluye datos del inmueble, interesado y el estado de la operación.
 @NoArgsConstructor
+// DTO de respuesta para las operaciones: incluye datos del inmueble, interesado y el estado de la operación.
 @AllArgsConstructor
+// DTO de respuesta para las operaciones: incluye datos del inmueble, interesado y el estado de la operación.
 @Builder
 public class OperacionResponseDTO {
 

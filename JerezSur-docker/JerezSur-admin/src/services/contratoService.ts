@@ -1,3 +1,4 @@
+// Servicio de contratos del admin: peticiones al backend para crear y gestionar contratos.
 import api from './api';
 import type { ContratoDetalle, CrearContratoData } from '../types/operacion';
 

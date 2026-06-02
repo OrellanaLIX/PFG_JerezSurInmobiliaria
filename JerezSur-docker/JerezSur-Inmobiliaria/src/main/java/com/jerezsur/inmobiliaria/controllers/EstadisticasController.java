@@ -25,11 +25,15 @@ import com.jerezsur.inmobiliaria.repositories.UsuarioRepository;
 import com.jerezsur.inmobiliaria.repositories.VendedorRepository;
 import com.jerezsur.inmobiliaria.services.EstadisticasService;
 
+// Controlador de estadísticas: recoge datos de varios repositorios y los envía
+// al microservicio Python para que genere los gráficos del panel de administración
 @RestController
 @RequestMapping("/api/estadisticas")
 public class EstadisticasController {
 
+    // Inyectamos el servicio que llama al microservicio Python de generación de gráficos
     @Autowired private EstadisticasService estadisticasService;
+    // Repositorios para obtener los datos crudos de cada entidad
     @Autowired private UsuarioRepository usuarioRepository;
     @Autowired private InmuebleRepository inmuebleRepository;
     @Autowired private CitaRepository citaRepository;

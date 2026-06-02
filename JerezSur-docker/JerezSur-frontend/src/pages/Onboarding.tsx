@@ -1,3 +1,5 @@
+// Flujo de onboarding: se muestra después del primer login con red social.
+// Recoge los datos que faltan (teléfono, preferencias) para completar el perfil del usuario.
 import React, { useEffect, useState, type ChangeEvent, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import '../styles/Onboarding.scss';

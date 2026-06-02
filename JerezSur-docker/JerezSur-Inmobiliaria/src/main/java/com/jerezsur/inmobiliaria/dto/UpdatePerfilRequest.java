@@ -5,6 +5,7 @@ import java.time.LocalDate;
 
 import lombok.Data;
 
+// DTO para actualizar los datos del perfil del usuario desde la página de perfil.
 @Data
 public class UpdatePerfilRequest {
 

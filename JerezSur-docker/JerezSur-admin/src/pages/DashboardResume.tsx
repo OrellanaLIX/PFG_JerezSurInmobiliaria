@@ -1,3 +1,5 @@
+// Página principal del panel de administración: el resumen o "dashboard".
+// Muestra los gráficos de estadísticas (generados por Python) y la lista de tareas pendientes.
 import { useDashboard } from '../hooks/useDashboard';
 import { useFeedback } from '../hooks/useFeedback';
 import { FeedbackBanner } from '../components/layout/FeedbackBanner';
@@ -6,17 +8,22 @@ import { TareasPendientes } from '../components/crud/TareasPendientes';
 import '../styles/pages/Dashboard.scss';
 
 const DashboardResumen = () => {
+  // useDashboard carga los datos del backend y expone funciones para gestionar tareas
   const { data, loading, error, crearTarea, eliminarTarea } = useDashboard();
+  // useFeedback gestiona los mensajes de éxito/error que aparecen al realizar acciones
   const { feedback, showSuccess, showError, clearFeedback } = useFeedback();
 
+  // Saludo dinámico según la hora del día
   const hora = new Date().getHours();
   const saludo = hora < 13 ? 'Buenos días' : hora < 20 ? 'Buenas tardes' : 'Buenas noches';
 
+  // Manejador para crear una tarea: llama al servicio y muestra mensaje de resultado
   const handleCrear = async (t: any) => {
     try   { await crearTarea(t); showSuccess('Tarea creada.'); }
     catch (e: any) { showError(e?.response?.data?.message ?? 'Error al crear la tarea.'); }
   };
 
+  // Al completar una tarea la eliminamos (el backend no guarda histórico de completadas)
   const handleCompletar = async (id: number) => {
     try   { await eliminarTarea(id); showSuccess('Tarea completada.'); }
     catch { showError('Error al completar la tarea.'); }

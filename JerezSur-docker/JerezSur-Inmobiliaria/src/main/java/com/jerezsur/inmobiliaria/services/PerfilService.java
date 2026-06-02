@@ -19,6 +19,12 @@ import com.jerezsur.inmobiliaria.exceptions.BusinessValidationException;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+// Servicio que gestiona el perfil completo del usuario.
+// Un usuario puede tener uno o varios "subperfiles" según su rol:
+//   - Interesado: busca inmuebles para comprar o alquilar
+//   - Vendedor: tiene inmuebles que quiere vender
+//   - Trabajador: empleado de la agencia con acceso al panel admin
+// Este servicio maneja la creación, actualización y vinculación de esos subperfiles.
 @Service
 public class PerfilService {
 
@@ -44,7 +50,7 @@ public class PerfilService {
     private NotificacionService notificacionService;
 
     // ==========================================
-    // BUILD DTO — ahora incluye trabajador
+    // BUILD DTO — construye el DTO completo del perfil incluyendo todos los subperfiles
     // ==========================================
     public UsuarioPerfilDTO buildPerfilDTO(Usuario usuario) {
         UsuarioPerfilDTO dto = new UsuarioPerfilDTO();
@@ -113,7 +119,8 @@ public class PerfilService {
     }
 
     // ==========================================
-    // 1️⃣ COMPLETAR PERFIL (Onboarding) - tu método actual ligeramente mejorado
+    // COMPLETAR PERFIL (Onboarding): el usuario recién registrado elige su rol
+    // y rellena sus datos completos por primera vez
     // ==========================================
     @Transactional
     public void completarPerfil(OnboardingRequest request) {
@@ -214,6 +221,8 @@ public class PerfilService {
     // MÉTODOS PRIVADOS REUTILIZABLES
     // ==========================================
 
+    // Crea o actualiza el perfil de trabajador de un usuario
+    // Si desvincularTrabajador=true, desvincula al usuario del trabajador (sin borrar el trabajador)
     private void gestionarPerfilTrabajador(Usuario usuario, UpdatePerfilRequest request) {
         // Desvinculación explícita
         if (Boolean.TRUE.equals(request.getDesvincularTrabajador())) {
@@ -395,6 +404,8 @@ public class PerfilService {
         }
     }
 
+    // Calcula y asigna el rol del usuario según los subperfiles que tenga activos.
+    // El orden de prioridad es: trabajador > interesado+vendedor > interesado > vendedor
     private void actualizarRolSegunPerfiles(Usuario usuario) {
         boolean esTrabajador = trabajadorRepository.existsByUsuario(usuario);
         boolean esInteresado = interesadoRepository.existsByUsuario(usuario);
@@ -403,6 +414,7 @@ public class PerfilService {
         if (esTrabajador) {
             usuario.setRole(Role.ROLE_TRABAJADOR);
         } else if (esInteresado && esVendedor) {
+            // Usuario que tiene tanto inmuebles propios como busca uno nuevo
             usuario.setRole(Role.ROLE_AMBOS);
         } else if (esInteresado) {
             usuario.setRole(Role.ROLE_INTERESADO);

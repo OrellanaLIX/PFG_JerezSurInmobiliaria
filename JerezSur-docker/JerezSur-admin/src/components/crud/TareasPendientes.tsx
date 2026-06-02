@@ -1,3 +1,5 @@
+// Componente de tareas pendientes del dashboard del admin.
+// Muestra la lista de tareas activas y el formulario para crear nuevas tareas manuales.
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { Tarea, NuevaTarea } from '../../types/dashboard';

@@ -1,3 +1,4 @@
+// Tipos TypeScript para las citas: estructura de datos que devuelve el backend.
 export type EstadoCita =
   | 'PENDIENTE_ASIGNACION'
   | 'CONFIRMADA'

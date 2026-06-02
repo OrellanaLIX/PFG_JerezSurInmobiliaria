@@ -1,3 +1,5 @@
+// Página para propietarios que quieren vender su inmueble.
+// Explica el proceso y tiene un formulario para que dejen sus datos de contacto.
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import '../styles/Vender.scss';

@@ -1,3 +1,4 @@
+// Enum de roles de usuario en el sistema: ROLE_ADMIN, ROLE_TRABAJADOR, ROLE_INTERESADO, etc.
 package com.jerezsur.inmobiliaria.models.enums;
 
 public enum Role {

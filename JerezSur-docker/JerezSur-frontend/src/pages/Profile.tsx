@@ -1,3 +1,5 @@
+// Página de perfil del usuario: permite ver y editar sus datos personales,
+// cambiar la contraseña y subir una foto de perfil.
 import React, { useEffect, useState, type ChangeEvent, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import '../styles/Profile.scss';

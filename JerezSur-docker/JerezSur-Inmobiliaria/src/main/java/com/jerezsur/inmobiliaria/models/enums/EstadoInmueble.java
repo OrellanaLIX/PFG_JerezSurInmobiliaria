@@ -1,3 +1,4 @@
+// Enum de estados de un inmueble: DISPONIBLE, RESERVADO, VENDIDO, RETIRADO.
 package com.jerezsur.inmobiliaria.models.enums;
 
 public enum EstadoInmueble {

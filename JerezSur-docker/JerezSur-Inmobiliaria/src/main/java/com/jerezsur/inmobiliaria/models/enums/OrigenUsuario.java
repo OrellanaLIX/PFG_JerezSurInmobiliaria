@@ -1,3 +1,4 @@
+// Enum del origen del usuario: REGISTRO_WEB, OAUTH_GOOGLE, OAUTH_FACEBOOK, CRM_TRABAJADOR.
 package com.jerezsur.inmobiliaria.models.enums;
 
 public enum OrigenUsuario {

@@ -18,6 +18,8 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
+// Servicio de contratos: crea borradores de contrato para las operaciones de compraventa o alquiler.
+// El PDF del contrato se sube después de forma cifrada a Cloudinary a través de MediaController.
 @Service
 public class ContratoService {
 

@@ -1,6 +1,6 @@
 // src/pages/Inmuebles.tsx
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import PropertyCard from '../components/inmuebles/PropertyCard';
 import PropertyFilters from '../components/inmuebles/PropertyFilters';
 import '../styles/Inmuebles.scss';
@@ -52,30 +52,29 @@ type SortOption = 'recent' | 'price-asc' | 'price-desc' | 'area-desc';
 // ==========================================
 // TIPO DEL BACKEND — InmuebleListadoDTO
 // ==========================================
-// DTO que ahora devuelve el backend (incluye imagenPortadaUrl directamente)
+// Tipo del InmuebleListadoDTO que devuelve el backend
 type InmuebleBackend = {
   id: number;
   referencia: string;
   titulo: string;
   descripcion?: string;
   precio: number;
-
   operacion?: 'VENTA' | 'ALQUILER' | 'CUALQUIERA';
   estado?: 'DISPONIBLE' | 'VENDIDO' | 'RESERVADO' | 'RETIRADO';
-  tipo?: string;
-
-  caracteristicasExtra?: Record<string, string>;
-
+  tipo?: string;    // PISO / CASA / CHALET / ATICO / LOCAL_COMERCIAL…
   superficieUtil?: number;
   mConstruidos?: number;
   habitaciones?: number;
   banos?: number;
-
   ciudad: string;
   zona?: string;
-
-  imagenPortadaUrl?: string | null;   // viene directo del DTO — null si no tiene imágenes
+  imagenPortadaUrl?: string | null;
   destacado?: boolean;
+  // Características booleanas (extraídas del mapa de extras en el backend)
+  tieneAscensor?: boolean;
+  tieneGaraje?:   boolean;
+  tieneJardin?:   boolean;
+  tienePiscina?:  boolean;
 };
 
 // ==========================================
@@ -120,50 +119,64 @@ const mapTipoInmueble = (tipoRaw?: string): Property['propertyType'] => {
   return 'Piso';
 };
 
-// El backend resuelve la imagen de portada: null si no hay imágenes asignadas
+// Convierte el DTO del backend al tipo Property que usa PropertyCard
 const mapInmuebleToProperty = (item: InmuebleBackend): Property => ({
-  id: item.id,
-  title: item.titulo || item.referencia || `Inmueble #${item.id}`,
-  location: item.zona ? `${item.zona}, ${item.ciudad}` : item.ciudad,
-  zone: item.zona || item.ciudad,
-  price: item.precio ?? 0,
-  type: mapTipoOperacion(item.operacion),
+  id:           item.id,
+  title:        item.titulo || item.referencia || `Inmueble #${item.id}`,
+  location:     item.zona ? `${item.zona}, ${item.ciudad}` : item.ciudad,
+  zone:         item.zona || item.ciudad,
+  price:        item.precio ?? 0,
+  type:         mapTipoOperacion(item.operacion),
   propertyType: mapTipoInmueble(item.tipo),
-  image: item.imagenPortadaUrl ?? '',   // '' → PropertyCard mostrará placeholder
-  images: item.imagenPortadaUrl ? [item.imagenPortadaUrl] : [],
-  beds: item.habitaciones ?? 0,
-  baths: item.banos ?? 0,
-  area: item.superficieUtil ?? 0,
-  slug: slugify(item.referencia || item.titulo),
-  featured: item.destacado ?? false,
-  description: item.descripcion,
+  image:        item.imagenPortadaUrl ?? '',
+  images:       item.imagenPortadaUrl ? [item.imagenPortadaUrl] : [],
+  beds:         item.habitaciones ?? 0,
+  baths:        item.banos ?? 0,
+  area:         item.superficieUtil ?? 0,
+  slug:         slugify(item.referencia || item.titulo),
+  featured:     item.destacado ?? false,
+  description:  item.descripcion,
+  // Las características booleanas vienen directamente del backend
+  hasElevator: item.tieneAscensor ?? false,
+  hasParking:  item.tieneGaraje   ?? false,
+  hasGarden:   item.tieneJardin   ?? false,
+  hasPool:     item.tienePiscina  ?? false,
 });
 
 // ==========================================
 // COMPONENT
 // ==========================================
+const operacionToFilter = (op?: string | null): FilterOptions['operation'] => {
+  if (op === 'VENTA')    return 'Venta';
+  if (op === 'ALQUILER') return 'Alquiler';
+  return 'all';
+};
+
 const Inmuebles = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+
   useSEO({
     title: 'Inmuebles en Jerez de la Frontera',
     description: 'Busca pisos, casas, chalets y locales en venta y alquiler en Jerez de la Frontera. Filtros avanzados por precio, zona, habitaciones y más.',
-    canonical: 'http://localhost/inmuebles',
+    canonical: window.location.origin + '/inmuebles',
   });
 
   const [properties, setProperties] = useState<Property[]>([]);
   const [filteredProperties, setFilteredProperties] = useState<Property[]>([]);
 
-  const [filters, setFilters] = useState<FilterOptions>({
-    operation: 'all',
+  // Inicializa filtros desde los parámetros de URL (ej: desde el buscador de Home)
+  const [filters, setFilters] = useState<FilterOptions>(() => ({
+    operation: operacionToFilter(searchParams.get('operacion')),
     propertyType: '',
-    zone: '',
+    zone: searchParams.get('zona') ?? '',
     minPrice: '',
-    maxPrice: '',
+    maxPrice: searchParams.get('precioMax') ?? '',
     minBeds: '',
     minBaths: '',
     minArea: '',
     maxArea: '',
     features: [],
-  });
+  }));
 
   const [sortBy, setSortBy] = useState<SortOption>('recent');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -205,24 +218,45 @@ const Inmuebles = () => {
 
         const params = new URLSearchParams();
 
-        // Operación
-        if (filters.operation === 'Venta') params.set('operacion', 'VENTA');
+        // Operación (Venta / Alquiler)
+        if (filters.operation === 'Venta')    params.set('operacion', 'VENTA');
         else if (filters.operation === 'Alquiler') params.set('operacion', 'ALQUILER');
 
-        // Estado por defecto
+        // Solo inmuebles disponibles
         params.set('estado', 'DISPONIBLE');
 
-        // Precio y Características
+        // Tipo de inmueble — se envía directamente al backend como enum
+        if (filters.propertyType) {
+          const tipoMap: Record<string, string> = {
+            'Piso':    'PISO',
+            'Casa':    'CASA',
+            'Ático':   'ATICO',
+            'Dúplex':  'DUPLEX',
+            'Local':   'LOCAL_COMERCIAL',
+            'Parcela': 'TERRENO',
+          };
+          const tipoBackend = tipoMap[filters.propertyType];
+          if (tipoBackend) params.set('tipo', tipoBackend);
+        }
+
+        // Precio
         if (filters.minPrice) params.set('precioMin', filters.minPrice);
         if (filters.maxPrice) params.set('precioMax', filters.maxPrice);
-        if (filters.minBeds) params.set('habitaciones', filters.minBeds);
-        if (filters.minBaths) params.set('banos', filters.minBaths);
-        if (filters.minArea) params.set('superficieMin', filters.minArea);
-        if (filters.zone) params.set('ciudad', filters.zone);
 
-        // Paginación
+        // Habitaciones y baños
+        if (filters.minBeds)  params.set('habitaciones', filters.minBeds);
+        if (filters.minBaths) params.set('banos', filters.minBaths);
+
+        // Superficie
+        if (filters.minArea) params.set('superficieMin', filters.minArea);
+        if (filters.maxArea) params.set('superficieMax', filters.maxArea);
+
+        // Zona — filtra por el campo `zona` del inmueble (Chapín, Centro, MOPU…)
+        if (filters.zone) params.set('zona', filters.zone);
+
+        // Paginación — 200 resultados para una inmobiliaria local es más que suficiente
         params.set('page', '0');
-        params.set('size', '100');
+        params.set('size', '200');
 
         // Ordenación
         let sortByField = 'id';
@@ -288,30 +322,21 @@ const Inmuebles = () => {
 
   // ==========================================
   // FILTRADO COMPLEMENTARIO EN CLIENTE
-  // ==========================================
+  // Filtrado client-side solo para características que no se pueden manejar en el backend
+  // (operación, tipo, precio, habitaciones, baños, superficie, zona → backend)
   useEffect(() => {
     let result = [...properties];
 
-    // propertyType (no lo filtra el backend porque está en caracteristicasExtra)
-    if (filters.propertyType) {
-      result = result.filter((p) => p.propertyType === filters.propertyType);
-    }
-
-    // maxArea (no soportada en backend)
-    if (filters.maxArea) {
-      const maxA = Number(filters.maxArea);
-      if (!Number.isNaN(maxA)) result = result.filter((p) => p.area <= maxA);
-    }
-
-    // features (en caracteristicasExtra)
+    // Características especiales (ascensor, garaje, jardín, piscina)
+    // Ya vienen como booleanos desde el backend, solo filtramos aquí
     if (filters.features.length > 0) {
       result = result.filter((p) =>
         filters.features.every((feature) => {
           switch (feature) {
             case 'elevator': return !!p.hasElevator;
-            case 'parking': return !!p.hasParking;
-            case 'garden': return !!p.hasGarden;
-            case 'pool': return !!p.hasPool;
+            case 'parking':  return !!p.hasParking;
+            case 'garden':   return !!p.hasGarden;
+            case 'pool':     return !!p.hasPool;
             default: return true;
           }
         })
@@ -320,6 +345,22 @@ const Inmuebles = () => {
 
     setFilteredProperties(result);
   }, [properties, filters]);
+
+  // Sincroniza los filtros activos en la URL para que los enlaces sean compartibles
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (filters.operation === 'Venta')    params.set('operacion', 'VENTA');
+    if (filters.operation === 'Alquiler') params.set('operacion', 'ALQUILER');
+    if (filters.zone)     params.set('zona', filters.zone);
+    if (filters.maxPrice) params.set('precioMax', filters.maxPrice);
+    if (filters.minPrice) params.set('precioMin', filters.minPrice);
+    if (filters.minBeds)  params.set('habitaciones', filters.minBeds);
+    if (filters.maxArea)  params.set('superficieMax', filters.maxArea);
+    setSearchParams(params, { replace: true });
+  }, [
+    filters.operation, filters.zone, filters.maxPrice,
+    filters.minPrice, filters.minBeds, filters.maxArea,
+  ]);
 
   const handleFilterChange = (newFilters: FilterOptions) => setFilters(newFilters);
 

@@ -1,4 +1,6 @@
 // src/components/inmuebles/PropertyCard.tsx
+// Tarjeta que muestra los datos resumidos de un inmueble en el listado.
+// Soporta dos modos de visualización: cuadrícula (grid) y lista (list).
 import { Link } from 'react-router-dom';
 import type { Property } from '../../pages/Inmuebles';
 import '../../styles/PropertyCard.scss';
@@ -9,15 +11,18 @@ interface PropertyCardProps {
 }
 
 const PropertyCard = ({ property, viewMode }: PropertyCardProps) => {
+  // Formatea el precio con separador de miles y añade €/mes si es alquiler
   const formatPrice = (price: number, type: string) => {
     const formatted = new Intl.NumberFormat('es-ES').format(price);
     return type === 'Alquiler' ? `${formatted} €/mes` : `${formatted} €`;
   };
 
   return (
+    // Usamos <article> porque semánticamente cada card es un contenido independiente
     <article className={`property-card property-card--${viewMode}`}>
       <div className="property-card__media">
         <Link to={`/inmuebles/${property.id}`}>
+          {/* Si hay imagen la mostramos; si no, mostramos un placeholder con icono */}
           {property.image ? (
             <img src={property.image} alt={property.title} loading="lazy" />
           ) : (

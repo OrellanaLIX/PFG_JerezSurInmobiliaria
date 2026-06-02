@@ -28,6 +28,8 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+// Entidad de trabajador: perfil adicional del personal de la inmobiliaria.
+// Solo los usuarios con perfil Trabajador activo pueden acceder al panel de administración.
 @Entity
 @Table(name = "trabajadores")
 @Data

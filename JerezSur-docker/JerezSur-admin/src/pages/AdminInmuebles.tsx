@@ -1,3 +1,5 @@
+// Página de gestión de inmuebles del panel de administración.
+// Permite crear, editar, eliminar y cambiar el estado de cada inmueble del catálogo.
 import { useState } from 'react';
 import { useInmuebles } from '../hooks/useInmuebles';
 import { useFeedback } from '../hooks/useFeedback';

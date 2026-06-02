@@ -1,3 +1,4 @@
+// Enum del rol de cada participante en una operación: VENDEDOR, COMPRADOR, ARRENDADOR, ARRENDATARIO.
 package com.jerezsur.inmobiliaria.models.enums;
 
 import java.util.List;

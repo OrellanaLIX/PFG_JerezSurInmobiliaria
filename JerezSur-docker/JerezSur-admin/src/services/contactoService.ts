@@ -1,3 +1,5 @@
+// Servicio de mensajes de contacto del panel admin: peticiones al backend para listar,
+// actualizar (marcar como leído) y eliminar mensajes recibidos desde la web pública.
 import api from './api';
 import type { MensajeContacto, NuevoMensajeContacto, MensajeContactoDetalle } from '../types/contacto';
 

@@ -1,3 +1,5 @@
+// Layout del panel de administración: barra lateral de navegación y área de contenido.
+// El Outlet de React Router renderiza la página activa (Inmuebles, Citas, etc.) dentro de este layout.
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { LayoutDashboard, Calendar, LogOut, Home } from 'lucide-react';
