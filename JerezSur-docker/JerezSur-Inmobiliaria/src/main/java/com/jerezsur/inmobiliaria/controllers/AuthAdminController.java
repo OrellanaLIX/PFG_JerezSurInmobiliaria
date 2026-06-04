@@ -4,6 +4,7 @@ import com.jerezsur.inmobiliaria.dto.LoginRequest;
 import com.jerezsur.inmobiliaria.dto.LoginResponseDTO;
 import com.jerezsur.inmobiliaria.models.Usuario;
 import com.jerezsur.inmobiliaria.repositories.UsuarioRepository;
+import com.jerezsur.inmobiliaria.security.JwtService;
 import com.jerezsur.inmobiliaria.services.AuthAdminService;
 import com.jerezsur.inmobiliaria.services.NotificacionService;
 import jakarta.validation.Valid;
@@ -15,6 +16,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
@@ -28,6 +31,7 @@ public class AuthAdminController {
 
     private final AuthAdminService authAdminService;
     private final UsuarioRepository usuarioRepository;
+    private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
     // NotificacionService envía el email con el enlace de recuperación de contraseña
     private final NotificacionService notificacionService;
@@ -76,9 +80,21 @@ public class AuthAdminController {
         usuario.setTokenVerificacion(null);
         usuarioRepository.save(usuario);
 
-        // Redirige al frontend con mensaje de éxito
+        // Generamos un JWT para que el usuario pueda entrar al onboarding sin necesidad
+        // de hacer login manualmente. El token se pasa en la URL y el frontend lo almacena.
+        String jwt = jwtService.generarToken(usuario);
+        String nombre = usuario.getNombre() != null
+                ? URLEncoder.encode(usuario.getNombre(), StandardCharsets.UTF_8)
+                : "";
+
+        String redirect = baseUrl + "/onboarding"
+                + "?autoToken=" + jwt
+                + "&autoId="    + usuario.getId()
+                + "&autoRole="  + usuario.getRole().name()
+                + "&autoNombre=" + nombre;
+
         return ResponseEntity.status(HttpStatus.FOUND)
-                .location(URI.create(baseUrl + "/acceder?verificado=ok"))
+                .location(URI.create(redirect))
                 .build();
     }
 

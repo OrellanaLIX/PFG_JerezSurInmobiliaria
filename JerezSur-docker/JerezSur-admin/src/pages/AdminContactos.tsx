@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useContactos } from '../hooks/useContactos';
 import { useFeedback } from '../hooks/useFeedback';
 import { FeedbackBanner } from '../components/layout/FeedbackBanner';
-import type { MensajeContacto } from '../types/contacto';
+import type { MensajeContacto, MensajeContactoDetalle } from '../types/contacto';
 import { TablaContactos } from '../components/crud/Contactos/TablaContactos';
 import { DetalleContactoModal } from '../components/crud/Contactos/DetallesContactosModal';
 import '../styles/pages/CrudPages.scss';
@@ -27,12 +27,23 @@ const AdminContactos = () => {
   const [busqueda, setBusqueda] = useState('');
   const [filtroLeido, setFiltroLeido] = useState<'TODOS' | 'LEIDOS' | 'PENDIENTES'>('TODOS');
 
+  const noLeidos = contactos.filter((c) => !c.leido).length;
+
   const handleToggleLeido = async (contacto: MensajeContacto) => {
     try {
       await actualizar(contacto.id, { leido: !contacto.leido });
       showSuccess(contacto.leido ? 'Marcado como no leído.' : 'Marcado como leído.');
     } catch {
       showError('Error al actualizar el estado del mensaje.');
+    }
+  };
+
+  const handleActualizar = async (id: number, data: Partial<MensajeContactoDetalle>) => {
+    try {
+      await actualizar(id, data);
+      showSuccess('Consulta actualizada correctamente.');
+    } catch {
+      showError('Error al guardar los cambios.');
     }
   };
 
@@ -60,13 +71,25 @@ const AdminContactos = () => {
     return coincideEstado && coincideTexto;
   });
 
-  if (loading) return <p>Cargando bandeja de entrada...</p>;
   if (error) return <p className="error-text">{error}</p>;
 
   return (
     <div>
       <header className="crud-page__header">
-        <h1>Bandeja de Contactos y Leads</h1>
+        <div>
+          <h1>Bandeja de Contactos y Leads</h1>
+          <p className="text-soft" style={{ margin: '0.25rem 0 0', fontSize: '0.9rem' }}>
+            Mensajes recibidos desde el formulario de la web pública
+            {noLeidos > 0 && (
+              <span
+                className="badge badge--amber"
+                style={{ marginLeft: '0.75rem', verticalAlign: 'middle' }}
+              >
+                {noLeidos} sin leer
+              </span>
+            )}
+          </p>
+        </div>
       </header>
 
       <FeedbackBanner feedback={feedback} onDismiss={clearFeedback} />
@@ -74,22 +97,29 @@ const AdminContactos = () => {
       <div className="crud-page__filters">
         <input
           type="text"
-          placeholder="Buscar por nombre o email..."
+          placeholder="Buscar por nombre, email o teléfono..."
           value={busqueda}
-          onChange={e => setBusqueda(e.target.value)}
+          onChange={(e) => setBusqueda(e.target.value)}
         />
-        <select value={filtroLeido} onChange={e => setFiltroLeido(e.target.value as any)}>
+        <select value={filtroLeido} onChange={(e) => setFiltroLeido(e.target.value as 'TODOS' | 'LEIDOS' | 'PENDIENTES')}>
           <option value="TODOS">Todas las consultas</option>
           <option value="PENDIENTES">No leídos</option>
           <option value="LEIDOS">Leídos / Gestionados</option>
         </select>
       </div>
 
-      <TablaContactos
-        contactos={contactosFiltrados}
-        onVerDetalle={cargarDetalle}
-        onToggleLeido={handleToggleLeido}
-      />
+      {loading ? (
+        <div className="crud-page__loading">
+          <div className="spinner" />
+          <p>Cargando bandeja de entrada...</p>
+        </div>
+      ) : (
+        <TablaContactos
+          contactos={contactosFiltrados}
+          onVerDetalle={cargarDetalle}
+          onToggleLeido={handleToggleLeido}
+        />
+      )}
 
       {contactoSeleccionado && (
         <DetalleContactoModal
@@ -97,6 +127,7 @@ const AdminContactos = () => {
           loading={loadingDetalle}
           onCerrar={limpiarSeleccionado}
           onEliminar={handleEliminar}
+          onActualizar={handleActualizar}
         />
       )}
     </div>

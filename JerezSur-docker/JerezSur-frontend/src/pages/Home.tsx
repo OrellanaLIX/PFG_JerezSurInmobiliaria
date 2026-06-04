@@ -220,9 +220,35 @@ const Home = () => {
           </div>
         </div>
         <div className="home-advantages__grid">
-          <article className="home-advantages__item"><h3>Experiencia local</h3><p>Conocemos Jerez, sus zonas y el mercado inmobiliario para asesorarte con seguridad y criterio.</p></article>
-          <article className="home-advantages__item"><h3>Atención cercana</h3><p>Ofrecemos un trato humano y personalizado, adaptándonos a las necesidades de cada cliente.</p></article>
-          <article className="home-advantages__item"><h3>Compra y venta</h3><p>Te acompañamos tanto si buscas vivienda como si quieres vender tu inmueble con la máxima confianza.</p></article>
+          <article className="home-advantages__item">
+            <div className="home-advantages__icon" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+              </svg>
+            </div>
+            <h3>Experiencia local</h3>
+            <p>Conocemos Jerez, sus zonas y el mercado inmobiliario para asesorarte con seguridad y criterio.</p>
+          </article>
+          <article className="home-advantages__item">
+            <div className="home-advantages__icon" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+            </div>
+            <h3>Atención cercana</h3>
+            <p>Ofrecemos un trato humano y personalizado, adaptándonos a las necesidades de cada cliente.</p>
+          </article>
+          <article className="home-advantages__item">
+            <div className="home-advantages__icon" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                <polyline points="9 22 9 12 15 12 15 22"/>
+              </svg>
+            </div>
+            <h3>Compra y venta</h3>
+            <p>Te acompañamos tanto si buscas vivienda como si quieres vender tu inmueble con la máxima confianza.</p>
+          </article>
         </div>
       </section>
 
@@ -235,18 +261,18 @@ const Home = () => {
               <h2>La confianza de nuestros clientes</h2>
               <p className='white'>Trabajamos cada operación con cercanía, claridad y profesionalidad para que cada cliente se sienta acompañado de principio a fin.</p>
             </div>
-            {/* aria-live=”polite” anuncia el cambio de testimonio a lectores de pantalla
+            {/* aria-live="polite" anuncia el cambio de testimonio a lectores de pantalla
                 sin interrumpir lo que estén leyendo */}
-            <div className=”home-testimonials__carousel” role=”region”
-                 aria-label=”Testimonios de clientes” aria-live=”polite”>
-              <div className=”home-testimonials__slider”>
-                <div className=”home-testimonials__track”
+            <div className="home-testimonials__carousel" role="region"
+                 aria-label="Testimonios de clientes" aria-live="polite">
+              <div className="home-testimonials__slider">
+                <div className="home-testimonials__track"
                      style={{ transform: `translateX(-${activeTestimonial * 100}%)` }}>
                   {testimonials.map((testimonial, idx) => (
-                    <article key={testimonial.id} className=”home-testimonials__slide”
+                    <article key={testimonial.id} className="home-testimonials__slide"
                              aria-hidden={idx !== activeTestimonial}>
-                      <div className=”home-testimonials__card”>
-                        <span className=”home-testimonials__quote” aria-hidden=”true”>”</span>
+                      <div className="home-testimonials__card">
+                        <span className="home-testimonials__quote" aria-hidden="true">"</span>
                         <blockquote>
                           <p>{testimonial.text}</p>
                           <footer><cite>{testimonial.name}</cite></footer>

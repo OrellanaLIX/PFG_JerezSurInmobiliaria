@@ -195,6 +195,7 @@ const Profile: React.FC = () => {
   const [perfil, setPerfil] = useState<Perfil>('');
   const [formData, setFormData] = useState<ProfileFormData>(INITIAL_FORM);
   const [serverData, setServerData] = useState<UsuarioPerfil | null>(null);
+  const [misInmuebles, setMisInmuebles] = useState<any[]>([]);
 
   const esInteresado = perfil === 'interesado' || perfil === 'ambos';
   const esPropietario = perfil === 'propietario' || perfil === 'ambos';
@@ -235,6 +236,16 @@ const Profile: React.FC = () => {
         }
 
         setServerData(data);
+
+        // Si el usuario es propietario, cargamos sus inmuebles
+        if (data.vendedorId && (data.role === 'ROLE_VENDEDOR' || data.role === 'ROLE_AMBOS')) {
+          try {
+            const inmRes = await fetch(`${API_BASE}/inmuebles/vendedor/${data.vendedorId}`, {
+              headers: token ? { Authorization: `Bearer ${token}` } : {},
+            });
+            if (inmRes.ok) setMisInmuebles(await inmRes.json());
+          } catch { /* ignoramos si falla */ }
+        }
 
         // Pre-rellenar el formulario con los datos actuales
         setPerfil(roleToPerfil(data.role));
@@ -523,6 +534,14 @@ const Profile: React.FC = () => {
 
   return (
     <main data-header-transparent data-footer-hidden className="profile-section">
+      {/* HERO */}
+      <section className="profile-hero">
+        <div className="profile-hero__content">
+          <h1 className="profile-hero__titulo">Mi perfil</h1>
+          <p className="profile-hero__sub">Gestiona tus datos y preferencias</p>
+        </div>
+      </section>
+
       <div className="profile-section__container">
 
         {/* BOTÓN VOLVER (ESTILO GHOST DE TU SISTEMA) */}
@@ -546,7 +565,7 @@ const Profile: React.FC = () => {
             />
           </div>
           <div className="profile-header__info">
-            <h1>Mi Perfil</h1>
+            <h2>Mi Perfil</h2>
             <p>Gestiona tu información personal y tus preferencias.</p>
           </div>
         </header>
@@ -832,21 +851,105 @@ const Profile: React.FC = () => {
 
               {/* PROPIETARIO */}
               {esPropietario && (
-                <fieldset className="profile-card fade-in">
-                  <legend>Tu propiedad</legend>
-                  <div className="profile-card__row--full">
-                    <div className="profile-card__group">
-                      <label htmlFor="observacionesVendedor">Detalles de tu propiedad</label>
-                      <textarea
-                        id="observacionesVendedor"
-                        name="observacionesVendedor"
-                        value={formData.observacionesVendedor}
-                        onChange={handleChange}
-                        placeholder="Ej: Piso en el centro, 3 habitaciones, terraza..."
-                      />
+                <>
+                  <fieldset className="profile-card fade-in">
+                    <legend>Datos como propietario</legend>
+                    <div className="profile-card__row--full">
+                      <div className="profile-card__group">
+                        <label htmlFor="observacionesVendedor">Observaciones sobre tu propiedad</label>
+                        <textarea
+                          id="observacionesVendedor"
+                          name="observacionesVendedor"
+                          value={formData.observacionesVendedor}
+                          onChange={handleChange}
+                          placeholder="Ej: Piso en el centro, 3 habitaciones, terraza..."
+                        />
+                      </div>
                     </div>
-                  </div>
-                </fieldset>
+                  </fieldset>
+
+                  {/* MIS INMUEBLES — solo visible para propietarios */}
+                  <fieldset className="profile-card fade-in">
+                    <legend>Mis inmuebles con JerezSur</legend>
+                    {misInmuebles.length === 0 ? (
+                      <div style={{ textAlign: 'center', padding: '2rem 1rem', color: '#6b7280' }}>
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             strokeWidth="1.5" style={{ opacity: 0.4, marginBottom: '0.75rem', display: 'block', margin: '0 auto 0.75rem' }} aria-hidden="true">
+                          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                          <polyline points="9 22 9 12 15 12 15 22"/>
+                        </svg>
+                        <p style={{ margin: 0 }}>Aún no tienes inmuebles registrados con nosotros.</p>
+                        <p style={{ margin: '0.5rem 0 0', fontSize: '0.875rem' }}>
+                          Contacta con nosotros para empezar a vender tu propiedad.
+                        </p>
+                        <Link to="/contacto" className="btn btn--primary" style={{ marginTop: '1rem', display: 'inline-flex' }}>
+                          Contactar
+                        </Link>
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                        {misInmuebles.map((inm: any) => {
+                          const precio = new Intl.NumberFormat('es-ES').format(inm.precio ?? 0);
+                          const op = inm.operacion === 'ALQUILER' ? `${precio} €/mes` : `${precio} €`;
+                          const badgeColor = inm.estado === 'DISPONIBLE' ? '#2e9b4d'
+                            : inm.estado === 'RESERVADO' ? '#e6a700' : '#6b7280';
+                          return (
+                            <Link
+                              key={inm.id}
+                              to={`/inmuebles/${inm.id}`}
+                              style={{
+                                display: 'flex', gap: '1rem', alignItems: 'center',
+                                padding: '1rem', borderRadius: '12px',
+                                border: '1px solid #e5e7eb', background: '#fff',
+                                textDecoration: 'none', color: 'inherit',
+                                transition: 'box-shadow 0.2s, border-color 0.2s',
+                              }}
+                              onMouseEnter={e => {
+                                (e.currentTarget as HTMLAnchorElement).style.boxShadow = '0 4px 16px rgba(0,67,156,0.1)';
+                                (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(0,67,156,0.25)';
+                              }}
+                              onMouseLeave={e => {
+                                (e.currentTarget as HTMLAnchorElement).style.boxShadow = 'none';
+                                (e.currentTarget as HTMLAnchorElement).style.borderColor = '#e5e7eb';
+                              }}
+                            >
+                              {inm.imagenPortadaUrl ? (
+                                <img src={inm.imagenPortadaUrl} alt={inm.titulo}
+                                     style={{ width: 80, height: 64, objectFit: 'cover', borderRadius: 8, flexShrink: 0 }} />
+                              ) : (
+                                <div style={{ width: 80, height: 64, background: '#f1f5f9', borderRadius: 8, flexShrink: 0 }} />
+                              )}
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <p style={{ margin: 0, fontWeight: 700, fontSize: '0.95rem',
+                                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                  {inm.titulo}
+                                </p>
+                                <p style={{ margin: '2px 0', fontSize: '0.82rem', color: '#6b7280' }}>
+                                  {[inm.zona, inm.ciudad].filter(Boolean).join(', ')}
+                                  {inm.habitaciones ? ` · ${inm.habitaciones} hab.` : ''}
+                                  {inm.superficieUtil ? ` · ${inm.superficieUtil} m²` : ''}
+                                </p>
+                              </div>
+                              <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                                <p style={{ margin: 0, fontWeight: 800, color: '#00439c', fontSize: '1rem' }}>
+                                  {op}
+                                </p>
+                                <span style={{
+                                  display: 'inline-block', marginTop: 4,
+                                  padding: '2px 8px', borderRadius: 999,
+                                  fontSize: '0.72rem', fontWeight: 700,
+                                  background: `${badgeColor}18`, color: badgeColor,
+                                }}>
+                                  {inm.estado}
+                                </span>
+                              </div>
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </fieldset>
+                </>
               )}
             </div>
           )}

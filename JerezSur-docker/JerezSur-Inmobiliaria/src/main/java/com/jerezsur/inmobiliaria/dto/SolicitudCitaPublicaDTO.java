@@ -14,8 +14,9 @@ public class SolicitudCitaPublicaDTO {
     @Size(min = 2, max = 100)
     private String nombre;
 
-    @NotBlank(message = "El teléfono es obligatorio")
-    @Pattern(regexp = "^[0-9+\\s-]{9,20}$", message = "El formato del teléfono no es válido")
+    // El teléfono es opcional cuando el usuario ya está autenticado (se identifica por su cuenta)
+    // @Pattern solo aplica si el valor no es nulo/vacío para no bloquear usuarios logueados sin teléfono
+    @Pattern(regexp = "^$|^[0-9+\\s-]{9,20}$", message = "El formato del teléfono no es válido")
     private String telefono;
 
     @Email(message = "El formato del email no es válido")

@@ -1,7 +1,10 @@
+// Modal que lista los contratos de una operación y permite crear nuevos.
+// Usa la API para cargar el listado de trabajadores como selector dinámico.
 import { useState, useEffect } from 'react';
 import type { OperacionBase, ContratoDetalle, CrearContratoData, ModeloContrato } from '../../../types/operacion';
 import { contratoService } from '../../../services/contratoService';
 import { descargarPdfCifrado } from '../Inmuebles/_shared';
+import api from '../../../services/api';
 import '../../../styles/App.scss';
 
 interface Props {
@@ -23,12 +26,17 @@ const ESTADO_LABEL: Record<string, string> = {
 
 const hoy = () => new Date().toISOString().slice(0, 10);
 
+interface TrabajadorSimple { id: number; cargo: string; usuario?: { nombre?: string; email?: string } }
+
 export const ContratosModal = ({ operacion, onCerrar }: Props) => {
   const [contratos, setContratos] = useState<ContratoDetalle[]>([]);
   const [cargando, setCargando] = useState(true);
   const [mostrarForm, setMostrarForm] = useState(false);
   const [guardando, setGuardando] = useState(false);
+  // Contrato seleccionado para ver sus detalles al clicar en la fila
+  const [contratoDetalle, setContratoDetalle] = useState<ContratoDetalle | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [trabajadores, setTrabajadores] = useState<TrabajadorSimple[]>([]);
 
   const [form, setForm] = useState<CrearContratoData>({
     modelo: operacion.categoria_operacion === 'ALQUILER' ? 'ALQUILER_VIVIENDA' : 'ARRAS',
@@ -50,6 +58,13 @@ export const ContratosModal = ({ operacion, onCerrar }: Props) => {
   };
 
   useEffect(() => { cargar(); }, [operacion.id]);
+
+  // Carga la lista de trabajadores para el selector del formulario de contrato
+  useEffect(() => {
+    api.get('/trabajadores?size=50&sortBy=id&sortDir=asc')
+      .then(r => setTrabajadores(r.data?.content ?? []))
+      .catch(() => setTrabajadores([]));
+  }, []);
 
   const handleCrear = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,30 +124,23 @@ export const ContratosModal = ({ operacion, onCerrar }: Props) => {
                 </thead>
                 <tbody>
                   {contratos.map(c => (
-                    <tr key={c.id}>
+                    <tr key={c.id}
+                        onClick={() => setContratoDetalle(c)}
+                        style={{ cursor: 'pointer' }}
+                        title="Clic para ver detalles del contrato">
                       <td><code>{c.id}</code></td>
                       <td>{MODELO_LABEL[c.modelo] ?? c.modelo}</td>
                       <td>{ESTADO_LABEL[c.estado] ?? c.estado}</td>
                       <td>{c.fechaFirma}</td>
-                      <td style={{ maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {c.clausulasEspeciales || '—'}
-                      </td>
                       <td>
-                        {c.urlDocumentoPdf
-                          ? (
-                            <button
-                              type="button"
-                              onClick={() => descargarPdfCifrado(c.urlDocumentoPdf!)}
-                              style={{
-                                background: 'none', border: 'none', cursor: 'pointer',
-                                color: '#0d6efd', textDecoration: 'underline', padding: 0,
-                                fontSize: 'inherit',
-                              }}
-                            >
-                              🔒 Ver PDF
-                            </button>
-                          )
-                          : '—'}
+                        {c.urlDocumentoPdf ? (
+                          <button type="button"
+                            onClick={e => { e.stopPropagation(); descargarPdfCifrado(c.urlDocumentoPdf!); }}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer',
+                              color: '#0d6efd', textDecoration: 'underline', padding: 0 }}>
+                            🔒 PDF
+                          </button>
+                        ) : '—'}
                       </td>
                     </tr>
                   ))}
@@ -181,14 +189,19 @@ export const ContratosModal = ({ operacion, onCerrar }: Props) => {
               </div>
 
               <div className="form-group">
-                <label>ID del trabajador responsable (opcional)</label>
-                <input
-                  type="number"
-                  min="1"
-                  placeholder="Dejar vacío si no aplica"
+                <label>Trabajador responsable (opcional)</label>
+                <select
                   value={form.trabajadorId ?? ''}
                   onChange={e => setForm(f => ({ ...f, trabajadorId: e.target.value ? Number(e.target.value) : undefined }))}
-                />
+                >
+                  <option value="">— Sin asignar —</option>
+                  {trabajadores.map(t => (
+                    <option key={t.id} value={t.id}>
+                      {t.usuario?.nombre || t.usuario?.email || `Trabajador #${t.id}`}
+                      {t.cargo ? ` · ${t.cargo}` : ''}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
@@ -209,6 +222,76 @@ export const ContratosModal = ({ operacion, onCerrar }: Props) => {
           <button className="btn btn-ghost" onClick={onCerrar}>Cerrar</button>
         </div>
       </div>
+
+      {/* Panel de detalles del contrato seleccionado */}
+      {contratoDetalle && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 300,
+        }} onClick={() => setContratoDetalle(null)}>
+          <div style={{
+            background: 'white', borderRadius: 14, padding: '1.75rem',
+            maxWidth: 520, width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
+          }} onClick={e => e.stopPropagation()}>
+
+            {/* Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+              <div>
+                <h3 style={{ margin: 0, color: '#00439c' }}>Contrato #{contratoDetalle.id}</h3>
+                <p style={{ margin: '2px 0 0', fontSize: '0.85rem', color: '#6b7280' }}>
+                  {MODELO_LABEL[contratoDetalle.modelo] ?? contratoDetalle.modelo}
+                </p>
+              </div>
+              <span style={{
+                padding: '4px 12px', borderRadius: 999, fontSize: '0.75rem', fontWeight: 700,
+                background: contratoDetalle.estado === 'FIRMADO' ? 'rgba(46,155,77,0.12)' :
+                            contratoDetalle.estado === 'PENDIENTE_FIRMA' ? 'rgba(230,167,0,0.12)' :
+                            contratoDetalle.estado === 'CANCELADO' ? 'rgba(217,83,79,0.12)' : 'rgba(107,114,128,0.1)',
+                color: contratoDetalle.estado === 'FIRMADO' ? '#1e7a3a' :
+                       contratoDetalle.estado === 'PENDIENTE_FIRMA' ? '#b07f00' :
+                       contratoDetalle.estado === 'CANCELADO' ? '#a32522' : '#6b7280',
+              }}>
+                {ESTADO_LABEL[contratoDetalle.estado] ?? contratoDetalle.estado}
+              </span>
+            </div>
+
+            {/* Campos */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.25rem' }}>
+              <div>
+                <label style={{ fontSize: '0.75rem', fontWeight: 600, color: '#6b7280', display: 'block', marginBottom: 4 }}>Fecha de firma</label>
+                <p style={{ margin: 0, fontWeight: 600 }}>{contratoDetalle.fechaFirma || '—'}</p>
+              </div>
+              <div>
+                <label style={{ fontSize: '0.75rem', fontWeight: 600, color: '#6b7280', display: 'block', marginBottom: 4 }}>Documento PDF</label>
+                {contratoDetalle.urlDocumentoPdf ? (
+                  <button type="button" onClick={() => descargarPdfCifrado(contratoDetalle.urlDocumentoPdf!)}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#0d6efd',
+                      textDecoration: 'underline', padding: 0, fontSize: '0.9rem', fontWeight: 600 }}>
+                    🔒 Ver documento
+                  </button>
+                ) : (
+                  <p style={{ margin: 0, color: '#94a3b8' }}>Sin documento</p>
+                )}
+              </div>
+            </div>
+
+            {contratoDetalle.clausulasEspeciales && (
+              <div style={{ marginBottom: '1.25rem' }}>
+                <label style={{ fontSize: '0.75rem', fontWeight: 600, color: '#6b7280', display: 'block', marginBottom: 4 }}>Cláusulas especiales</label>
+                <p style={{ margin: 0, background: '#f8fafc', padding: '0.75rem', borderRadius: 8,
+                  fontSize: '0.9rem', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
+                  {contratoDetalle.clausulasEspeciales}
+                </p>
+              </div>
+            )}
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <button className="btn btn-ghost" onClick={() => setContratoDetalle(null)}>Cerrar</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

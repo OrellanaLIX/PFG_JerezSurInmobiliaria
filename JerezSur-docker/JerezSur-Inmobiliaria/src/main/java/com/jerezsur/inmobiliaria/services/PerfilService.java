@@ -382,10 +382,34 @@ public class PerfilService {
             usuario.setNombre(nombre.trim());
         if (apellidos != null && !apellidos.isBlank())
             usuario.setApellidos(apellidos.trim());
-        if (telefono != null && !telefono.isBlank())
-            usuario.setTelefono(telefono.trim());
-        if (email != null && !email.isBlank())
-            usuario.setEmail(email.trim().toLowerCase());
+
+        // Verificar que el teléfono no esté ya registrado en OTRO usuario antes de actualizar
+        if (telefono != null && !telefono.isBlank()) {
+            String telefonoNormalizado = telefono.trim();
+            usuarioRepository.findByTelefono(telefonoNormalizado)
+                    .ifPresent(existente -> {
+                        if (!existente.getId().equals(usuario.getId())) {
+                            throw new BusinessValidationException(
+                                "El teléfono " + telefonoNormalizado + " ya está registrado en otra cuenta. "
+                                + "Por favor, usa un número de teléfono diferente.");
+                        }
+                    });
+            usuario.setTelefono(telefonoNormalizado);
+        }
+
+        if (email != null && !email.isBlank()) {
+            String emailNormalizado = email.trim().toLowerCase();
+            // Verificar email duplicado también
+            usuarioRepository.findByEmail(emailNormalizado)
+                    .ifPresent(existente -> {
+                        if (!existente.getId().equals(usuario.getId())) {
+                            throw new BusinessValidationException(
+                                "El email " + emailNormalizado + " ya está registrado en otra cuenta.");
+                        }
+                    });
+            usuario.setEmail(emailNormalizado);
+        }
+
         if (dni != null && !dni.isBlank())
             usuario.setDni(dni.trim().toUpperCase());
         if (imagenPerfilUrl != null)

@@ -1,6 +1,56 @@
 @use '../../styles/globals/_Variables' as *;
 
 /* ═══════════════════════════════════════════════════════════════════════════════
+   SISTEMA DE BADGES / PILLS UNIFICADO
+   Uso: <span class="badge badge--success">Activo</span>
+   Compatible con los nombres de clase existentes en los .tsx
+═══════════════════════════════════════════════════════════════════════════════ */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  line-height: 1.4;
+  white-space: nowrap;
+
+  // Variante éxito / activo
+  &--success {
+    background: rgba(#2e9b4d, 0.12);
+    color: #1e7a3a;
+  }
+
+  // Variante advertencia / pendiente
+  &--warning {
+    background: rgba(#e6a700, 0.12);
+    color: #b07f00;
+  }
+
+  // Variante error / inactivo / rechazado
+  &--error {
+    background: rgba(#d9534f, 0.12);
+    color: #a32522;
+  }
+
+  // Variante informativa / en proceso
+  &--info {
+    background: rgba(#00439c, 0.10);
+    color: #00439c;
+  }
+
+  // Variante apagada / archivado / desconocido
+  &--muted {
+    background: rgba(0, 0, 0, 0.06);
+    color: #6b7280;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
    PROPERTY CARDS
 ═══════════════════════════════════════════════════════════════════════════════ */
 

@@ -4,6 +4,7 @@ import { Outlet } from 'react-router-dom';
 import Header from './Header';
 import Footer from './Footer';
 import ScrollToTop from './ScrollToTop';
+import BackToTop from '../ui/BackToTop';
 import { ToastProvider } from '../ui/Toast';
 
 export const PublicLayout = () => {
@@ -20,6 +21,8 @@ export const PublicLayout = () => {
         <Outlet />
       </main>
       <Footer />
+      {/* Botón flotante para volver al inicio de la página */}
+      <BackToTop />
     </ToastProvider>
   );
 };

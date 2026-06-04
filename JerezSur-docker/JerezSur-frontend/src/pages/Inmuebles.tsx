@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import PropertyCard from '../components/inmuebles/PropertyCard';
+import PropertyCardSkeleton from '../components/inmuebles/PropertyCardSkeleton';
 import PropertyFilters from '../components/inmuebles/PropertyFilters';
 import '../styles/Inmuebles.scss';
 import { useSEO } from '../hooks/useSEO';
@@ -164,19 +165,23 @@ const Inmuebles = () => {
   const [properties, setProperties] = useState<Property[]>([]);
   const [filteredProperties, setFilteredProperties] = useState<Property[]>([]);
 
-  // Inicializa filtros desde los parámetros de URL (ej: desde el buscador de Home)
-  const [filters, setFilters] = useState<FilterOptions>(() => ({
-    operation: operacionToFilter(searchParams.get('operacion')),
-    propertyType: '',
-    zone: searchParams.get('zona') ?? '',
-    minPrice: '',
-    maxPrice: searchParams.get('precioMax') ?? '',
-    minBeds: '',
-    minBaths: '',
-    minArea: '',
-    maxArea: '',
-    features: [],
-  }));
+  // Inicializa filtros leyendo directamente de window.location.search para evitar
+  // problemas de timing de React Router cuando se navega desde el buscador de Home.
+  const [filters, setFilters] = useState<FilterOptions>(() => {
+    const p = new URLSearchParams(window.location.search);
+    return {
+      operation: operacionToFilter(p.get('operacion')),
+      propertyType: '',
+      zone: p.get('zona') ?? '',
+      minPrice: '',
+      maxPrice: p.get('precioMax') ?? '',
+      minBeds: p.get('habitaciones') ?? '',
+      minBaths: '',
+      minArea: '',
+      maxArea: p.get('superficieMax') ?? '',
+      features: [],
+    };
+  });
 
   const [sortBy, setSortBy] = useState<SortOption>('recent');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -381,6 +386,15 @@ const Inmuebles = () => {
 
   return (
     <main className="inmuebles">
+      {/* HERO COMPACTO */}
+      <section className="inmuebles-hero" aria-label="Catálogo de inmuebles">
+        <div className="inmuebles-hero__content">
+          <span className="inmuebles-hero__eyebrow">Catálogo de propiedades</span>
+          <h1 className="inmuebles-hero__titulo">Inmuebles en Jerez de la Frontera</h1>
+          <p className="inmuebles-hero__subtitulo">Pisos, casas, chalets y locales en venta y alquiler</p>
+        </div>
+      </section>
+
       {/* BARRA DE HERRAMIENTAS */}
       <section className="inmuebles-toolbar">
         <div className="inmuebles-toolbar__container">
@@ -482,15 +496,25 @@ const Inmuebles = () => {
 
           {/* CONTENEDOR DE TARJETAS / ESTADOS */}
           <div className="inmuebles-main">
-            {error ? (
+            {loading ? (
+              // Skeleton: muestra 6 tarjetas animadas mientras se cargan los datos reales
+              <div className={`inmuebles-grid inmuebles-grid--${viewMode}`}>
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <PropertyCardSkeleton key={i} viewMode={viewMode} />
+                ))}
+              </div>
+            ) : error ? (
               <div className="inmuebles-empty inmuebles-empty--error">
                 <div className="inmuebles-empty__icon-wrapper">
-                  <i className="fas fa-exclamation-triangle"></i>
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+                    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/>
+                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                  </svg>
                 </div>
                 <h3>Error al cargar inmuebles</h3>
                 <p>{error}</p>
                 <button className="btn btn--primary" onClick={() => window.location.reload()}>
-                  <i className="fas fa-sync-alt"></i> Reintentar
+                  Reintentar
                 </button>
               </div>
             ) : filteredProperties.length > 0 ? (
@@ -502,15 +526,16 @@ const Inmuebles = () => {
             ) : (
               <div className="inmuebles-empty">
                 <div className="inmuebles-empty__icon-wrapper">
-                  <i className="fas fa-folder-open"></i>
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                    <polyline points="9 22 9 12 15 12 15 22"/>
+                  </svg>
                 </div>
                 <h3>No se encontraron inmuebles</h3>
-                <p>{loading ? 'Buscando en la base de datos...' : 'Intenta ajustar o limpiar los filtros para ver más resultados.'}</p>
-                {!loading && (
-                  <button className="btn btn--primary" onClick={handleClearFilters}>
-                    Limpiar filtros
-                  </button>
-                )}
+                <p>Intenta ajustar o limpiar los filtros para ver más resultados.</p>
+                <button className="btn btn--primary" onClick={handleClearFilters}>
+                  Limpiar filtros
+                </button>
               </div>
             )}
           </div>

@@ -1,8 +1,9 @@
 import { useState } from 'react';
+import { toast } from 'react-toastify';
 import type { OperacionDetalle, EstadoOperacion, RolParticipante } from '../../../types/operacion';
 import '../../../styles/App.scss';
 
-type Tab = 'datos' | 'inmueble' | 'interesados';
+type Tab = 'datos' | 'inmueble' | 'interesados' | 'contratos';
 
 interface Props {
   operacion: OperacionDetalle | null;
@@ -13,140 +14,338 @@ interface Props {
 }
 
 const ETIQUETA_ESTADO: Record<EstadoOperacion, string> = {
-  ABIERTA: '⚪ Abierta',
-  EN_TRAMITE: '🟡 En Trámite',
-  CERRADA: '🟢 Cerrada',
-  CANCELADA: '🔴 Cancelada',
+  ABIERTA:    'Abierta',
+  EN_TRAMITE: 'En Trámite',
+  CERRADA:    'Cerrada',
+  CANCELADA:  'Cancelada',
+};
+
+const COLOR_ESTADO: Record<EstadoOperacion, 'blue' | 'green' | 'amber' | 'gray' | 'red'> = {
+  ABIERTA:    'blue',
+  EN_TRAMITE: 'amber',
+  CERRADA:    'green',
+  CANCELADA:  'gray',
 };
 
 const ETIQUETA_ROL: Record<RolParticipante, string> = {
-  TITULAR: 'Titular',
+  TITULAR:   'Titular',
   APODERADO: 'Apoderado',
-  AVALISTA: 'Avalista',
+  AVALISTA:  'Avalista',
 };
+
+const Badge = ({ text, color }: { text: string; color: 'blue' | 'green' | 'amber' | 'gray' | 'red' }) => (
+  <span className={`badge badge--${color}`}>{text}</span>
+);
+
+const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
+  <div className="form-field">
+    <label className="form-field__label">{label}</label>
+    {children}
+  </div>
+);
 
 export const DetalleOperacionModal = ({ operacion, loading, onCerrar, onActualizarEstado, onEliminar }: Props) => {
   const [tab, setTab] = useState<Tab>('datos');
+  const [guardando, setGuardando] = useState(false);
+  // Estado local editable para el select — no se persiste hasta "Guardar cambios"
+  const [estadoSeleccionado, setEstadoSeleccionado] = useState<EstadoOperacion | null>(null);
 
   if (loading || !operacion) {
     return (
       <div className="form-modal show">
-        <div className="form-modal__backdrop" onClick={onCerrar} />
-        <div className="form-modal__content" style={{ maxWidth: '480px' }}>
-          <p style={{ textAlign: 'center', padding: '2rem' }}>Cargando expediente...</p>
+        <div className="form-modal__content">
+          <p className="text-soft">Cargando expediente...</p>
         </div>
       </div>
     );
   }
 
-  const isVenta = operacion.categoria_operacion === 'VENTA';
-  const venta = isVenta ? (operacion as any) : null;
-  const alquiler = !isVenta ? (operacion as any) : null;
+  const isVenta   = operacion.categoria_operacion === 'VENTA';
+  const venta     = isVenta ? (operacion as any) : null;
+  const alquiler  = !isVenta ? (operacion as any) : null;
+
+  // Inicializar estadoSeleccionado la primera vez que operacion esté disponible
+  const estadoActivo = estadoSeleccionado ?? operacion.estadoActual;
+
+  const interesadosEntries = Object.entries(operacion.compradoresRol);
+  const contratosArr       = operacion.documentos ?? [];
+
+  const procesarAccion = async (
+    accionFn: () => Promise<void>,
+    msgExito: string,
+    debeCerrar = false,
+  ) => {
+    setGuardando(true);
+    try {
+      await accionFn();
+      toast.success(msgExito);
+      if (debeCerrar) onCerrar();
+    } catch (error: any) {
+      const msg = error?.response?.data?.message ?? 'No se pudo completar la acción.';
+      toast.error(`Error: ${msg}`);
+    } finally {
+      setGuardando(false);
+    }
+  };
+
+  const guardarEstado = () => {
+    procesarAccion(
+      () => onActualizarEstado(operacion.id, estadoActivo),
+      `Estado actualizado a: ${ETIQUETA_ESTADO[estadoActivo]}`,
+    );
+  };
+
+  const manejarEliminar = () => {
+    if (!confirm('¿Eliminar este expediente permanentemente? Esta acción no se puede deshacer.')) return;
+    procesarAccion(
+      () => onEliminar(operacion.id),
+      'Expediente eliminado correctamente.',
+      true,
+    );
+  };
 
   return (
     <div className="form-modal show">
-      <div className="form-modal__backdrop" onClick={onCerrar} />
-      <div className="form-modal__content" style={{ maxWidth: '680px' }} onClick={e => e.stopPropagation()}>
+      <div className="form-modal__content">
 
-        <div className="form-modal__header">
-          <h2>Expediente EXP-{operacion.id}</h2>
-          <button className="btn btn-ghost" onClick={onCerrar}>✕</button>
+        {/* Header */}
+        <div className="modal-header">
+          <div>
+            <h2 className="modal-title">Operación #{operacion.id}</h2>
+            <p style={{ margin: 0, color: '#6c757d', fontSize: '0.9rem' }}>
+              {isVenta ? 'Compraventa' : 'Arrendamiento'} · Ref. {operacion.inmuebleReferencia}
+            </p>
+          </div>
+          <div className="modal-badges">
+            <Badge
+              text={isVenta ? 'VENTA' : 'ALQUILER'}
+              color={isVenta ? 'blue' : 'amber'}
+            />
+            <Badge
+              text={ETIQUETA_ESTADO[operacion.estadoActual]}
+              color={COLOR_ESTADO[operacion.estadoActual]}
+            />
+          </div>
         </div>
 
+        {/* Tabs */}
+        <div className="tabs" role="tablist">
+          {(['datos', 'inmueble', 'interesados', 'contratos'] as Tab[]).map(t => (
+            <button
+              key={t}
+              type="button"
+              className={`tab ${tab === t ? 'active' : ''}`}
+              onClick={() => setTab(t)}
+            >
+              {{
+                datos:       'Operación',
+                inmueble:    'Inmueble',
+                interesados: `Interesados${interesadosEntries.length > 0 ? ` (${interesadosEntries.length})` : ''}`,
+                contratos:   `Contratos${contratosArr.length > 0 ? ` (${contratosArr.length})` : ''}`,
+              }[t]}
+            </button>
+          ))}
+        </div>
+
+        {/* Body */}
         <div className="form-modal__body">
-          <div className="tabs" role="tablist">
-            {(['datos', 'inmueble', 'interesados'] as Tab[]).map(t => (
-              <button key={t} type="button"
-                className={`tab ${tab === t ? 'active' : ''}`}
-                onClick={() => setTab(t)}>
-                {{ datos: 'Operación', inmueble: 'Inmueble', interesados: 'Interesados' }[t]}
-              </button>
-            ))}
-          </div>
 
-          {/* ---- PESTAÑA OPERACIÓN ---- */}
+          {/* ── PESTAÑA OPERACIÓN ── */}
           {tab === 'datos' && (
-            <div className="detail-panel">
-              <p><strong>Tipo:</strong> {operacion.categoria_operacion}</p>
-              <p><strong>Precio acordado:</strong> {operacion.precioAcordado.toLocaleString('es-ES')} €</p>
+            <>
+              <div className="form-row">
+                <Field label="Tipo de operación">
+                  <input type="text" readOnly value={isVenta ? 'Compraventa' : 'Arrendamiento'} />
+                </Field>
+                <Field label="Precio acordado (€)">
+                  <input type="text" readOnly value={operacion.precioAcordado.toLocaleString('es-ES')} />
+                </Field>
+              </div>
 
-              <div style={{ margin: '0.75rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <strong>Estado:</strong>
+              <Field label="Estado del expediente">
                 <select
-                  value={operacion.estadoActual}
-                  onChange={e => onActualizarEstado(operacion.id, e.target.value as EstadoOperacion)}
+                  value={estadoActivo}
+                  disabled={guardando}
+                  onChange={e => setEstadoSeleccionado(e.target.value as EstadoOperacion)}
                 >
                   {(Object.keys(ETIQUETA_ESTADO) as EstadoOperacion[]).map(e => (
                     <option key={e} value={e}>{ETIQUETA_ESTADO[e]}</option>
                   ))}
                 </select>
-              </div>
+              </Field>
 
+              {/* Datos específicos de venta */}
               {isVenta && (
-                <fieldset className="inmueble-fieldset">
-                  <legend>Datos de compraventa</legend>
-                  <p>Depósito de arras: {venta.depositoArras != null ? `${Number(venta.depositoArras).toLocaleString('es-ES')} €` : 'No especificado'}</p>
-                  <p>Fecha límite escritura: {venta.fechaLimiteEscritura ?? 'No especificada'}</p>
-                  <p>Incluye mobiliario: {venta.incluyeMobiliario ? 'Sí' : 'No'}</p>
-                </fieldset>
+                <>
+                  <div className="form-row">
+                    <Field label="Depósito de arras (€)">
+                      <input
+                        type="text"
+                        readOnly
+                        value={venta.depositoArras != null
+                          ? Number(venta.depositoArras).toLocaleString('es-ES')
+                          : 'No especificado'}
+                      />
+                    </Field>
+                    <Field label="Fecha límite escritura">
+                      <input
+                        type="text"
+                        readOnly
+                        value={venta.fechaLimiteEscritura ?? 'No especificada'}
+                      />
+                    </Field>
+                  </div>
+                  <Field label="¿Incluye mobiliario?">
+                    <input type="text" readOnly value={venta.incluyeMobiliario ? 'Sí' : 'No'} />
+                  </Field>
+                </>
               )}
 
+              {/* Datos específicos de alquiler */}
               {!isVenta && (
-                <fieldset className="inmueble-fieldset">
-                  <legend>Datos de arrendamiento</legend>
-                  <p>Fianza: {alquiler.fianza != null ? `${Number(alquiler.fianza).toLocaleString('es-ES')} €` : 'No especificada'}</p>
-                  <p>Duración: {alquiler.duracionMeses ?? '—'} meses</p>
-                  <p>Admite mascotas: {alquiler.admiteMascotas ? 'Sí' : 'No'}</p>
-                </fieldset>
+                <>
+                  <div className="form-row">
+                    <Field label="Fianza (€)">
+                      <input
+                        type="text"
+                        readOnly
+                        value={alquiler.fianza != null
+                          ? Number(alquiler.fianza).toLocaleString('es-ES')
+                          : 'No especificada'}
+                      />
+                    </Field>
+                    <Field label="Duración del contrato">
+                      <input
+                        type="text"
+                        readOnly
+                        value={alquiler.duracionMeses != null
+                          ? `${alquiler.duracionMeses} meses`
+                          : 'No especificada'}
+                      />
+                    </Field>
+                  </div>
+                  <Field label="¿Admite mascotas?">
+                    <input type="text" readOnly value={alquiler.admiteMascotas ? 'Sí' : 'No'} />
+                  </Field>
+                </>
               )}
-            </div>
+
+              <div className="form-actions">
+                <button
+                  onClick={guardarEstado}
+                  disabled={guardando}
+                  className="btn btn-primary"
+                >
+                  {guardando ? 'Guardando...' : 'Guardar cambios'}
+                </button>
+              </div>
+            </>
           )}
 
-          {/* ---- PESTAÑA INMUEBLE ---- */}
+          {/* ── PESTAÑA INMUEBLE ── */}
           {tab === 'inmueble' && (
-            <div className="detail-panel">
-              <p><strong>Referencia:</strong> {operacion.inmuebleReferencia}</p>
-              <p><strong>ID inmueble:</strong> {operacion.inmuebleId}</p>
-              <p className="text-soft">Para modificar los datos del inmueble ve al módulo de Inmuebles.</p>
-            </div>
+            <>
+              <div className="form-row">
+                <Field label="Referencia interna">
+                  <input type="text" readOnly value={operacion.inmuebleReferencia} />
+                </Field>
+                <Field label="ID de inmueble">
+                  <input type="text" readOnly value={String(operacion.inmuebleId)} />
+                </Field>
+              </div>
+              <div className="alert alert-info" style={{ marginTop: '0.5rem' }}>
+                Para ver o modificar los datos completos del inmueble, navega al módulo de <strong>Gestión de Inmuebles</strong>.
+              </div>
+            </>
           )}
 
-          {/* ---- PESTAÑA INTERESADOS ---- */}
+          {/* ── PESTAÑA INTERESADOS ── */}
           {tab === 'interesados' && (
-            <div className="detail-panel">
-              {Object.keys(operacion.compradoresRol).length === 0 ? (
-                <p className="text-soft">No hay interesados registrados en esta operación.</p>
+            <>
+              {interesadosEntries.length === 0 ? (
+                <div className="info-box">
+                  No hay interesados registrados en esta operación.
+                </div>
               ) : (
-                <table style={{ width: '100%' }}>
-                  <thead>
-                    <tr><th>ID Interesado</th><th>Rol</th></tr>
-                  </thead>
-                  <tbody>
-                    {Object.entries(operacion.compradoresRol).map(([id, rol]) => (
-                      <tr key={id}>
-                        <td><code>{id}</code></td>
-                        <td>{ETIQUETA_ROL[rol as RolParticipante] ?? rol}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                  {interesadosEntries.map(([id, rol]) => (
+                    <div
+                      key={id}
+                      style={{
+                        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                        padding: '0.75rem 1rem', borderRadius: '6px',
+                        border: '1px solid #dee2e6', backgroundColor: '#f8f9fa',
+                      }}
+                    >
+                      <div>
+                        <span style={{ fontWeight: 500, fontSize: '0.9rem' }}>Interesado</span>
+                        <code style={{ marginLeft: '0.5rem', fontSize: '0.85rem', color: '#495057' }}>#{id}</code>
+                      </div>
+                      <Badge
+                        text={ETIQUETA_ROL[rol as RolParticipante] ?? rol}
+                        color="blue"
+                      />
+                    </div>
+                  ))}
+                </div>
               )}
-            </div>
+            </>
           )}
 
+          {/* ── PESTAÑA CONTRATOS ── */}
+          {tab === 'contratos' && (
+            <>
+              {contratosArr.length === 0 ? (
+                <div className="info-box">
+                  No hay contratos generados para este expediente todavía.
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                  {contratosArr.map((contrato: any) => (
+                    <div
+                      key={contrato.id}
+                      style={{
+                        padding: '0.75rem 1rem', borderRadius: '6px',
+                        border: '1px solid #dee2e6', backgroundColor: '#f8f9fa',
+                        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                        gap: '1rem',
+                      }}
+                    >
+                      <div>
+                        <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>
+                          {contrato.modelo === 'ARRAS'
+                            ? 'Contrato de Arras'
+                            : 'Contrato de Alquiler de Vivienda'}
+                        </div>
+                        <div style={{ fontSize: '0.8rem', color: '#6c757d', marginTop: '0.2rem' }}>
+                          Firmado: {contrato.fechaFirma ?? 'Pendiente'} · Estado: {contrato.estado ?? '—'}
+                        </div>
+                      </div>
+                      {contrato.urlDocumentoPdf ? (
+                        <a
+                          href={contrato.urlDocumentoPdf}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="btn btn-sm btn-outline"
+                          style={{ whiteSpace: 'nowrap', fontSize: '0.8rem' }}
+                        >
+                          Ver PDF
+                        </a>
+                      ) : (
+                        <span style={{ fontSize: '0.8rem', color: '#adb5bd' }}>Sin documento</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
         </div>
 
-        <div className="form-modal__footer">
-          <button
-            className="btn btn-danger"
-            onClick={async () => {
-              if (confirm('¿Eliminar este expediente permanentemente?')) {
-                await onEliminar(operacion.id);
-                onCerrar();
-              }
-            }}
-          >
-            Eliminar
+        {/* Footer */}
+        <div className="modal-footer">
+          <button onClick={manejarEliminar} disabled={guardando} className="btn btn-danger">
+            Eliminar expediente
           </button>
           <button className="btn btn-ghost" onClick={onCerrar}>Cerrar</button>
         </div>

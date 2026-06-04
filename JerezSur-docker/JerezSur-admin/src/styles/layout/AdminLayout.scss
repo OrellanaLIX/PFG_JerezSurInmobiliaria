@@ -39,14 +39,17 @@
     gap: $space-3;
     padding-bottom: $space-6;
     margin-bottom: $space-6;
-    border-bottom: 1px solid rgba($color-white, 0.2);
+    // Separador más elegante: línea con degradado sutil
+    border-bottom: 1px solid rgba($color-white, 0.15);
+    box-shadow: 0 1px 0 rgba($color-white, 0.05);
     cursor: pointer;
     font-size: $font-size-lg;
     font-weight: 600;
     transition: all $transition-base;
 
     &:hover {
-      opacity: 0.8;
+      opacity: 0.85;
+      transform: translateX(2px);
     }
 
     svg {
@@ -70,21 +73,54 @@
     align-items: center;
     gap: $space-3;
     padding: $space-3 $space-4;
+    // Posición relativa para el indicador lateral izquierdo
+    position: relative;
     color: rgba($color-white, 0.7);
     border-radius: $radius-sm;
-    transition: all $transition-base;
+    // Transición suave de fondo, color e indicador
+    transition: background-color $transition-smooth, color $transition-smooth, padding-left $transition-smooth;
     font-size: $font-size-sm;
     font-weight: 500;
+    overflow: hidden;
+
+    // Indicador lateral izquierdo (siempre presente, escalado a 0 por defecto)
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%) scaleY(0);
+      width: 3px;
+      height: 60%;
+      background-color: $color-secondary;
+      border-radius: 0 3px 3px 0;
+      transition: transform $transition-smooth;
+    }
 
     &:hover {
-      background-color: rgba($color-white, 0.1);
+      // Fondo más elegante con transición suave
+      background-color: rgba($color-white, 0.12);
       color: $color-white;
+      padding-left: calc(#{$space-4} + 4px);
+
+      &::before {
+        transform: translateY(-50%) scaleY(0.6);
+        background-color: rgba($color-white, 0.5);
+      }
     }
 
     &.active {
       background-color: $color-secondary;
       color: $color-white;
       font-weight: 600;
+      padding-left: calc(#{$space-4} + 6px);
+
+      // Indicador lateral izquierdo visible en el enlace activo
+      &::before {
+        transform: translateY(-50%) scaleY(1);
+        background-color: rgba($color-white, 0.9);
+        height: 70%;
+      }
     }
 
     @media (max-width: $tablet) {
@@ -93,7 +129,26 @@
       gap: $space-2;
       padding: $space-2 $space-3;
       font-size: $font-size-xs;
+
+      // El indicador lateral no tiene sentido en móvil horizontal
+      &::before { display: none; }
+      &:hover, &.active { padding-left: $space-3; }
     }
+  }
+
+  // Badge de notificaciones para el sidebar (ej: citas pendientes)
+  &__nav-link-badge {
+    margin-left: auto;
+    background: rgba(white, 0.25);
+    color: white;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 2px 7px;
+    min-width: 20px;
+    text-align: center;
+    // Efecto de pulso suave cuando hay notificaciones
+    animation: badgePulse 2.5s ease-in-out infinite;
   }
 
   &__content-wrapper {
@@ -108,10 +163,15 @@
     background-color: $color-surface;
     border-bottom: 1px solid $color-border;
     padding: $space-5 $space-6;
-    box-shadow: $shadow-xs;
+    // Sombra más elegante con mayor difusión
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
     display: flex;
     justify-content: flex-end;
     align-items: center;
+    // Separación visual del resto del layout
+    position: sticky;
+    top: 0;
+    z-index: 50;
 
     @media (max-width: $tablet) {
       padding: $space-4;
@@ -186,4 +246,14 @@
       font-size: $font-size-sm;
     }
   }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   ANIMACIONES DEL LAYOUT
+───────────────────────────────────────────────────────────── */
+
+// Pulso suave para los badges de notificaciones del sidebar
+@keyframes badgePulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.8; transform: scale(0.95); }
 }

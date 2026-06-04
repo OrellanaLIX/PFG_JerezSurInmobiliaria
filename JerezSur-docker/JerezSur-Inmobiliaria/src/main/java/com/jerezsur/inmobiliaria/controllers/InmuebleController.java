@@ -40,6 +40,19 @@ public class InmuebleController {
         return ResponseEntity.ok(inmuebleService.listarDestacadosDTO());
     }
 
+    // Sustituye la lista completa de destacados (máx 3) desde el panel de admin
+    @PutMapping("/destacados")
+    public ResponseEntity<Void> setDestacados(@RequestBody List<Long> ids) {
+        inmuebleService.setDestacados(ids);
+        return ResponseEntity.ok().build();
+    }
+
+    // Devuelve los inmuebles de un propietario/vendedor para su perfil
+    @GetMapping("/vendedor/{vendedorId}")
+    public ResponseEntity<List<InmuebleListadoDTO>> getByVendedor(@PathVariable Long vendedorId) {
+        return ResponseEntity.ok(inmuebleService.buscarPorVendedor(vendedorId));
+    }
+
     // Búsqueda con filtros y paginación — todos los parámetros son opcionales
     // Si no se manda ninguno, devuelve todos los inmuebles paginados
     @GetMapping

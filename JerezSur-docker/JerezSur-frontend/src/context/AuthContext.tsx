@@ -62,6 +62,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(null);
     localStorage.removeItem('usuario');
     localStorage.removeItem('token');
+    // Forzamos recarga completa para limpiar cualquier estado en memoria
+    // y garantizar que el usuario no pueda navegar atrás con datos de sesión
+    window.location.href = '/acceder';
   };
 
   return (

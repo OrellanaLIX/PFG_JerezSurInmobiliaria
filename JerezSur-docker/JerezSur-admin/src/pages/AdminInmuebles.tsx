@@ -125,6 +125,7 @@ const AdminInmuebles = () => {
           loading={loadingDetalle}
           onCerrar={limpiarSeleccionado}
           onEliminar={handleEliminar}
+          onActualizar={cargarDetalle}
         />
       )}
 

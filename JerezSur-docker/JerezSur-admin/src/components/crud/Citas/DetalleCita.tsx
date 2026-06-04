@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import type { Cita } from '../../../types/cita';
+import { toast } from 'react-toastify';
+import type { Cita, EstadoCita } from '../../../types/cita';
 import {
   formatearFechaHora,
   citaYaPasada,
@@ -7,17 +8,40 @@ import {
 } from '../../../utils/calendario';
 import '../../../styles/App.scss';
 
-type SeccionCita = 'informacion' | 'gestion';
+type SeccionCita = 'cita' | 'cliente' | 'gestion';
 
 interface DetalleCitaModalProps {
   cita: Cita;
-  loading?: boolean; // Añadido para igualar al patrón de referencia
+  loading?: boolean;
   onCerrar: () => void;
   onAceptar: (id: number) => Promise<void>;
   onCompletar: (id: number) => Promise<void>;
   onCancelar: (id: number) => Promise<void>;
   onNoPresentado: (id: number) => Promise<void>;
+  onActualizar?: (id: number, data: Partial<Cita>) => Promise<void>;
 }
+
+const Badge = ({ text, color }: { text: string; color: 'blue' | 'green' | 'amber' | 'gray' | 'red' }) => (
+  <span className={`badge badge--${color}`}>{text}</span>
+);
+
+const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
+  <div className="form-field">
+    <label className="form-field__label">{label}</label>
+    {children}
+  </div>
+);
+
+const mapearBadgeColor = (estado: EstadoCita): 'blue' | 'green' | 'amber' | 'gray' | 'red' => {
+  switch (estado) {
+    case 'CONFIRMADA': return 'blue';
+    case 'PENDIENTE_ASIGNACION': return 'amber';
+    case 'COMPLETADA': return 'green';
+    case 'CANCELADA': return 'gray';
+    case 'NO_PRESENTADO': return 'red';
+    default: return 'gray';
+  }
+};
 
 export const DetalleCitaModal = ({
   cita,
@@ -27,44 +51,64 @@ export const DetalleCitaModal = ({
   onCompletar,
   onCancelar,
   onNoPresentado,
+  onActualizar,
 }: DetalleCitaModalProps) => {
-  const [seccion, setSeccion] = useState<SeccionCita>('informacion');
-  const [procesandoAction, setProcesandoAction] = useState(false);
+  const [seccion, setSeccion] = useState<SeccionCita>('cita');
+  const [guardando, setGuardando] = useState(false);
+
+  // Extraemos fecha y hora del ISO para los inputs editables
+  const fechaISO = cita.fechaHora.slice(0, 10);    // "2026-05-25"
+  const horaISO  = cita.fechaHora.slice(11, 16);   // "17:30"
+
+  const [formCita, setFormCita] = useState({
+    fecha:  fechaISO,
+    hora:   horaISO,
+    motivo: cita.motivo ?? '',
+  });
 
   const pasada = citaYaPasada(cita);
+  const expedienteArchivado = ['COMPLETADA', 'CANCELADA', 'NO_PRESENTADO'].includes(cita.estado);
 
-  // --- Estado de Badge Inteligente ---
-  const mapearBadgeColor = (estado: string): 'blue' | 'green' | 'amber' | 'gray' => {
-    switch (estado) {
-      case 'CONFIRMADA': return 'green';
-      case 'PENDIENTE_ASIGNACION': return 'amber';
-      case 'COMPLETADA': return 'blue';
-      default: return 'gray'; // CANCELADA, NO_PRESENTADO
+  // ── Helper de acciones ──────────────────────────────────────────────
+  const procesarAccion = async (
+    accionFn: () => Promise<void>,
+    msgExito: string,
+    debeCerrar = false,
+  ) => {
+    setGuardando(true);
+    try {
+      await accionFn();
+      toast.success(msgExito);
+      if (debeCerrar) onCerrar();
+    } catch (error: any) {
+      const msg = error?.response?.data?.message ?? 'No se pudo completar la acción.';
+      toast.error(`Error: ${msg}`);
+    } finally {
+      setGuardando(false);
     }
   };
+
+  const guardarDatosCita = () => {
+    if (!formCita.fecha || !formCita.hora) return toast.warning('La fecha y hora son obligatorias.');
+    if (!onActualizar) return toast.warning('Esta cita no admite edición de datos.');
+    const nuevaFechaHora = `${formCita.fecha}T${formCita.hora}:00`;
+    procesarAccion(
+      () => onActualizar(cita.id, { fechaHora: nuevaFechaHora, motivo: formCita.motivo }),
+      'Datos de la cita actualizados correctamente.',
+    );
+  };
+
+  const handleAceptar      = () => procesarAccion(() => onAceptar(cita.id),       'Cita confirmada correctamente.', true);
+  const handleCompletar    = () => procesarAccion(() => onCompletar(cita.id),     'Cita marcada como completada.', true);
+  const handleCancelar     = () => procesarAccion(() => onCancelar(cita.id),      'Cita cancelada.', true);
+  const handleNoPresentado = () => procesarAccion(() => onNoPresentado(cita.id),  'Registrado: cliente no presentado.', true);
 
   const abrirWhatsApp = () => {
     const telefono = cita.telefonoCliente.replace(/[^0-9]/g, '');
-    const mensaje = `Hola ${cita.nombreCliente}, contactamos de JerezSur Inmobiliaria con relación a su cita agendada.`;
-    const url = `https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`;
-    window.open(url, '_blank', 'noopener,noreferrer');
+    const mensaje = `Hola ${cita.nombreCliente}, le contactamos desde JerezSur Inmobiliaria en relación a su cita agendada.`;
+    window.open(`https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`, '_blank', 'noopener,noreferrer');
   };
 
-  const llamar = () => {
-    window.location.href = `tel:${cita.telefonoCliente}`;
-  };
-
-  // Wrapper para controlar la asincronía en las acciones del footer/gestiones
-  const ejecutarAccion = async (callback: (id: number) => Promise<void>) => {
-    setProcesandoAction(true);
-    try {
-      await callback(cita.id);
-    } finally {
-      setProcesandoAction(false);
-    }
-  };
-
-  // Estado de carga inicial idéntico al del componente de referencia
   if (loading) return (
     <div className="form-modal show">
       <div className="form-modal__content">
@@ -76,171 +120,245 @@ export const DetalleCitaModal = ({
   return (
     <div className="form-modal show" role="dialog" aria-modal="true">
       <div className="form-modal__content">
-        
-        {/* Header con Badges de Estado */}
+
+        {/* Header */}
         <div className="modal-header">
-          <h2 className="modal-title">Cita #{cita.id}</h2>
+          <div>
+            <h2 className="modal-title">{cita.nombreCliente}</h2>
+            <p style={{ margin: 0, color: '#6c757d', fontSize: '0.9rem' }}>
+              Cita #{cita.id} · {formatearFechaHora(cita.fechaHora)}
+            </p>
+          </div>
           <div className="modal-badges">
             <Badge text={traducirEstado(cita.estado)} color={mapearBadgeColor(cita.estado)} />
             {pasada && cita.estado === 'CONFIRMADA' && (
-              <Badge text="Vencida / Pendiente cierre" color="gray" />
+              <Badge text="Vencida" color="red" />
             )}
           </div>
         </div>
 
-        {/* Sistema de Navegación por Pestañas */}
+        {/* Tabs */}
         <div className="tabs" role="tablist">
-          {(['informacion', 'gestion'] as SeccionCita[]).map(s => (
-            <button 
-              key={s} 
-              onClick={() => setSeccion(s)} 
+          {(['cita', 'cliente', 'gestion'] as SeccionCita[]).map(s => (
+            <button
+              key={s}
+              onClick={() => setSeccion(s)}
               className={`tab ${seccion === s ? 'active' : ''}`}
             >
-              {{ informacion: 'Detalles del cliente', gestion: 'Flujo del expediente' }[s]}
+              {{ cita: 'Cita', cliente: 'Cliente', gestion: 'Gestión' }[s]}
             </button>
           ))}
         </div>
 
         {/* Body */}
         <div className="form-modal__body">
-          
-          {/* ── SECCIÓN 1: INFORMACIÓN Y CONTACTO DIRECTO ── */}
-          {seccion === 'informacion' && (
+
+          {/* ── Pestaña CITA ── */}
+          {seccion === 'cita' && (
             <>
-              <p className="section-title">Datos Personales y de Contacto</p>
               <div className="form-row">
-                <Field label="Cliente / Titular">
-                  <input type="text" readOnly value={cita.nombreCliente} />
+                <Field label="Fecha *">
+                  <input
+                    type="date"
+                    value={formCita.fecha}
+                    onChange={e => setFormCita(p => ({ ...p, fecha: e.target.value }))}
+                    disabled={expedienteArchivado}
+                  />
                 </Field>
-                <Field label="Fecha y Hora Programada">
-                  <input type="text" readOnly value={formatearFechaHora(cita.fechaHora)} />
+                <Field label="Hora *">
+                  <input
+                    type="time"
+                    value={formCita.hora}
+                    onChange={e => setFormCita(p => ({ ...p, hora: e.target.value }))}
+                    disabled={expedienteArchivado}
+                  />
                 </Field>
               </div>
 
-              <div className="form-row">
-                <Field label="Canales de Contacto Directo">
-                  <div className="action-buttons-group" style={{ display: 'flex', gap: '0.5rem', marginTop: '0.25rem' }}>
-                    <input type="text" readOnly value={cita.telefonoCliente} style={{ flexGrow: 1 }} />
-                    <button type="button" onClick={llamar} className="btn btn-sm">
-                      📞 Llamar
-                    </button>
-                    <button type="button" onClick={abrirWhatsApp} className="btn btn-sm btn-success-whatsapp">
-                      💬 WhatsApp
-                    </button>
-                  </div>
-                </Field>
-              </div>
+              <Field label="Inmueble de referencia">
+                <input
+                  type="text"
+                  readOnly
+                  value={cita.direccionInmueble
+                    ? `${cita.direccionInmueble}${cita.inmuebleId ? ` (ID: ${cita.inmuebleId})` : ''}`
+                    : 'Consulta general en oficina'}
+                />
+              </Field>
 
-              <p className="section-title">Asignación Logística</p>
-              <div className="form-row">
-                <Field label="Agente / Asesor Inmobiliario">
-                  <input type="text" readOnly value={cita.nombreTrabajador || 'Sin agente asignado aún'} />
-                </Field>
-                <Field label="Inmueble de Referencia">
-                  <input type="text" readOnly value={cita.direccionInmueble || 'Consulta general en oficina'} />
-                </Field>
-              </div>
+              <Field label="Motivo de la cita">
+                <textarea
+                  className="textarea-large"
+                  value={formCita.motivo}
+                  onChange={e => setFormCita(p => ({ ...p, motivo: e.target.value }))}
+                  rows={4}
+                  disabled={expedienteArchivado}
+                  placeholder="Notas o descripción del motivo de la cita..."
+                />
+              </Field>
 
-              {cita.motivo && (
-                <Field label="Notas operativas del motivo">
-                  <textarea readOnly value={cita.motivo} className="textarea-large" rows={3} />
-                </Field>
+              {!expedienteArchivado && onActualizar && (
+                <div className="form-actions">
+                  <button onClick={guardarDatosCita} disabled={guardando} className="btn btn-primary">
+                    {guardando ? 'Guardando...' : 'Guardar cambios'}
+                  </button>
+                </div>
               )}
             </>
           )}
 
-          {/* ── SECCIÓN 2: CONTROL DE FLUJO Y RESOLUCIÓN ── */}
-          {seccion === 'gestion' && (
-            <div className="workflow-management">
-              <p className="section-title">Cambios de Estado y Resolución Legal</p>
-              
-              <div className="alert alert-info">
-                {cita.estado === 'PENDIENTE_ASIGNACION' && 'Esta solicitud entró a través de canales externos o web y requiere confirmación de agenda.'}
-                {cita.estado === 'CONFIRMADA' && 'El cliente y el agente tienen agendado este bloque. Puede resolver el expediente abajo.'}
-                {(cita.estado === 'COMPLETADA' || cita.estado === 'CANCELADA' || cita.estado === 'NO_PRESENTADO') && 'Este expediente se encuentra archivado. Las citas cerradas no admiten modificaciones ulteriores.'}
+          {/* ── Pestaña CLIENTE ── */}
+          {seccion === 'cliente' && (
+            <>
+              <div className="form-row">
+                <Field label="Nombre del cliente">
+                  <input type="text" readOnly value={cita.nombreCliente} />
+                </Field>
+                <Field label="Agente asignado">
+                  <input type="text" readOnly value={cita.nombreTrabajador || 'Sin agente asignado'} />
+                </Field>
               </div>
 
-              <div className="workflow-actions" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1.5rem' }}>
-                
-                {cita.estado === 'PENDIENTE_ASIGNACION' && (
-                  <button 
-                    disabled={procesandoAction} 
-                    onClick={() => ejecutarAccion(onAceptar)} 
-                    className="btn btn-primary"
-                    style={{ width: '100%', justifyContent: 'center' }}
+              <Field label="Teléfono">
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <input type="tel" readOnly value={cita.telefonoCliente} style={{ flex: 1 }} />
+                  <a
+                    href={`tel:${cita.telefonoCliente}`}
+                    className="btn btn-ghost"
+                    style={{ flexShrink: 0, fontSize: '0.85rem', padding: '0.4rem 0.75rem' }}
                   >
-                    ✓ Validar y Aceptar esta cita
+                    Llamar
+                  </a>
+                  <button
+                    type="button"
+                    onClick={abrirWhatsApp}
+                    className="btn btn-ghost"
+                    style={{ flexShrink: 0, fontSize: '0.85rem', padding: '0.4rem 0.75rem' }}
+                  >
+                    WhatsApp
                   </button>
-                )}
+                </div>
+              </Field>
 
-                {cita.estado === 'CONFIRMADA' && (
-                  <>
-                    <button 
-                      disabled={procesandoAction} 
-                      onClick={() => ejecutarAccion(onCompletar)} 
-                      className="btn btn-primary"
-                    >
-                      ✓ Marcar como COMPLETADA exitosamente
-                    </button>
-                    
-                    <div className="form-row">
-                      <button 
-                        disabled={procesandoAction} 
-                        onClick={() => ejecutarAccion(onNoPresentado)} 
-                        className="btn btn-warning"
-                        style={{ flexGrow: 1 }}
-                      >
-                        ⚠ Cliente NO presentado
-                      </button>
-                      <button 
-                        disabled={procesandoAction} 
-                        onClick={() => ejecutarAccion(onCancelar)} 
-                        className="btn btn-danger"
-                        style={{ flexGrow: 1 }}
-                      >
-                        ✕ Cancelar Cita
-                      </button>
-                    </div>
-                  </>
-                )}
-
-                {/* Si está cerrada */}
-                {['COMPLETADA', 'CANCELADA', 'NO_PRESENTADO'].includes(cita.estado) && (
-                  <div className="info-box text-center" style={{ padding: '2rem', background: 'var(--bg-soft)', borderRadius: 'var(--radius)' }}>
-                    🔒 <strong>Expediente de Cita Archivado</strong>
-                    <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
-                      Cerrado bajo la resolución de tipo: <span className="text-strong">{traducirEstado(cita.estado)}</span>
-                    </p>
-                  </div>
-                )}
+              <div className="alert alert-info" style={{ marginTop: '1rem' }}>
+                Los datos del cliente son de solo lectura. Para modificarlos, edita el usuario desde el módulo de Usuarios.
               </div>
-            </div>
+            </>
+          )}
+
+          {/* ── Pestaña GESTIÓN ── */}
+          {seccion === 'gestion' && (
+            <>
+              {expedienteArchivado ? (
+                <div className="info-box" style={{ padding: '1.5rem', textAlign: 'center' }}>
+                  <strong>Expediente Archivado</strong>
+                  <p style={{ fontSize: '0.9rem', color: '#6c757d', marginTop: '0.5rem', marginBottom: 0 }}>
+                    Cerrado bajo la resolución: <strong>{traducirEstado(cita.estado)}</strong>
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <div className="alert alert-info" style={{ marginBottom: '1.25rem' }}>
+                    {cita.estado === 'PENDIENTE_ASIGNACION' && (
+                      <>Esta solicitud requiere <strong>confirmación de agenda</strong> antes de ser atendida.</>
+                    )}
+                    {cita.estado === 'CONFIRMADA' && !pasada && (
+                      <>El cliente y el agente tienen agendado este bloque. Puedes <strong>resolver el expediente</strong> cuando se realice la visita.</>
+                    )}
+                    {cita.estado === 'CONFIRMADA' && pasada && (
+                      <>La cita ha superado la fecha programada. <strong>Registra el resultado</strong> para archivar el expediente.</>
+                    )}
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    {cita.estado === 'PENDIENTE_ASIGNACION' && (
+                      <button
+                        disabled={guardando}
+                        onClick={handleAceptar}
+                        className="btn btn-primary"
+                        style={{ width: '100%' }}
+                      >
+                        {guardando ? 'Procesando...' : 'Validar y confirmar esta cita'}
+                      </button>
+                    )}
+
+                    {cita.estado === 'CONFIRMADA' && (
+                      <>
+                        {/* Botón Google Calendar para el trabajador */}
+                        {cita.fechaHora && (() => {
+                          const dt = new Date(cita.fechaHora);
+                          const pad = (n: number) => String(n).padStart(2, '0');
+                          const fmt = (d: Date) =>
+                            `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}00`;
+                          const end = new Date(dt.getTime() + 60 * 60 * 1000);
+                          const params = new URLSearchParams({
+                            action: 'TEMPLATE',
+                            text: `Cita: ${cita.nombreCliente || 'Cliente'}`,
+                            dates: `${fmt(dt)}/${fmt(end)}`,
+                            details: `Cita confirmada en JerezSur Inmobiliaria${cita.motivo ? '\n' + cita.motivo : ''}`,
+                            location: 'JerezSur Inmobiliaria, Jerez de la Frontera',
+                          });
+                          return (
+                            <a
+                              href={`https://calendar.google.com/calendar/render?${params}`}
+                              target="_blank" rel="noreferrer"
+                              className="btn btn-ghost"
+                              style={{ width: '100%', textAlign: 'center', textDecoration: 'none' }}
+                            >
+                              📅 Añadir a mi Google Calendar
+                            </a>
+                          );
+                        })()}
+                        <button
+                          disabled={guardando}
+                          onClick={handleCompletar}
+                          className="btn btn-primary"
+                          style={{ width: '100%' }}
+                        >
+                          {guardando ? 'Procesando...' : 'Marcar como COMPLETADA'}
+                        </button>
+                        <div className="form-row">
+                          <button
+                            disabled={guardando}
+                            onClick={handleNoPresentado}
+                            className="btn btn-warning"
+                            style={{ flexGrow: 1 }}
+                          >
+                            Cliente NO presentado
+                          </button>
+                          <button
+                            disabled={guardando}
+                            onClick={handleCancelar}
+                            className="btn btn-danger"
+                            style={{ flexGrow: 1 }}
+                          >
+                            Cancelar cita
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </>
+              )}
+            </>
           )}
         </div>
 
-        {/* Footer global unificado */}
+        {/* Footer */}
         <div className="modal-footer">
-          <span className="text-muted" style={{ marginRight: 'auto', fontSize: '0.85rem' }}>
-            JerezSur Inmobiliaria
-          </span>
-          <button onClick={onCerrar} className="btn btn-ghost">
-            Cerrar ventana
-          </button>
+          <div>
+            {!expedienteArchivado && cita.estado === 'PENDIENTE_ASIGNACION' && (
+              <button
+                onClick={handleCancelar}
+                disabled={guardando}
+                className="btn btn-danger"
+              >
+                Cancelar cita
+              </button>
+            )}
+          </div>
+          <button onClick={onCerrar} className="btn btn-ghost">Cerrar</button>
         </div>
-
       </div>
     </div>
   );
 };
-
-// --- Subcomponentes compartidos alineados con la UI de referencia ---
-const Badge = ({ text, color }: { text: string; color: 'blue' | 'green' | 'amber' | 'gray' }) => (
-  <span className={`badge badge--${color}`}>{text}</span>
-);
-
-const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
-  <div className="form-field">
-    <label className="form-field__label">{label}</label>
-    {children}
-  </div>
-);

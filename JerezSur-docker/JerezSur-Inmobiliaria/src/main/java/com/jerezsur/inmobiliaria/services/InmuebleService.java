@@ -41,7 +41,7 @@ public class InmuebleService {
     @Autowired
     private VendedorRepository vendedorRepository;
 
-    // Versión legada de búsqueda (sin filtro por tipo ni zona) — usada por algunos endpoints internos
+    // Versión legada de búsqueda — delega en busquedaFiltrada pasando null en los filtros nuevos
     @Transactional(readOnly = true)
     public Page<Inmueble> buscarConFiltros(String ref, String tit, String desc, TipoOperacion op, EstadoInmueble est,
             BigDecimal pMin, BigDecimal pMax, Integer hab, Integer ban, Double sMin, String ciu, String cp,
@@ -54,8 +54,9 @@ public class InmuebleService {
             throw new BusinessValidationException("El precio mínimo no puede ser superior al máximo.");
         }
 
-        return inmuebleRepository.busquedaFiltrada(ref, tit, desc, op, est, pMin, pMax, hab, ban, sMin, ciu, cp,
-                pageable);
+        // tipo=null, supMax=null, zona=null para mantener compatibilidad con llamadas antiguas
+        return inmuebleRepository.busquedaFiltrada(ref, tit, desc, op, est, null, pMin, pMax, hab, ban, sMin, null,
+                null, ciu, cp, pageable);
     }
 
     // Versión principal con todos los filtros: tipo, zona, superficie máxima, etc.
@@ -168,6 +169,41 @@ public class InmuebleService {
 
         // 3. Guardado final
         return inmuebleRepository.save(inmueble);
+    }
+
+    // Devuelve los inmuebles de un vendedor concreto (para mostrar en su perfil de propietario)
+    @Transactional(readOnly = true)
+    public List<InmuebleListadoDTO> buscarPorVendedor(Long vendedorId) {
+        return inmuebleRepository.findByVendedorId(vendedorId)
+                .stream().map(this::mapToListadoDTO).collect(Collectors.toList());
+    }
+
+    // Marca o desmarca un inmueble como destacado, respetando el límite de 3
+    @Transactional
+    public void setDestacado(Long id, boolean destacado) {
+        Inmueble i = inmuebleRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Inmueble no encontrado: " + id));
+        if (destacado) enforceDestacadoLimit(i.getId());
+        i.setDestacado(destacado);
+        inmuebleRepository.save(i);
+    }
+
+    // Sustituye la lista completa de destacados: quita todos y pone exactamente los ids dados (máx 3)
+    @Transactional
+    public void setDestacados(List<Long> ids) {
+        if (ids == null || ids.size() > 3) {
+            throw new BusinessValidationException("Se pueden seleccionar como máximo 3 inmuebles destacados.");
+        }
+        // Quitar destacado a todos los actuales
+        inmuebleRepository.findByDestacadoTrueOrderByFechaRegistroAsc()
+                .forEach(i -> { i.setDestacado(false); inmuebleRepository.save(i); });
+        // Marcar los nuevos
+        for (Long destId : ids) {
+            inmuebleRepository.findById(destId).ifPresent(i -> {
+                i.setDestacado(true);
+                inmuebleRepository.save(i);
+            });
+        }
     }
 
     // Devuelve los inmuebles marcados como destacados para mostrarlos en la portada de la web

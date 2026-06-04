@@ -27,12 +27,9 @@ export const contactoService = {
     return data;
   },
 
-  /**
-   * Nuestro PUT unificado. Nos servirá principalmente para marcar 
-   * el mensaje como leído/no leído o guardar notas internas.
-   */
-  actualizar: async (id: number, contactoData: Partial<MensajeContactoDetalle>): Promise<MensajeContacto> => {
-    const { data } = await api.put<MensajeContacto>(`/contactos/${id}`, contactoData);
+  // Actualiza el estado leído/no leído — el backend devuelve {id, leido, ok}
+  actualizar: async (id: number, contactoData: Partial<MensajeContactoDetalle>): Promise<any> => {
+    const { data } = await api.put(`/contactos/${id}`, contactoData);
     return data;
   },
 

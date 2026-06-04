@@ -48,6 +48,24 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 
     List<Usuario> findByFechaEliminacionIsNull();
 
+    // LIMPIEZA: usuarios con ROLE_NOROL sin perfil de ningún tipo registrados hace más de 3 meses.
+    // Estos son cuentas abandonadas que nunca completaron el onboarding.
+    @org.springframework.data.jpa.repository.Modifying
+    @Query("""
+        DELETE FROM Usuario u
+        WHERE u.role = com.jerezsur.inmobiliaria.models.enums.Role.ROLE_NOROL
+          AND u.interesado IS NULL
+          AND u.vendedor IS NULL
+          AND u.trabajador IS NULL
+          AND u.fechaRegistro IS NOT NULL
+          AND u.fechaRegistro < :fecha
+        """)
+    int borrarUsuariosSinPerfilAntiguos(@Param("fecha") LocalDateTime fecha);
+
+    // LIMPIEZA: tokens de recuperación de contraseña ya expirados (más de 48h)
+    @Query("SELECT u FROM Usuario u WHERE u.tokenRecuperacion IS NOT NULL AND u.tokenRecuperacionExpira < :ahora")
+    List<Usuario> findByTokenRecuperacionExpiraLessThan(@Param("ahora") LocalDateTime ahora);
+
     Optional<Usuario> findByTokenVerificacion(String token);
 
     Optional<Usuario> findByTokenRecuperacion(String token);

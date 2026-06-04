@@ -164,6 +164,11 @@
       transform: translateY(-5px);
       box-shadow: $shadow-md;
       border-left-color: $color-secondary;
+
+      .home-advantages__icon {
+        background: $color-primary;
+        color: $color-white;
+      }
     }
 
     h3 {
@@ -173,6 +178,20 @@
     p {
       color: $color-text-soft;
     }
+  }
+
+  &__icon {
+    width: 56px;
+    height: 56px;
+    border-radius: $radius-md;
+    background: $color-primary-light;
+    color: $color-primary;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.25rem;
+    transition: background $transition-base, color $transition-base;
+    flex-shrink: 0;
   }
 }
 

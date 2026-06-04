@@ -261,21 +261,23 @@ const InmuebleDetalle: React.FC = () => {
     setCitaError('');
 
     try {
+      let endpoint: string;
       let body: Record<string, unknown>;
+      const token = localStorage.getItem('token') || localStorage.getItem('accessToken') || '';
 
       if (isAuthenticated && user) {
-        // Usuario logueado → usa sus datos del perfil
+        // Usuario logueado → endpoint de usuario registrado (no necesita teléfono)
+        // /api/citas/usuario/solicitar usa SolicitudCitaUsuarioDTO (solo usuarioId + fechaHora)
+        endpoint = `${API_BASE}/citas/usuario/solicitar`;
         body = {
-          nombre: user.nombre,
-          telefono: user.telefono || citaForm.telefono.trim(),
-          email: user.email || citaForm.email.trim() || null,
+          usuarioId: user.id,
           fechaHora,
           motivo: citaForm.motivo.trim() || null,
           inmuebleId: inmueble?.id ?? null,
-          aceptaPrivacidad: true,
         };
       } else {
-        // Anónimo
+        // Anónimo → endpoint público (necesita nombre, teléfono y privacidad)
+        endpoint = `${API_BASE}/citas/solicitar`;
         body = {
           nombre: citaForm.nombre.trim(),
           telefono: citaForm.telefono.trim(),
@@ -287,10 +289,12 @@ const InmuebleDetalle: React.FC = () => {
         };
       }
 
-      // Siempre usamos el endpoint público que no requiere token
-      const res = await fetch(`${API_BASE}/citas/solicitar`, {
+      const res = await fetch(endpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify(body),
       });
 
@@ -536,14 +540,24 @@ const InmuebleDetalle: React.FC = () => {
           <h2>Solicitar visita</h2>
 
           {citaExito ? (
-            <div>
-              <p style={{ color: '#2e9b4d', marginBottom: '0.75rem' }}>
-                ✅ Cita solicitada correctamente. Nos pondremos en contacto contigo para confirmarla.
-              </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {/* Mensaje de estado pendiente */}
+              <div style={{
+                background: 'rgba(46,155,77,0.08)', border: '1px solid rgba(46,155,77,0.25)',
+                borderRadius: 10, padding: '1rem 1.25rem',
+              }}>
+                <p style={{ margin: '0 0 0.35rem', fontWeight: 700, color: '#1e7a3a', fontSize: '1rem' }}>
+                  ✅ Solicitud enviada correctamente
+                </p>
+                <p style={{ margin: 0, color: '#374151', fontSize: '0.9rem', lineHeight: 1.6 }}>
+                  Tu visita está <strong>pendiente de confirmación</strong>. Un agente de JerezSur revisará tu solicitud y te enviaremos un email cuando esté confirmada.
+                </p>
+              </div>
+              {/* Botón Google Calendar para guardar la fecha propuesta */}
               <a
                 href={buildGoogleCalendarUrl(
-                  `Visita: ${inmueble.titulo}`,
-                  `Solicitud de visita al inmueble ${inmueble.referencia} en JerezSur Inmobiliaria.\nDirección: ${inmueble.direccion}, ${inmueble.ciudad}`,
+                  `Visita pendiente: ${inmueble.titulo}`,
+                  `Solicitud de visita al inmueble ${inmueble.referencia} en JerezSur Inmobiliaria. Pendiente de confirmación.\nDirección: ${inmueble.direccion}, ${inmueble.ciudad}`,
                   inmueble.direccion + ', ' + inmueble.ciudad,
                   citaForm.fechaDate && citaForm.fechaTime
                     ? `${citaForm.fechaDate}T${citaForm.fechaTime}:00`
@@ -552,13 +566,12 @@ const InmuebleDetalle: React.FC = () => {
                 target="_blank"
                 rel="noreferrer"
                 className="btn btn--outline"
-                style={{ display: 'inline-flex', marginBottom: '0.5rem' }}
+                style={{ display: 'inline-flex', justifyContent: 'center' }}
               >
-                📅 Añadir a Google Calendar
+                📅 Recordatorio en Google Calendar
               </a>
-              <br />
-              <button className="btn btn--ghost btn--ghost--dark btn--sm" onClick={() => setCitaExito(false)} style={{ marginTop: '0.5rem' }}>
-                Solicitar otra cita
+              <button className="btn btn--ghost btn--ghost--dark btn--sm" onClick={() => setCitaExito(false)}>
+                Solicitar otra fecha
               </button>
             </div>
           ) : (
@@ -593,10 +606,23 @@ const InmuebleDetalle: React.FC = () => {
                 </>
               )}
               {isAuthenticated && user && (
-                <p style={{ fontSize: '0.85rem', color: '#6b7280', marginBottom: '0.75rem' }}>
-                  Solicitando como <strong>{user.nombre}</strong>
-                  {user.telefono ? ` · ${user.telefono}` : ''}
-                </p>
+                <div style={{ marginBottom: '0.75rem' }}>
+                  <p style={{ fontSize: '0.85rem', color: '#6b7280', margin: '0 0 0.5rem' }}>
+                    Solicitando como <strong>{user.nombre}</strong>
+                    {user.telefono ? ` · ${user.telefono}` : ''}
+                  </p>
+                  {/* Si el usuario logueado no tiene teléfono en su perfil, pedirlo aquí */}
+                  {!user.telefono && (
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                      <label htmlFor="citaTelefono">Teléfono de contacto *</label>
+                      <input
+                        id="citaTelefono" type="tel" name="telefono" required
+                        value={citaForm.telefono} onChange={handleCitaChange}
+                        placeholder="600 000 000"
+                      />
+                    </div>
+                  )}
+                </div>
               )}
               <div className="form-group">
                 <label htmlFor="fechaDate">Fecha *</label>

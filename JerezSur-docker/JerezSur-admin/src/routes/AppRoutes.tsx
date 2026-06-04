@@ -9,6 +9,7 @@ import AdminUsuarios from '../pages/AdminUsuarios';
 import AdminContactos from '../pages/AdminContactos';
 import AdminInmuebles from '../pages/AdminInmuebles';
 import AdminContratos from '../pages/AdminContratos';
+import AdminDestacados from '../pages/AdminDestacados';
 
 // lazy() carga el componente solo cuando se necesita (code splitting)
 // Así el panel de login carga rápido y el resto se descarga cuando el trabajador entra
@@ -40,6 +41,7 @@ export const AppRoutes = () => {
               <Route path="usuarios" element={<AdminUsuarios />} />
               <Route path="contactos" element={<AdminContactos />} />
               <Route path="inmuebles" element={<AdminInmuebles />} />
+              <Route path="destacados" element={<AdminDestacados />} />
               <Route path="contratos" element={<AdminContratos />} />
             </Route>
           </Route>

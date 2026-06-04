@@ -64,29 +64,67 @@ public class NotificacionService {
     // ──────────────────────────────────────────
 
     public void notificarCitaConfirmada(Usuario usuario, String detallesCita) {
-        // Al usuario por WhatsApp si tiene teléfono
-        if (usuario.getTelefono() != null) {
-            whatsappService.enviarAlUsuario(usuario.getTelefono(),
-                    "📅 ¡Tu cita ha sido confirmada!\n"
-                    + "Hola " + usuario.getNombre() + ", te confirmamos que tu cita ha sido validada correctamente por nuestro equipo.\n\n"
-                    + "📌 *Detalles:* " + detallesCita + "\n\n"
-                    + "¡Te esperamos!");
-        }
-
-        // Al usuario por Email
+        // Al usuario solo por Email (el WhatsApp se reserva para el admin)
         if (usuario.getEmail() != null) {
-            String cuerpoHtml = "<div style='font-family:Arial,sans-serif;max-width:600px;margin:auto'>"
-                    + "<h2 style='color:#2a9d8f'>📅 Cita Confirmada</h2>"
-                    + "<p>Hola <strong>" + usuario.getNombre() + "</strong>,</p>"
-                    + "<p>Te informamos de que tu solicitud de cita ha sido **validada y confirmada** por uno de nuestros agentes.</p>"
-                    + "<div style='background-color:#f8f9fa;padding:15px;border-left:4px solid #2a9d8f;margin:20px 0'>"
-                    + "  <strong>Detalles del encuentro:</strong><br/>" + detallesCita
-                    + "</div>"
-                    + "<p>Si necesitas modificar la fecha u hora, por favor ponte en contacto con nosotros.</p>"
-                    + "<hr/><p style='color:#888;font-size:12px'>JerezSur Inmobiliaria</p>"
-                    + "</div>";
+            // Construir enlace de Google Calendar a partir del texto de detalles
+            // El texto lleva "Fecha: dd/MM/yyyy a las HH:mm\nLugar: ..."
+            String calendarLink = "";
+            try {
+                // Intentamos parsear la fecha del texto de detalles
+                String[] lineas = detallesCita.split("\n");
+                for (String linea : lineas) {
+                    if (linea.startsWith("Fecha:")) {
+                        String fechaStr = linea.replace("Fecha:", "").trim();
+                        // Formato: "dd/MM/yyyy a las HH:mm"
+                        java.time.LocalDateTime dt = java.time.LocalDateTime.parse(
+                            fechaStr.replace(" a las ", "T"),
+                            java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy'T'HH:mm")
+                        );
+                        // Formato Google Calendar: YYYYMMDDTHHmmss
+                        String start = dt.format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss"));
+                        String end   = dt.plusHours(1).format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss"));
+                        calendarLink = "https://www.google.com/calendar/render?action=TEMPLATE"
+                            + "&text=" + java.net.URLEncoder.encode("Cita JerezSur Inmobiliaria", java.nio.charset.StandardCharsets.UTF_8)
+                            + "&dates=" + start + "/" + end
+                            + "&details=" + java.net.URLEncoder.encode(detallesCita, java.nio.charset.StandardCharsets.UTF_8)
+                            + "&location=" + java.net.URLEncoder.encode("Jerez de la Frontera", java.nio.charset.StandardCharsets.UTF_8);
+                        break;
+                    }
+                }
+            } catch (Exception ignored) { /* si falla, simplemente no añadimos el enlace */ }
 
-            emailService.enviarAlUsuario(usuario.getEmail(), "Cita Confirmada - JerezSur Inmobiliaria", cuerpoHtml);
+            String botonCalendario = !calendarLink.isEmpty()
+                ? "<p style='text-align:center;margin:24px 0'>"
+                  + "<a href='" + calendarLink + "' target='_blank'"
+                  + "   style='background:#4285F4;color:white;padding:12px 24px;text-decoration:none;"
+                  + "          border-radius:6px;font-weight:bold;font-size:14px;display:inline-block'>"
+                  + "  📅 Añadir a Google Calendar"
+                  + "</a></p>"
+                : "";
+
+            // Convertir saltos de línea del detalle a HTML
+            String detallesHtml = detallesCita.replace("\n", "<br/>");
+
+            String cuerpoHtml = "<div style='font-family:Arial,sans-serif;max-width:600px;margin:auto;background:#f7f9fc;padding:0'>"
+                + "<div style='background:#00439c;padding:28px 32px;border-radius:8px 8px 0 0'>"
+                + "  <h1 style='color:white;margin:0;font-size:22px'>JerezSur Inmobiliaria</h1>"
+                + "</div>"
+                + "<div style='background:white;padding:32px;border-radius:0 0 8px 8px;border:1px solid #e5e7eb'>"
+                + "  <h2 style='color:#00439c;margin-top:0'>✅ Cita Confirmada</h2>"
+                + "  <p>Hola <strong>" + usuario.getNombre() + "</strong>,</p>"
+                + "  <p>¡Buenas noticias! Uno de nuestros agentes ha confirmado tu cita en JerezSur Inmobiliaria.</p>"
+                + "  <div style='background:#f0f7ff;padding:16px 20px;border-left:4px solid #00439c;border-radius:4px;margin:20px 0'>"
+                + "    <strong>Detalles de tu cita:</strong><br/><br/>" + detallesHtml
+                + "  </div>"
+                + botonCalendario
+                + "  <p style='color:#374151'>Si necesitas cambiar la fecha o tienes alguna pregunta, no dudes en contactarnos:</p>"
+                + "  <p style='color:#374151'>📞 615 061 840 &nbsp;|&nbsp; ✉️ info@jerezsur.com</p>"
+                + "  <hr style='border:none;border-top:1px solid #e5e7eb;margin:24px 0'/>"
+                + "  <p style='color:#9ca3af;font-size:12px;margin:0'>JerezSur Inmobiliaria — Jerez de la Frontera</p>"
+                + "</div>"
+                + "</div>";
+
+            emailService.enviarAlUsuario(usuario.getEmail(), "Cita confirmada — JerezSur Inmobiliaria", cuerpoHtml);
         }
     }
 

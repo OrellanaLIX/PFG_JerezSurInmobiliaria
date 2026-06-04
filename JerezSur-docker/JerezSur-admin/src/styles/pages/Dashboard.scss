@@ -47,7 +47,7 @@
     display: grid;
     grid-template-columns: 1fr 360px;
     gap: $space-5;
-    align-items: start;
+    align-items: start; // La columna de stats dicta la altura; las tareas se ajustan
 
     @media (max-width: $laptop) {
       grid-template-columns: 1fr;
@@ -60,17 +60,52 @@
     gap: $space-4;
 
     &--tasks {
-      // Tareas en columna fija con scroll interno si hay muchas
+      // Columna de tareas: sticky para que siga al scroll, height fijo para el scroll interno
       position: sticky;
       top: $space-4;
-      max-height: calc(100vh - 140px);
-      overflow-y: auto;
-      scrollbar-width: thin;
-      scrollbar-color: $color-border transparent;
+      // calc(100vh - header admin ~64px - padding top/bottom ~64px - dash header ~80px)
+      height: calc(100vh - 180px);
+      display: flex;
+      flex-direction: column;
 
-      &::-webkit-scrollbar { width: 4px; }
-      &::-webkit-scrollbar-track { background: transparent; }
-      &::-webkit-scrollbar-thumb { background: $color-border; border-radius: 2px; }
+      // .tareas ocupa TODO el alto y gestiona internamente qué parte scrollea
+      .tareas {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: 0; // CRÍTICO: sin esto, flex items no se reducen y el scroll no funciona
+        overflow: hidden;
+        background: $color-surface;
+        border: 1px solid $color-border;
+        border-radius: $radius-lg;
+        box-shadow: $shadow-xs;
+      }
+
+      // Header y form NO scrollean — tamaño fijo
+      .tareas__header { flex-shrink: 0; }
+      .tareas__form   { flex-shrink: 0; }
+
+      // La lista SÍ scrollea — ocupa el espacio restante
+      .tareas__lista {
+        flex: 1;
+        min-height: 0; // CRÍTICO: ídem
+        overflow-y: auto;
+        padding: $space-2 $space-3;
+        scrollbar-width: thin;
+        scrollbar-color: $color-border transparent;
+
+        &::-webkit-scrollbar { width: 4px; }
+        &::-webkit-scrollbar-track { background: transparent; }
+        &::-webkit-scrollbar-thumb { background: $color-border; border-radius: 2px; }
+      }
+
+      .tareas__empty {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
     }
   }
 
@@ -138,12 +173,18 @@
   border-radius: $radius-md;
   padding: $space-4 $space-4 $space-3;
   overflow: hidden;
-  transition: transform $transition-fast, box-shadow $transition-base;
+  transition: transform $transition-smooth, box-shadow $transition-smooth, background $transition-smooth;
   cursor: default;
 
   &:hover {
-    transform: translateY(-3px);
+    transform: translateY(-4px);
     box-shadow: $shadow-md;
+    // Gradiente sutil en hover que usa el color del KPI
+    background: linear-gradient(
+      145deg,
+      $color-surface 60%,
+      color-mix(in srgb, var(--kpi-color, #{$color-primary}) 6%, $color-surface)
+    );
   }
 
   &__accent {
@@ -161,17 +202,38 @@
     margin-bottom: $space-2;
   }
 
+  // Icono con fondo circular coloreado usando la CSS custom property del KPI
   &__icon {
-    font-size: 1.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    // Fondo circular con opacidad baja del color del KPI
+    background-color: color-mix(in srgb, var(--kpi-color, #{$color-primary}) 12%, transparent);
+    font-size: 1.4rem;
     line-height: 1;
+    flex-shrink: 0;
+    transition: transform $transition-smooth;
+
+    .kpi-card:hover & {
+      transform: scale(1.1) rotate(-5deg);
+    }
   }
 
+  // Valor numérico más prominente
   &__value {
-    font-size: 2rem;
-    font-weight: 800;
+    font-size: 2.4rem;
+    font-weight: 900;
     color: var(--kpi-color, #{$color-primary});
     line-height: 1;
-    letter-spacing: -0.03em;
+    letter-spacing: -0.04em;
+    transition: transform $transition-fast;
+
+    .kpi-card:hover & {
+      transform: scale(1.04);
+    }
   }
 
   &__label {
@@ -179,6 +241,7 @@
     color: $color-text-soft;
     font-weight: 500;
     margin: 0;
+    letter-spacing: 0.01em;
   }
 }
 
@@ -303,7 +366,7 @@
   &--ok    { background: rgba($color-success, 0.1); color: $color-success; }
 }
 
-/* Tarjeta de tarea */
+/* Tarjeta de tarea — animación de entrada suave */
 .t-card {
   display: flex;
   align-items: flex-start;
@@ -312,21 +375,43 @@
   border: 1px solid $color-border;
   border-radius: $radius-md;
   overflow: hidden;
-  transition: box-shadow $transition-fast;
+  // Transición más suave que incluye transformación y sombra
+  transition: box-shadow $transition-smooth, transform $transition-smooth, border-color $transition-smooth;
+  animation: tCardEntrada 0.3s ease-out both;
 
-  &:hover { box-shadow: $shadow-sm; }
+  &:hover {
+    box-shadow: $shadow-sm;
+    transform: translateX(3px);
+    border-color: rgba($color-primary, 0.25);
+  }
 
   &--overdue {
     border-color: rgba(#c0392b, 0.35);
     background: rgba(#c0392b, 0.025);
+
+    // El stripe de prioridad alta tiene color rojo
+    .t-card__stripe {
+      background-color: #c0392b;
+    }
+
+    &:hover {
+      border-color: rgba(#c0392b, 0.55);
+    }
   }
 
+  // Stripe lateral con color rojo para prioridad alta (cuando se asigna --p-color rojo)
   &__stripe {
     width: 4px;
     flex-shrink: 0;
     align-self: stretch;
     background-color: var(--p-color, #{$color-primary});
     border-radius: $radius-md 0 0 $radius-md;
+    // Brillo sutil en el stripe al hacer hover
+    transition: opacity $transition-fast;
+
+    .t-card:hover & {
+      opacity: 0.85;
+    }
   }
 
   &__body {
@@ -487,7 +572,205 @@
   justify-content: flex-end;
 }
 
-/* Animación */
+/* ═══════════════════════════════════════════════════════════════════
+   BOTÓN ICONO (enlace compacto en la card)
+═══════════════════════════════════════════════════════════════════ */
+.t-btn--icon {
+  padding: $space-1 $space-2;
+  font-size: 0.9rem;
+  min-width: unset;
+  line-height: 1;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   SEPARADORES DE GRUPO DE PRIORIDAD
+═══════════════════════════════════════════════════════════════════ */
+.t-grupo {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  // Espacio extra arriba del separador salvo el primero
+  margin-top: $space-3;
+  list-style: none;
+
+  &:first-child { margin-top: 0; }
+
+  &__dot  { font-size: 0.75rem; flex-shrink: 0; }
+
+  &__label {
+    font-size: $font-size-xs;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+  }
+
+  &__count {
+    font-size: $font-size-xs;
+    color: $color-text-soft;
+    white-space: nowrap;
+  }
+
+  // Línea horizontal que ocupa el espacio restante
+  &__line {
+    flex: 1;
+    height: 1px;
+    background: $color-border;
+  }
+
+  // Colores por prioridad
+  &--alta  .t-grupo__label { color: #c0392b; }
+  &--media .t-grupo__label { color: #d97706; }
+  &--baja  .t-grupo__label { color: #4a9e2f; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   MODAL DE DETALLE DE TAREA
+═══════════════════════════════════════════════════════════════════ */
+
+// Overlay oscuro que cubre toda la pantalla
+.t-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $space-4;
+  animation: fadeIn 0.15s ease;
+  // Permite scroll si el contenido es muy largo en pantallas pequeñas
+  overflow-y: auto;
+}
+
+// Caja del modal
+.t-modal {
+  position: relative;
+  background: $color-surface;
+  border-radius: $radius-lg;
+  max-width: 480px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+  animation: tModalEntrada 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  overflow: hidden;
+
+  // Stripe de color en la parte superior (como las cards)
+  &__stripe {
+    height: 5px;
+    background-color: var(--p-color, #{$color-primary});
+    width: 100%;
+  }
+
+  &__content {
+    padding: $space-5 $space-5 $space-4;
+    display: flex;
+    flex-direction: column;
+    gap: $space-3;
+  }
+
+  &__header {
+    display: flex;
+    align-items: flex-start;
+    gap: $space-2;
+  }
+
+  &__prio-dot {
+    font-size: 1.1rem;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  &__titulo {
+    font-size: $font-size-lg;
+    font-weight: 700;
+    color: $color-text;
+    margin: 0;
+    flex: 1;
+    line-height: 1.35;
+    // Sin truncado: se muestra completo
+    word-break: break-word;
+  }
+
+  // Botón de cierre (×)
+  &__close {
+    flex-shrink: 0;
+    background: transparent;
+    border: none;
+    color: $color-text-soft;
+    font-size: 1.1rem;
+    cursor: pointer;
+    padding: 2px $space-2;
+    border-radius: $radius-xs;
+    line-height: 1;
+    transition: background $transition-fast, color $transition-fast;
+
+    &:hover {
+      background: $color-surface-alt;
+      color: $color-text;
+    }
+  }
+
+  &__meta {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+    flex-wrap: wrap;
+  }
+
+  &__fecha {
+    font-size: $font-size-xs;
+    color: $color-text-soft;
+    display: flex;
+    align-items: center;
+    gap: $space-1;
+    flex-wrap: wrap;
+
+    &--late { color: #c0392b; font-weight: 600; }
+  }
+
+  &__fecha-corta { font-weight: 600; }
+  &__fecha-larga { color: $color-text-soft; }
+
+  // Descripción completa sin truncar
+  &__desc {
+    font-size: $font-size-sm;
+    color: $color-text;
+    margin: 0;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    // Separador visual sutil
+    padding: $space-3;
+    background: $color-surface-alt;
+    border-radius: $radius-sm;
+    border-left: 3px solid var(--p-color, #{$color-primary});
+
+    &--empty {
+      color: $color-text-soft;
+      font-style: italic;
+      border-left-color: $color-border;
+      background: transparent;
+      padding: 0;
+    }
+  }
+
+  &__enlace {
+    display: flex;
+  }
+
+  &__actions {
+    display: flex;
+    gap: $space-3;
+    justify-content: flex-end;
+    padding-top: $space-2;
+    border-top: 1px solid $color-border;
+    flex-wrap: wrap;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   ANIMACIONES
+═══════════════════════════════════════════════════════════════════ */
+
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
@@ -495,4 +778,28 @@
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(-6px); }
   to   { opacity: 1; transform: translateY(0); }
+}
+
+// Animación de entrada para las tarjetas de tarea
+@keyframes tCardEntrada {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Animación de entrada con rebote para el modal de detalle
+@keyframes tModalEntrada {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }

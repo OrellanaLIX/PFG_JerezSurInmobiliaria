@@ -1,5 +1,44 @@
 @use '../globals/_Variables' as *;
 
+/* Hero del perfil de usuario */
+.profile-hero {
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  background:
+    linear-gradient(
+      155deg,
+      rgba(0, 25, 70, 0.90) 0%,
+      rgba(0, 60, 140, 0.65) 55%,
+      rgba(0, 25, 70, 0.86) 100%
+    ),
+    url('https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=1920&q=80')
+    center 35% / cover no-repeat;
+  color: white;
+  padding: 0 2rem;
+
+  &__content {
+    max-width: $container-max;
+    margin: 0 auto;
+    width: 100%;
+    padding: 2.5rem 0;
+  }
+
+  &__titulo {
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-weight: 800;
+    color: white;
+    margin: 0 0 0.4rem;
+    letter-spacing: -0.02em;
+  }
+
+  &__sub {
+    font-size: 0.95rem;
+    color: rgba(255,255,255,0.80);
+    margin: 0;
+  }
+}
+
 /* ==========================================================================
    PERFIL DE USUARIO (ESTILO GLOBAL / CONTENEDOR)
    ========================================================================= */
@@ -50,7 +89,7 @@
   }
 
   &__info {
-    h1 {
+    h2 {
       font-size: 1.8rem;
       font-weight: 700;
       color: $color-primary-dark;

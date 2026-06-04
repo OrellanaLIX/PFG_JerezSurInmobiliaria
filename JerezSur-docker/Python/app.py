@@ -181,7 +181,11 @@ def _gen_dona(d):
     colors = [C['primary'], C['green'], C['amber'], C['muted']]
     total  = sum(vals) or 1
 
-    fig, ax = plt.subplots(figsize=(6, 5))
+    # Layout horizontal: dona a la izquierda, leyenda a la derecha
+    # Menos alto que antes (3.2 vs 5) gracias a que la leyenda ya no ocupa espacio inferior
+    fig, (ax, ax_leg) = plt.subplots(1, 2, figsize=(7, 3.2),
+                                      gridspec_kw={'width_ratios': [2, 1]})
+    ax_leg.axis('off')
 
     # Filter out 0-value slices
     filtered = [(v, c, l) for v, c, l in zip(vals, colors, cats) if v > 0]
@@ -199,19 +203,23 @@ def _gen_dona(d):
         at.set_color('white')
         at.set_fontweight('bold')
 
+    # Texto central con el total de clientes
     ax.text(0, 0.06, str(total), ha='center', va='center',
-            fontsize=22, fontweight='bold', color=C['text'])
-    ax.text(0, -0.24, 'clientes', ha='center', va='center',
-            fontsize=9, color=C['soft'])
+            fontsize=20, fontweight='bold', color=C['text'])
+    ax.text(0, -0.22, 'clientes', ha='center', va='center',
+            fontsize=8, color=C['soft'])
 
+    ax.set_title('Distribución\nde clientes', fontsize=11, fontweight='bold',
+                 color=C['text'], pad=4)
+
+    # Leyenda a la derecha en el segundo eje
     patches = [mpatches.Patch(color=c, label=l)
                for c, l in zip(fc, fl)]
-    ax.legend(handles=patches, loc='lower center',
-              bbox_to_anchor=(0.5, -0.13), ncol=2, frameon=False, fontsize=9)
-    ax.set_title('Distribución de clientes', fontsize=12, fontweight='bold',
-                 color=C['text'], pad=6)
+    ax_leg.legend(handles=patches, loc='center left',
+                  bbox_to_anchor=(-0.1, 0.5), ncol=1,
+                  frameon=False, fontsize=9, handlelength=1.2)
 
-    plt.tight_layout()
+    plt.tight_layout(pad=0.5)
     return _b64(fig)
 
 

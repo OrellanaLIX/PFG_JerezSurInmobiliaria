@@ -8,6 +8,7 @@ import com.jerezsur.inmobiliaria.repositories.TareaRepository;
 
 import java.time.LocalDate;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -15,73 +16,75 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-// Servicio de mensajes de contacto: gestiona los formularios que los visitantes envían
-// desde la web pública. Guarda el mensaje en BD y crea una tarea para el equipo.
+// Servicio de mensajes de contacto: gestiona los formularios que los visitantes envian
+// desde la web publica. Guarda el mensaje en BD y crea una tarea para el equipo.
+@Slf4j
 @Service
 public class MensajeContactoService {
 
-    @Autowired
-    private MensajeContactoRepository mensajeRepository;
+    @Autowired private MensajeContactoRepository mensajeRepository;
+    @Autowired private TareaRepository tareaRepository;
+    @Autowired private WhatsappService whatsappService;
 
-    @Autowired
-    private TareaRepository tareaRepository;
-
-    @Autowired
-    private WhatsappService whatsappService;
-
-    // ENVIAR MENSAJE (Público)
+    // ENVIAR MENSAJE (Publico)
+    // El mensaje se guarda siempre; las notificaciones (WhatsApp, tarea) son secundarias.
+    // Si cualquier notificacion falla, se loguea pero NO se revierte el guardado del mensaje.
     @Transactional
     public MensajeContacto enviarMensaje(MensajeContacto mensaje) {
-        // Guardar primero para obtener el ID generado por la BD
+
+        // 1. Guardar el mensaje — esto es lo critico, siempre debe completarse
         MensajeContacto guardado = mensajeRepository.save(mensaje);
 
-        // Construimos el texto del WhatsApp con los datos del remitente y el mensaje
-        StringBuilder msgWhatsApp = new StringBuilder();
-        msgWhatsApp.append("📩 *Nuevo mensaje de contacto*\n\n");
-        msgWhatsApp.append("👤 *Nombre:* ").append(guardado.getNombre()).append("\n");
-
-        if (guardado.getTelefono() != null && !guardado.getTelefono().isBlank()) {
-            msgWhatsApp.append("📞 *Teléfono:* ").append(guardado.getTelefono()).append("\n");
-        }
-        if (guardado.getEmail() != null && !guardado.getEmail().isBlank()) {
-            msgWhatsApp.append("✉️ *Email:* ").append(guardado.getEmail()).append("\n");
-        }
-        if (guardado.getMensaje() != null && !guardado.getMensaje().isBlank()) {
-            // Limitamos el mensaje a 300 caracteres para que no sea demasiado largo
-            String textoMensaje = guardado.getMensaje().length() > 300
-                    ? guardado.getMensaje().substring(0, 300) + "…"
-                    : guardado.getMensaje();
-            msgWhatsApp.append("\n💬 *Mensaje:*\n").append(textoMensaje);
-        }
-
-        // Enviamos el WhatsApp al número del admin (configurado en application.properties)
-        whatsappService.enviarAlAdmin(msgWhatsApp.toString());
-
-        // Creamos también una tarea en el dashboard para no perder el rastro
-        String titulo = "📩 Mensaje de " + guardado.getNombre();
-
-        StringBuilder descripcionTarea = new StringBuilder();
-        if (guardado.getTelefono() != null) {
-            descripcionTarea.append("Teléfono: ").append(guardado.getTelefono()).append("\n");
-        }
-        if (guardado.getEmail() != null) {
-            descripcionTarea.append("Email: ").append(guardado.getEmail()).append("\n");
-        }
-        if (guardado.getMensaje() != null && !guardado.getMensaje().isBlank()) {
-            descripcionTarea.append("Mensaje: ").append(guardado.getMensaje());
+        // 2. WhatsApp al admin — si falla no afecta al usuario
+        try {
+            String nl = "\n";
+            StringBuilder msgWA = new StringBuilder();
+            msgWA.append("Nuevo mensaje de contacto").append(nl).append(nl);
+            msgWA.append("Nombre: ").append(guardado.getNombre()).append(nl);
+            if (guardado.getTelefono() != null && !guardado.getTelefono().isBlank()) {
+                msgWA.append("Telefono: ").append(guardado.getTelefono()).append(nl);
+            }
+            if (guardado.getEmail() != null && !guardado.getEmail().isBlank()) {
+                msgWA.append("Email: ").append(guardado.getEmail()).append(nl);
+            }
+            if (guardado.getMensaje() != null && !guardado.getMensaje().isBlank()) {
+                String texto = guardado.getMensaje().length() > 300
+                        ? guardado.getMensaje().substring(0, 300) + "..."
+                        : guardado.getMensaje();
+                msgWA.append(nl).append("Mensaje:").append(nl).append(texto);
+            }
+            whatsappService.enviarAlAdmin(msgWA.toString());
+        } catch (Exception e) {
+            log.warn("Notificacion WhatsApp no enviada para contacto #{}: {}", guardado.getId(), e.getMessage());
         }
 
-        Tarea tarea = Tarea.builder()
-                .titulo(titulo)
-                .descripcion(descripcionTarea.toString())
-                .fecha(LocalDate.now().plusDays(2))
-                .prioridad("MEDIA")
-                .enlace("/contactos")
-                .etiquetaEnlace("Ver mensajes")
-                .fechaCreacion(LocalDate.now())
-                .build();
+        // 3. Crear tarea en el dashboard — igual, si falla no afecta al usuario
+        try {
+            String nl = "\n";
+            StringBuilder desc = new StringBuilder();
+            if (guardado.getTelefono() != null) {
+                desc.append("Telefono: ").append(guardado.getTelefono()).append(nl);
+            }
+            if (guardado.getEmail() != null) {
+                desc.append("Email: ").append(guardado.getEmail()).append(nl);
+            }
+            if (guardado.getMensaje() != null && !guardado.getMensaje().isBlank()) {
+                desc.append("Mensaje: ").append(guardado.getMensaje());
+            }
 
-        tareaRepository.save(tarea);
+            Tarea tarea = Tarea.builder()
+                    .titulo("Mensaje de " + guardado.getNombre())
+                    .descripcion(desc.toString())
+                    .fecha(LocalDate.now().plusDays(2))
+                    .prioridad("MEDIA")
+                    .enlace("/contactos")
+                    .etiquetaEnlace("Ver mensajes")
+                    .fechaCreacion(LocalDate.now())
+                    .build();
+            tareaRepository.save(tarea);
+        } catch (Exception e) {
+            log.warn("Tarea no creada para contacto #{}: {}", guardado.getId(), e.getMessage());
+        }
 
         return guardado;
     }
@@ -89,31 +92,24 @@ public class MensajeContactoService {
     // LISTAR TODOS PARA LOS TRABAJADORES
     @Transactional(readOnly = true)
     public Page<MensajeContacto> listarMensajes(int page, int size, String sortBy, String sortDir) {
-
         Sort sort = Sort.by(Sort.Direction.fromString(sortDir), sortBy);
-        PageRequest pageable = PageRequest.of(page, size, sort);
-
-        return mensajeRepository.findAll(pageable);
+        return mensajeRepository.findAll(PageRequest.of(page, size, sort));
     }
 
-    // LISTAR NUEVOS PARA LOS TRABAJADORES
+    // LISTAR MENSAJES NO LEIDOS
     @Transactional(readOnly = true)
     public Page<MensajeContacto> listarMensajesNuevos(int page, int size, String sortBy, String sortDir) {
-
         Sort sort = Sort.by(Sort.Direction.fromString(sortDir), sortBy);
-        PageRequest pageable = PageRequest.of(page, size, sort);
-
-        return mensajeRepository.findByLeidoFalseOrderByFechaEnvioDesc(pageable);
+        return mensajeRepository.findByLeidoFalseOrderByFechaEnvioDesc(PageRequest.of(page, size, sort));
     }
 
-    // MARCAR O DESMARCAR COMO LEÍDO
+    // MARCAR O DESMARCAR COMO LEIDO
     @Transactional
     public void alternarEstado(Long id) {
-        MensajeContacto mensaje = mensajeRepository.findById(id)
+        MensajeContacto msg = mensajeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Mensaje no encontrado"));
-
-        mensaje.setLeido(mensaje.isLeido() ? false : true);
-        mensajeRepository.save(mensaje);
+        msg.setLeido(!msg.isLeido());
+        mensajeRepository.save(msg);
     }
 
     @Transactional(readOnly = true)
@@ -122,28 +118,37 @@ public class MensajeContactoService {
                 .orElseThrow(() -> new ResourceNotFoundException("Mensaje no encontrado"));
     }
 
+    // ACTUALIZAR campo leido rapidamente por ID (lo usa el controller del admin)
     @Transactional
-    public MensajeContacto actualizarMensaje(Long id, MensajeContacto mensajeActualizado) {
-        MensajeContacto mensajeExistente = mensajeRepository.findById(id)
+    public void marcarLeido(Long id, boolean leido) {
+        mensajeRepository.findById(id).ifPresent(msg -> {
+            msg.setLeido(leido);
+            mensajeRepository.save(msg);
+        });
+    }
+
+    // ACTUALIZAR (principalmente para marcar como leido o anadir nota)
+    @Transactional
+    public MensajeContacto actualizarMensaje(Long id, MensajeContacto actualizado) {
+        MensajeContacto existente = mensajeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Mensaje no encontrado"));
 
-        // Actualización parcial: solo sobreescribimos campos que vienen rellenos
-        if (mensajeActualizado.getNombre() != null && !mensajeActualizado.getNombre().isBlank()) {
-            mensajeExistente.setNombre(mensajeActualizado.getNombre());
+        if (actualizado.getNombre() != null && !actualizado.getNombre().isBlank()) {
+            existente.setNombre(actualizado.getNombre());
         }
-        if (mensajeActualizado.getEmail() != null && !mensajeActualizado.getEmail().isBlank()) {
-            mensajeExistente.setEmail(mensajeActualizado.getEmail());
+        if (actualizado.getEmail() != null && !actualizado.getEmail().isBlank()) {
+            existente.setEmail(actualizado.getEmail());
         }
-        if (mensajeActualizado.getTelefono() != null && !mensajeActualizado.getTelefono().isBlank()) {
-            mensajeExistente.setTelefono(mensajeActualizado.getTelefono());
+        if (actualizado.getTelefono() != null && !actualizado.getTelefono().isBlank()) {
+            existente.setTelefono(actualizado.getTelefono());
         }
-        if (mensajeActualizado.getMensaje() != null && !mensajeActualizado.getMensaje().isBlank()) {
-            mensajeExistente.setMensaje(mensajeActualizado.getMensaje());
+        if (actualizado.getMensaje() != null && !actualizado.getMensaje().isBlank()) {
+            existente.setMensaje(actualizado.getMensaje());
         }
-        // leido siempre se actualiza (es el campo principal de este PUT)
-        mensajeExistente.setLeido(mensajeActualizado.isLeido());
+        // leido siempre se actualiza — es el campo principal del PUT
+        existente.setLeido(actualizado.isLeido());
 
-        return mensajeRepository.save(mensajeExistente);
+        return mensajeRepository.save(existente);
     }
 
     // ELIMINAR MENSAJE

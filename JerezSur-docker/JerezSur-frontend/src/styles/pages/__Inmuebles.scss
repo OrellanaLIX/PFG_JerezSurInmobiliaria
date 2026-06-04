@@ -1,5 +1,56 @@
 @use '../globals/_Variables' as *;
 
+/* Hero compacto del listado de inmuebles */
+.inmuebles-hero {
+  min-height: 280px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+  padding: 1rem 0 0; /* espacio superior mínimo; el contenido va al fondo (flex-end) */
+  background:
+    linear-gradient(
+      165deg,
+      rgba(0, 25, 70, 0.85) 0%,
+      rgba(0, 55, 130, 0.60) 60%,
+      rgba(0, 25, 70, 0.80) 100%
+    ),
+    url('https://images.unsplash.com/photo-1486325212027-8081e485255e?auto=format&fit=crop&w=1920&q=80')
+    center 60% / cover no-repeat;
+
+  &__content {
+    width: 100%;
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 2rem 2rem 2.5rem;
+    color: white;
+  }
+
+  &__eyebrow {
+    display: inline-block;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 0.5rem;
+  }
+
+  &__titulo {
+    font-size: clamp(1.6rem, 3vw, 2.2rem);
+    font-weight: 800;
+    color: white;
+    margin: 0 0 0.5rem;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+  }
+
+  &__subtitulo {
+    font-size: 1rem;
+    color: rgba(255,255,255,0.82);
+    margin: 0;
+  }
+}
+
 /* ==========================================================================
    BARRA DE HERRAMIENTAS (STICKY PREMIUM CON DESENFOQUE)
    ========================================================================= */
@@ -425,5 +476,50 @@
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.04);
     pointer-events: none;
+  }
+}
+
+/* ==========================================================================
+   SKELETON LOADING – GRID DE PROPIEDADES
+   Se muestra mientras se cargan los inmuebles desde la API.
+   Usa la animación .skeleton definida en __Utilities.scss
+   ========================================================================= */
+.inmuebles-skeleton-grid {
+  display: grid;
+  gap: 2rem;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+
+  @media (max-width: $tablet) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.inmuebles-skeleton-card {
+  background: $color-white;
+  border-radius: $radius-lg;
+  overflow: hidden;
+  border: 1px solid $color-border;
+  // Sombra suave igual que las tarjetas reales para mantener coherencia visual
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+
+  // Área de imagen del skeleton
+  .skeleton-img {
+    height: 260px;
+    border-radius: 0; // El overflow del card ya recorta las esquinas
+  }
+
+  // Área de contenido con gaps entre líneas de texto
+  .skeleton-body {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  // Línea de precio (más ancha y alta para simular el precio)
+  .skeleton-price {
+    height: 1.6em;
+    width: 45%;
+    margin-top: 0.5rem;
   }
 }

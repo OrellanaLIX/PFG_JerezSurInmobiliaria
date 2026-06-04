@@ -80,21 +80,11 @@ export const GraficosPanel = () => {
             </div>
           )}
 
-          {/* Dona + Evolución en paralelo */}
-          {(graficos.dona || graficos.evolucion) && (
-            <div className="grafico-row">
-              {graficos.dona && (
-                <div className="grafico-bloque">
-                  <img src={`data:image/png;base64,${graficos.dona}`}
-                       alt="Distribución de clientes" className="grafico-img" />
-                </div>
-              )}
-              {graficos.evolucion && (
-                <div className="grafico-bloque">
-                  <img src={`data:image/png;base64,${graficos.evolucion}`}
-                       alt="Evolución de registros" className="grafico-img" />
-                </div>
-              )}
+          {/* Dona de distribución de clientes — Evolución de registros eliminada */}
+          {graficos.dona && (
+            <div className="grafico-bloque grafico-bloque--full">
+              <img src={`data:image/png;base64,${graficos.dona}`}
+                   alt="Distribución de clientes" className="grafico-img" />
             </div>
           )}
         </>

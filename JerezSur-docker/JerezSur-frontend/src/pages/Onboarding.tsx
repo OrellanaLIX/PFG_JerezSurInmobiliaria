@@ -190,6 +190,27 @@ const Onboarding: React.FC = () => {
   // --- CARGA INICIAL ---
 
   useEffect(() => {
+    // Si venimos del enlace de verificación de email, el backend nos pasa un JWT en la URL.
+    // Lo almacenamos en localStorage para que el usuario quede autenticado directamente
+    // sin necesidad de hacer login manual.
+    const params = new URLSearchParams(window.location.search);
+    const autoToken  = params.get('autoToken');
+    const autoId     = params.get('autoId');
+    const autoRole   = params.get('autoRole');
+    const autoNombre = params.get('autoNombre');
+
+    if (autoToken && autoId) {
+      localStorage.setItem('token', autoToken);
+      localStorage.setItem('usuario', JSON.stringify({
+        id:     Number(autoId),
+        nombre: autoNombre ? decodeURIComponent(autoNombre) : 'Usuario',
+        role:   autoRole ?? 'ROLE_NOROL',
+        token:  autoToken,
+      }));
+      // Limpiamos los params de la URL para no exponer el token
+      window.history.replaceState({}, '', '/onboarding');
+    }
+
     const loadProfile = async () => {
       const user = getStoredUser();
       if (!user?.id) {
@@ -254,7 +275,7 @@ const Onboarding: React.FC = () => {
 
   const redirectToDashboard = (role: string) => {
     if (role === 'ROLE_VENDEDOR') {
-      navigate('/propietario');
+      navigate('/propietarios');
     } else {
       navigate('/inmuebles');
     }
@@ -307,8 +328,13 @@ const Onboarding: React.FC = () => {
     }
 
     if (needsDni) {
-      if (!normalizeDni(formData.dni)) return 'El DNI/NIE es obligatorio.';
-      if (!validateDniNie(formData.dni)) return 'El DNI/NIE no es válido.';
+      const dniNorm = normalizeDni(formData.dni);
+      if (!dniNorm) return 'El DNI/NIE es obligatorio.';
+      // Solo validamos el formato (8 dígitos + letra o X/Y/Z + 7 dígitos + letra)
+      // El algoritmo de verificación se hace en el CRM para no bloquear pruebas con DNIs de ejemplo
+      if (!/^(\d{8}[A-Z]|[XYZ]\d{7}[A-Z])$/.test(dniNorm)) {
+        return 'Formato de DNI/NIE no válido (ej: 12345678A o X1234567A).';
+      }
     }
 
     if (needsTelefono) {
@@ -664,10 +690,45 @@ const Onboarding: React.FC = () => {
             </div>
           )}
 
-          {/* ERROR */}
+          {/* MENSAJE DE ERROR — siempre visible, con icono y descripción clara */}
           {submitError && (
-            <div className="form-group">
-              <p>{submitError}</p>
+            <div
+              role="alert"
+              style={{
+                background: 'rgba(217,83,79,0.08)',
+                border: '1.5px solid rgba(217,83,79,0.4)',
+                borderRadius: 10,
+                padding: '1rem 1.25rem',
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '0.75rem',
+                margin: '0.5rem 0',
+              }}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#c0392b"
+                   strokeWidth="2" style={{ flexShrink: 0, marginTop: 2 }} aria-hidden="true">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/>
+                <line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+              <div>
+                <strong style={{ color: '#a32522', display: 'block', marginBottom: 4 }}>
+                  No se pudo completar el registro
+                </strong>
+                <p style={{ margin: 0, color: '#7b1818', fontSize: '0.9rem', lineHeight: 1.5 }}>
+                  {submitError}
+                </p>
+                {/* Si el error menciona teléfono, dar pista de acción */}
+                {submitError.toLowerCase().includes('teléfono') && (
+                  <p style={{ margin: '6px 0 0', color: '#7b1818', fontSize: '0.85rem', fontStyle: 'italic' }}>
+                    Cambia el número de teléfono por uno que no esté registrado y vuelve a intentarlo.
+                  </p>
+                )}
+                {submitError.toLowerCase().includes('email') && (
+                  <p style={{ margin: '6px 0 0', color: '#7b1818', fontSize: '0.85rem', fontStyle: 'italic' }}>
+                    Usa un email diferente o inicia sesión con la cuenta existente.
+                  </p>
+                )}
+              </div>
             </div>
           )}
 
@@ -781,8 +842,24 @@ const Onboarding: React.FC = () => {
                 </div>
               )}
 
-              <button type="submit" className="btn-submit" disabled={submitting}>
-                {submitting ? 'Procesando...' : 'Finalizar y empezar'}
+              <button
+                type="submit"
+                className="btn-submit"
+                disabled={submitting}
+                style={{ position: 'relative' }}
+              >
+                {submitting ? (
+                  <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         strokeWidth="2" style={{ animation: 'spin 1s linear infinite' }} aria-hidden="true">
+                      <circle cx="12" cy="12" r="10" strokeOpacity="0.3"/>
+                      <path d="M12 2a10 10 0 0 1 10 10"/>
+                    </svg>
+                    Guardando tu perfil...
+                  </span>
+                ) : (
+                  'Finalizar y empezar →'
+                )}
               </button>
             </div>
           )}

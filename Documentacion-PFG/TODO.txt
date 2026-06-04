@@ -1,16 +1,18 @@
 MINIMEJORAS POSTENTREGA:
-Cambiar telefono etc de contacto, ponerlo debajo del form como cta
+Mejorar paddings y margenes en los heros
 Cambiar textos
 
-SECUNDARIAS:
-Mejorar botón de tareas para no tener que poner enlace
-
 FIXES:
-Revisar filtros de busqueda del panel de admin
 Repaso general
 Comprobar funcionamiento de las apis
 Crear presentacion
 Revisar Comentarios
+Crear data cleanup
+Apartado de tareas, mejora estetica
+Crear mas correos y mensajes de te hemos borrado la cuenta, etc, etc
+Apartado de contrseña temporal
+Onboarding como mensaje de contacto
+
 
 HECHO:
 Al crear un usuario lo crea pero visualmente no esta del todo bien
@@ -28,3 +30,7 @@ Revisar GitHub
 Error handels
 Auth de apple y facebook
 Seguir mejorando lighthouse
+Revisar filtros de busqueda del panel de admin
+
+Prompt:
+para el data clean up, borra los mensajes de contacto leidos que tengan mas de 6 meses, y los usuario que lleven 3meses y no tengan ningun perfil como trabajador, vendedor o interesado asignado, y todos los que creas necesarios

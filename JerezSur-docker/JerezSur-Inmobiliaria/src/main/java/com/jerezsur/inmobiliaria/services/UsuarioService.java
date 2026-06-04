@@ -117,12 +117,29 @@ public class UsuarioService {
     }
 
     // LOGIN (BUSCAR POR EMAIL O TELEFONO + VALIDAR CONTRASEÑA)
-    @Transactional(readOnly = true)
+    @Transactional
     public Usuario login(String identifier, String password) {
         // Buscamos al usuario por email o teléfono (el identifier sirve para ambos)
         Usuario usuario = usuarioRepository.buscarPorEmailOTelefono(identifier)
                 .orElseThrow(
                         () -> new BusinessValidationException("Credenciales incorrectas o usuario no encontrado."));
+
+        // Si la cuenta no está activada: reenviamos el email de verificación
+        // El usuario debe verificar su cuenta antes de poder iniciar sesión
+        if (!Boolean.TRUE.equals(usuario.getCuentaActivada())) {
+            try {
+                // Generamos un nuevo token de verificación si no tiene uno
+                if (usuario.getTokenVerificacion() == null) {
+                    usuario.setTokenVerificacion(UUID.randomUUID().toString());
+                    usuarioRepository.save(usuario);
+                }
+                notificacionService.notificarNuevoUsuario(usuario, usuario.getTokenVerificacion());
+            } catch (Exception e) {
+                // Si el email falla, avisamos igual al usuario
+            }
+            throw new BusinessValidationException(
+                    "Tu cuenta no está verificada. Te hemos enviado un email de verificación — revisa tu bandeja de entrada.");
+        }
 
         // Verificamos si tiene password (casos de solo contacto no pueden loguearse)
         if (usuario.getPassword() == null) {

@@ -1,32 +1,94 @@
+/* ═══════════════════════════════════════════════════════════════════
+   AUTH PAGE — LOGIN CORPORATIVO PREMIUM
+   Panel de administración de JerezSur Inmobiliaria
+═══════════════════════════════════════════════════════════════════ */
+
 .auth-page {
   display: flex;
   height: 100vh;
   width: 100vw;
-  background-color: #f4f7fa;
+  // Fondo corporativo con gradiente diagonal sutil
+  background: linear-gradient(135deg, #001f4d 0%, #00439c 50%, #003380 100%);
   align-items: center;
   justify-content: center;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Inter', 'BerlinSans', 'Segoe UI', sans-serif;
+  position: relative;
+  overflow: hidden;
+
+  // ── Efecto de partículas flotantes con pseudo-elementos ──────────
+  // Círculos difusos que crean profundidad sin JavaScript
+
+  &::before {
+    content: '';
+    position: absolute;
+    width: 420px;
+    height: 420px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(103, 180, 55, 0.18) 0%, transparent 70%);
+    top: -80px;
+    right: -100px;
+    animation: authFloat1 8s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    width: 320px;
+    height: 320px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(0, 67, 156, 0.35) 0%, transparent 65%);
+    bottom: -60px;
+    left: -80px;
+    animation: authFloat2 10s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  // Partícula adicional en el centro-derecho
+  .auth-page__particle {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    animation: authFloat3 12s ease-in-out infinite;
+    width: 200px;
+    height: 200px;
+    top: 55%;
+    right: 15%;
+    background: radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 70%);
+  }
 
   &__container {
     background: #fff;
-    padding: 40px;
-    border-radius: 12px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+    padding: 44px 40px 40px;
+    border-radius: 16px;
+    // Sombra más pronunciada y profunda para efecto premium
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.3), 0 4px 16px rgba(0, 0, 0, 0.15);
     width: 100%;
-    max-width: 400px;
+    max-width: 420px;
     text-align: center;
+    position: relative;
+    z-index: 1;
+    // Borde superior corporativo de 4px en color primary
+    border-top: 4px solid #00439c;
+    // Animación de entrada
+    animation: authContainerEntrada 0.5s cubic-bezier(0.34, 1.3, 0.64, 1) both;
   }
 
   &__title {
     margin: 0 0 8px;
-    font-size: 1.5rem;
-    color: #1a2233;
+    // Título más prominente y corporativo
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: #00439c;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
   }
 
   &__subtitle {
     margin: 0 0 32px;
     font-size: 0.9rem;
-    color: #777;
+    color: #6b7280;
+    font-weight: 400;
   }
 
   &__form {
@@ -42,54 +104,104 @@
     gap: 6px;
 
     label {
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: #333;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #374151;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
 
     input {
-      padding: 12px;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      font-size: 1rem;
-      transition: border-color 0.2s;
+      padding: 12px 14px;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      background-color: #fafafa;
 
       &:focus {
         outline: none;
-        border-color: #2e62ff;
+        border-color: #00439c;
+        background-color: #fff;
+        box-shadow: 0 0 0 3px rgba(0, 67, 156, 0.1);
       }
     }
   }
 
   &__error {
-    color: #ff4757;
-    background-color: #fff0f1;
-    padding: 10px;
-    border-radius: 6px;
+    color: #a32522;
+    background-color: rgba(217, 83, 79, 0.08);
+    border: 1px solid rgba(217, 83, 79, 0.2);
+    padding: 10px 14px;
+    border-radius: 8px;
     font-size: 0.85rem;
     text-align: center;
     margin: 0;
   }
 
   &__submit {
-    background-color: #2e62ff;
+    // Botón con el color corporativo primary
+    background: linear-gradient(135deg, #00439c 0%, #003380 100%);
     color: #fff;
     border: none;
-    padding: 12px;
-    border-radius: 6px;
+    padding: 13px;
+    border-radius: 8px;
     font-size: 1rem;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
-    transition: background-color 0.2s;
-    margin-top: 10px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    margin-top: 8px;
+    letter-spacing: 0.02em;
 
     &:hover:not(:disabled) {
-      background-color: #1d4ed8;
+      background: linear-gradient(135deg, #003380 0%, #002060 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(0, 67, 156, 0.35);
+    }
+
+    &:active:not(:disabled) {
+      transform: translateY(0);
+      box-shadow: none;
     }
 
     &:disabled {
-      background-color: #93a5eb;
+      background: #93a5eb;
       cursor: not-allowed;
+      transform: none;
     }
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   ANIMACIONES DEL LOGIN
+───────────────────────────────────────────────────────────── */
+
+// Flotación asíncrona de los orbes de fondo
+@keyframes authFloat1 {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  33%       { transform: translateY(-20px) rotate(8deg); }
+  66%       { transform: translateY(10px) rotate(-5deg); }
+}
+
+@keyframes authFloat2 {
+  0%, 100% { transform: translateX(0) scale(1); }
+  50%       { transform: translateX(15px) scale(1.05); }
+}
+
+@keyframes authFloat3 {
+  0%, 100% { transform: translateY(0) translateX(0); }
+  40%       { transform: translateY(-30px) translateX(10px); }
+  70%       { transform: translateY(15px) translateX(-8px); }
+}
+
+// Entrada del card de login
+@keyframes authContainerEntrada {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }

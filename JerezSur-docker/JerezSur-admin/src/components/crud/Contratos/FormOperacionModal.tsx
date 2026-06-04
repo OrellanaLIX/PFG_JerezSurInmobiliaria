@@ -1,6 +1,9 @@
-import { useState, useEffect } from 'react';
+// Formulario para crear una nueva operación inmobiliaria (compraventa o arrendamiento).
+// Usa pestañas para organizar los datos, el inmueble y los interesados participantes.
+import { type FormEvent, type ReactNode, useState, useEffect } from 'react';
 import type { NuevaOperacion, RolParticipante } from '../../../types/operacion';
 import api from '../../../services/api';
+import SearchableEntitySelect from '../../ui/SearchableEntitySelect';
 import '../../../styles/App.scss';
 
 interface Props {
@@ -90,7 +93,7 @@ export const FormOperacionModal = ({ onCrear, onCancelar }: Props) => {
     if (tab) setTab(tab);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setErrorValidacion('');
 
@@ -243,17 +246,26 @@ export const FormOperacionModal = ({ onCrear, onCancelar }: Props) => {
           {/* ---- PESTAÑA INMUEBLE ---- */}
           {tab === 'inmueble' && (
             <>
-              <p className="section-title">Inmueble vinculado</p>
-              <Field label="ID del inmueble *">
-                <input
-                  type="number"
-                  min="1"
-                  placeholder="Ej: 42"
-                  value={form.inmuebleId || ''}
-                  onChange={e => setForm({ ...form, inmuebleId: Number(e.target.value) })}
-                />
-              </Field>
-              <p className="text-soft">Introduce el ID del inmueble que se vincula al expediente.</p>
+              <p className="section-title">Inmueble vinculado al expediente</p>
+              <SearchableEntitySelect
+                label="Inmueble *"
+                placeholder="Buscar por título o referencia del inmueble..."
+                endpoint="/inmuebles"
+                mapOption={(item: any) => ({
+                  id: item.id,
+                  label: item.titulo || item.referencia || `Inmueble #${item.id}`,
+                  sublabel: [item.zona, item.ciudad].filter(Boolean).join(', ') +
+                            (item.precio ? ` · ${new Intl.NumberFormat('es-ES').format(item.precio)} €` : ''),
+                  badge: item.operacion === 'ALQUILER' ? 'Alquiler' : 'Venta',
+                  badgeColor: item.operacion === 'ALQUILER' ? 'green' : 'blue',
+                  imageUrl: item.imagenPortadaUrl ?? undefined,
+                })}
+                value={form.inmuebleId || null}
+                onChange={id => setForm({ ...form, inmuebleId: id ?? 0 })}
+                queryParams={{ estado: 'DISPONIBLE' }}
+                required
+                helpText="Solo se muestran inmuebles disponibles. Selecciona el inmueble que se vende o alquila en este expediente."
+              />
             </>
           )}
 
@@ -374,7 +386,7 @@ export const FormOperacionModal = ({ onCrear, onCancelar }: Props) => {
   );
 };
 
-const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
+const Field = ({ label, children }: { label: string; children: ReactNode }) => (
   <div className="form-group">
     <label>{label}</label>
     {children}

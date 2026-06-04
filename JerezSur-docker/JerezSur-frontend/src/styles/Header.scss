@@ -34,7 +34,10 @@
 
   &__logo img {
     height: 50px;
+    width: auto;      /* Evita que el logo se estire si el contenedor impone un ancho */
+    max-width: 200px; /* Límite para logos muy anchos */
     display: block;
+    object-fit: contain;
   }
 
   &__nav {
@@ -48,13 +51,45 @@
     }
 
     a {
+      position: relative;
       color: $color-text;
       font-weight: 500;
       padding-block: 0.5rem;
+      cursor: pointer;
+      transition: color $transition-fast;
 
+      // Indicador de hover: línea deslizante desde el centro
+      &::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        right: 50%;
+        height: 2px;
+        background: $color-primary;
+        border-radius: 2px;
+        transition: left 0.25s ease, right 0.25s ease;
+      }
+
+      &:hover {
+        color: $color-primary;
+
+        &::after {
+          left: 0;
+          right: 0;
+        }
+      }
+
+      // Estado activo: indicador siempre visible y color destacado
       &.is-active {
         color: $color-primary;
-        box-shadow: inset 0 -2px $color-primary; // Más limpio que el ::after
+        font-weight: 700;
+
+        &::after {
+          left: 0;
+          right: 0;
+          background: $color-primary;
+        }
       }
     }
   }
@@ -62,10 +97,23 @@
   &__toggle {
     display: none;
     flex-direction: column;
+    justify-content: center;
+    align-items: center;
     gap: 5px;
     border: none;
     background: none;
     z-index: 1100;
+    cursor: pointer;
+    // Área mínima de 44×44px para accesibilidad táctil (WCAG 2.5.5)
+    min-width: 44px;
+    min-height: 44px;
+    padding: 10px;
+    border-radius: $radius-xs;
+    transition: background-color $transition-fast;
+
+    &:hover {
+      background-color: rgba($color-primary, 0.06);
+    }
 
     @media (max-width: $laptop) {
       display: flex;
@@ -75,7 +123,9 @@
       width: 24px;
       height: 2px;
       background: $color-text;
-      transition: 0.3s;
+      border-radius: 2px;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+      transform-origin: center;
     }
 
     &.is-open {
@@ -85,6 +135,7 @@
 
       span:nth-child(2) {
         opacity: 0;
+        transform: scaleX(0);
       }
 
       span:nth-child(3) {
@@ -115,9 +166,10 @@
   width: 280px;
   background: white;
   z-index: 1060;
-  padding: 100px 2rem;
+  padding: 100px 2rem 2rem;
   transform: translateX(100%);
-  transition: transform 0.3s ease;
+  transition: transform 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.12);
 
   &--open {
     transform: translateX(0);
@@ -126,15 +178,26 @@
   &__nav {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 0.25rem;
 
     a {
-      font-size: 1.1rem;
+      font-size: 1.05rem;
       color: $color-text;
+      padding: 0.75rem 1rem;
+      border-radius: $radius-sm;
+      font-weight: 500;
+      transition: background-color $transition-fast, color $transition-fast;
+      cursor: pointer;
+
+      &:hover {
+        background-color: rgba($color-primary, 0.06);
+        color: $color-primary;
+      }
 
       &.is-active {
         color: $color-primary;
-        font-weight: bold;
+        font-weight: 700;
+        background-color: $color-primary-light;
       }
     }
   }

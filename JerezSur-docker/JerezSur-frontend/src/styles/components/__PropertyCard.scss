@@ -83,7 +83,7 @@
       pointer-events: none;
     }
 
-    // Placeholder cuando no hay imagen
+    // Placeholder cuando no hay imagen: icono SVG inline + texto
     &-no-image {
       width: 100%;
       height: 100%;
@@ -91,11 +91,25 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 0.75rem;
-      background: linear-gradient(135deg, $color-surface-alt, darken($color-surface-alt, 3%));
+      gap: 0.875rem;
+      background: linear-gradient(135deg, $color-surface-alt 0%, darken($color-surface-alt, 4%) 100%);
       color: $color-text-muted;
       font-size: 0.82rem;
       text-align: center;
+      padding: 1.5rem;
+
+      // Icono SVG decorativo de imagen
+      &::before {
+        content: '';
+        display: block;
+        width: 52px;
+        height: 52px;
+        // SVG de imagen con frame y montaña — más elegante que un emoji
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='1.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'/%3E%3Ccircle cx='8.5' cy='8.5' r='1.5'/%3E%3Cpolyline points='21 15 16 10 5 21'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-size: contain;
+        opacity: 0.6;
+      }
     }
   }
 
@@ -134,6 +148,8 @@
     &--featured {
       background: rgba(245, 158, 11, 0.96);
       color: #fff;
+      // Pulso sutil para llamar la atención sobre inmuebles destacados
+      animation: badge-pulse 2.8s ease-in-out infinite;
     }
   }
 
@@ -289,8 +305,16 @@
   &__price {
     font-size: 1.4rem;
     font-weight: 800;
-    color: $color-primary;
+    // Color primario oscuro para mayor contraste WCAG AA (ratio > 4.5:1)
+    color: $color-primary-dark;
     line-height: 1;
     letter-spacing: -0.02em;
   }
+}
+
+// ── Animaciones de PropertyCard ──────────────────────────────────────────
+// Pulso radial para el badge "Destacado"
+@keyframes badge-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.45); }
+  50%       { box-shadow: 0 0 0 6px rgba(245, 158, 11, 0); }
 }

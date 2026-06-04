@@ -1,5 +1,6 @@
 // Componente de tareas pendientes del dashboard del admin.
 // Muestra la lista de tareas activas y el formulario para crear nuevas tareas manuales.
+// Incluye: modal de detalle, separadores por prioridad, acciones rápidas.
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { Tarea, NuevaTarea } from '../../types/dashboard';
@@ -16,6 +17,13 @@ const PRIORIDAD_META: Record<string, { label: string; color: string; dot: string
   BAJA:  { label: 'Baja',  color: '#4a9e2f', dot: '🟢' },
 };
 
+// Etiquetas de grupo para los separadores de prioridad
+const GRUPO_META: Record<string, { dot: string; label: string }> = {
+  ALTA:  { dot: '🔴', label: 'Urgentes' },
+  MEDIA: { dot: '🟡', label: 'Media prioridad' },
+  BAJA:  { dot: '🟢', label: 'Baja prioridad' },
+};
+
 function formatFecha(raw: string) {
   const d = new Date(raw + 'T00:00:00');
   const hoy = new Date();
@@ -25,6 +33,12 @@ function formatFecha(raw: string) {
   if (diff === 0) return { txt: 'Hoy', overdue: false };
   if (diff === 1) return { txt: 'Mañana', overdue: false };
   return { txt: d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }), overdue: false };
+}
+
+// Formatea la fecha con el nombre completo del día y mes para el modal de detalle
+function formatFechaLarga(raw: string) {
+  const d = new Date(raw + 'T00:00:00');
+  return d.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 }
 
 export const TareasPendientes = ({ tareas, onCrear, onCompletar }: Props) => {
@@ -38,6 +52,9 @@ export const TareasPendientes = ({ tareas, onCrear, onCompletar }: Props) => {
   const [etiqueta,  setEtiqueta]  = useState('');
   const [guardando, setGuardando] = useState(false);
   const [completando, setCompletando] = useState<number | null>(null);
+
+  // Estado para el modal de detalle de tarea
+  const [tareaDetalle, setTareaDetalle] = useState<Tarea | null>(null);
 
   const reset = () => {
     setTitulo(''); setDesc('');
@@ -60,6 +77,8 @@ export const TareasPendientes = ({ tareas, onCrear, onCompletar }: Props) => {
 
   const completar = async (id: number) => {
     setCompletando(id);
+    // Si había detalle abierto de esta tarea, cerrarlo
+    if (tareaDetalle?.id === id) setTareaDetalle(null);
     try { await onCompletar(id); }
     finally { setCompletando(null); }
   };
@@ -85,6 +104,72 @@ export const TareasPendientes = ({ tareas, onCrear, onCompletar }: Props) => {
   const alta  = sorted.filter(t => t.prioridad === 'ALTA');
   const media = sorted.filter(t => t.prioridad === 'MEDIA');
   const baja  = sorted.filter(t => t.prioridad === 'BAJA');
+
+  // Renderiza una tarjeta individual de tarea
+  const renderCard = (tarea: Tarea) => {
+    const pm = PRIORIDAD_META[tarea.prioridad] ?? PRIORIDAD_META.MEDIA;
+    const { txt: fechaTxt, overdue } = formatFecha(tarea.fecha);
+    return (
+      <li
+        key={tarea.id}
+        className={`t-card ${overdue ? 't-card--overdue' : ''}`}
+        style={{ '--p-color': pm.color } as React.CSSProperties}
+        // Click en la card (no en los botones de acción) abre el modal de detalle
+        onClick={() => setTareaDetalle(tarea)}
+      >
+        <div className="t-card__stripe" />
+        <div className="t-card__body">
+          <div className="t-card__top">
+            <span className="t-card__prio-dot">{pm.dot}</span>
+            {/* title attribute para mostrar el título completo al hacer hover */}
+            <strong className="t-card__titulo" title={tarea.titulo}>{tarea.titulo}</strong>
+            <span className={`t-card__fecha ${overdue ? 't-card__fecha--late' : ''}`}>
+              {overdue ? '⚠️ ' : '📅 '}{fechaTxt}
+            </span>
+          </div>
+          {tarea.descripcion && (
+            <p className="t-card__desc">{tarea.descripcion}</p>
+          )}
+        </div>
+        <div className="t-card__actions" onClick={e => e.stopPropagation()}>
+          {/* Enlace como icono pequeño en vez del botón grande con texto */}
+          {tarea.enlace && (
+            <button
+              className="t-btn t-btn--ghost t-btn--sm t-btn--icon"
+              title={tarea.etiquetaEnlace || 'Abrir enlace'}
+              onClick={() => abrirLink(tarea.enlace!)}
+            >
+              🔗
+            </button>
+          )}
+          <button
+            className="t-btn t-btn--success t-btn--sm"
+            disabled={completando === tarea.id}
+            onClick={() => completar(tarea.id)}
+          >
+            {completando === tarea.id ? '…' : '✓ Hecho'}
+          </button>
+        </div>
+      </li>
+    );
+  };
+
+  // Renderiza un separador de grupo de prioridad
+  const renderGrupo = (grupo: Tarea[], clave: 'ALTA' | 'MEDIA' | 'BAJA') => {
+    if (grupo.length === 0) return null;
+    const meta = GRUPO_META[clave];
+    return (
+      <>
+        <li className={`t-grupo t-grupo--${clave.toLowerCase()}`} aria-hidden="true">
+          <span className="t-grupo__dot">{meta.dot}</span>
+          <span className="t-grupo__label">{meta.label}</span>
+          <span className="t-grupo__count">({grupo.length})</span>
+          <span className="t-grupo__line" />
+        </li>
+        {grupo.map(renderCard)}
+      </>
+    );
+  };
 
   return (
     <div className="tareas">
@@ -156,7 +241,7 @@ export const TareasPendientes = ({ tareas, onCrear, onCompletar }: Props) => {
         </form>
       )}
 
-      {/* Lista de tareas */}
+      {/* Lista de tareas agrupadas por prioridad */}
       {tareas.length === 0 ? (
         <div className="tareas__empty">
           <p className="tareas__empty-icon">🎉</p>
@@ -164,45 +249,100 @@ export const TareasPendientes = ({ tareas, onCrear, onCompletar }: Props) => {
         </div>
       ) : (
         <ul className="tareas__lista">
-          {sorted.map(tarea => {
-            const pm = PRIORIDAD_META[tarea.prioridad] ?? PRIORIDAD_META.MEDIA;
-            const { txt: fechaTxt, overdue } = formatFecha(tarea.fecha);
-            return (
-              <li key={tarea.id} className={`t-card ${overdue ? 't-card--overdue' : ''}`}
-                  style={{ '--p-color': pm.color } as React.CSSProperties}>
-                <div className="t-card__stripe" />
-                <div className="t-card__body">
-                  <div className="t-card__top">
-                    <span className="t-card__prio-dot">{pm.dot}</span>
-                    <strong className="t-card__titulo">{tarea.titulo}</strong>
-                    <span className={`t-card__fecha ${overdue ? 't-card__fecha--late' : ''}`}>
-                      {overdue ? '⚠️ ' : '📅 '}{fechaTxt}
-                    </span>
-                  </div>
-                  {tarea.descripcion && (
-                    <p className="t-card__desc">{tarea.descripcion}</p>
-                  )}
-                </div>
-                <div className="t-card__actions">
-                  {tarea.enlace && (
-                    <button className="t-btn t-btn--ghost t-btn--sm"
-                            onClick={() => abrirLink(tarea.enlace!)}>
-                      🔗 {tarea.etiquetaEnlace || 'Abrir'}
-                    </button>
-                  )}
-                  <button
-                    className="t-btn t-btn--success t-btn--sm"
-                    disabled={completando === tarea.id}
-                    onClick={() => completar(tarea.id)}
-                  >
-                    {completando === tarea.id ? '…' : '✓ Hecho'}
-                  </button>
-                </div>
-              </li>
-            );
-          })}
+          {renderGrupo(alta,  'ALTA')}
+          {renderGrupo(media, 'MEDIA')}
+          {renderGrupo(baja,  'BAJA')}
         </ul>
       )}
+
+      {/* Mini-modal de detalle de tarea */}
+      {tareaDetalle && (() => {
+        const pm = PRIORIDAD_META[tareaDetalle.prioridad] ?? PRIORIDAD_META.MEDIA;
+        const { txt: fechaTxt, overdue } = formatFecha(tareaDetalle.fecha);
+        const fechaLarga = formatFechaLarga(tareaDetalle.fecha);
+        return (
+          // Overlay: click fuera cierra el modal
+          <div
+            className="t-modal-overlay"
+            onClick={() => setTareaDetalle(null)}
+            role="dialog"
+            aria-modal="true"
+            aria-label={`Detalle: ${tareaDetalle.titulo}`}
+          >
+            <div
+              className="t-modal"
+              style={{ '--p-color': pm.color } as React.CSSProperties}
+              onClick={e => e.stopPropagation()}
+            >
+              {/* Stripe de color en la parte superior */}
+              <div className="t-modal__stripe" />
+
+              <div className="t-modal__content">
+                {/* Cabecera del modal */}
+                <div className="t-modal__header">
+                  <span className="t-modal__prio-dot">{pm.dot}</span>
+                  <h3 className="t-modal__titulo">{tareaDetalle.titulo}</h3>
+                  <button
+                    className="t-modal__close"
+                    onClick={() => setTareaDetalle(null)}
+                    aria-label="Cerrar"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                {/* Badge de prioridad */}
+                <div className="t-modal__meta">
+                  <span className={`t-badge t-badge--${tareaDetalle.prioridad.toLowerCase()}`}>
+                    {pm.dot} Prioridad {pm.label}
+                  </span>
+                  <span className={`t-modal__fecha ${overdue ? 't-modal__fecha--late' : ''}`}>
+                    {overdue ? '⚠️ ' : '📅 '}
+                    <span className="t-modal__fecha-corta">{fechaTxt}</span>
+                    <span className="t-modal__fecha-larga"> · {fechaLarga}</span>
+                  </span>
+                </div>
+
+                {/* Descripción completa sin truncar */}
+                {tareaDetalle.descripcion ? (
+                  <p className="t-modal__desc">{tareaDetalle.descripcion}</p>
+                ) : (
+                  <p className="t-modal__desc t-modal__desc--empty">Sin descripción.</p>
+                )}
+
+                {/* Enlace si tiene */}
+                {tareaDetalle.enlace && (
+                  <div className="t-modal__enlace">
+                    <button
+                      className="t-btn t-btn--ghost t-btn--sm"
+                      onClick={() => abrirLink(tareaDetalle.enlace!)}
+                    >
+                      🔗 {tareaDetalle.etiquetaEnlace || 'Abrir enlace'}
+                    </button>
+                  </div>
+                )}
+
+                {/* Acciones del modal */}
+                <div className="t-modal__actions">
+                  <button
+                    className="t-btn t-btn--ghost"
+                    onClick={() => setTareaDetalle(null)}
+                  >
+                    Cerrar
+                  </button>
+                  <button
+                    className="t-btn t-btn--success"
+                    disabled={completando === tareaDetalle.id}
+                    onClick={() => completar(tareaDetalle.id)}
+                  >
+                    {completando === tareaDetalle.id ? 'Completando…' : '✓ Marcar como completada'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 };

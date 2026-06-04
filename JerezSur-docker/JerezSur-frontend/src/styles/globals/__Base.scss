@@ -1,8 +1,58 @@
 @use '../globals/_Variables' as *;
 
+/* =====================================================
+   CSS CUSTOM PROPERTIES (Design Tokens globales)
+   Permiten que JavaScript y el HTML accedan a los
+   valores del sistema de diseño sin necesidad de SCSS.
+   Mantenemos sincronía con __Variables.scss.
+===================================================== */
+:root {
+  --color-primary:        #00439c;
+  --color-primary-dark:   #003380;
+  --color-primary-light:  #dce8f8;
+  --color-secondary:      #67b437;
+  --color-secondary-dark: #4e9226;
+  --color-bg:             #f7f9fc;
+  --color-surface:        #ffffff;
+  --color-surface-alt:    #f1f5f9;
+  --color-text:           #1f2937;
+  --color-text-soft:      #6b7280;
+  --color-text-muted:     #94a3b8;
+  --color-border:         #e5e7eb;
+  --color-border-strong:  #cbd5e1;
+
+  /* Sombras */
+  --shadow-xs: 0 2px 6px rgba(0, 0, 0, 0.06);
+  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 10px 24px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 18px 40px rgba(0, 0, 0, 0.14);
+
+  /* Radios */
+  --radius-xs:   6px;
+  --radius-sm:   10px;
+  --radius-md:   14px;
+  --radius-lg:   18px;
+  --radius-xl:   24px;
+  --radius-pill: 999px;
+
+  /* Transiciones */
+  --transition-fast:   0.2s ease;
+  --transition-base:   0.3s ease;
+  --transition-smooth: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Scroll suave nativo del navegador */
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   overflow-x: hidden;
   background-color: $color-surface-alt;
+  /* Mejora el renderizado de fuentes en todos los navegadores */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 main {
@@ -13,13 +63,18 @@ h1, h2, h3, h4, h5, h6 {
   color: $color-primary-dark;
   line-height: $line-height-tight;
   font-weight: 700;
+  /* Interletraje sutil mejora la legibilidad en titulares grandes */
+  letter-spacing: -0.02em;
 }
 
 h1 { font-size: $font-size-h1; }
-h2 { font-size: $font-size-h2; }
-h3 { font-size: $font-size-h3; }
+h2 { font-size: $font-size-h2; letter-spacing: -0.015em; }
+h3 { font-size: $font-size-h3; letter-spacing: -0.01em; }
 
 p { color: $color-text; }
+
+/* El strong hereda el color del contexto en lugar de forzar negro */
+strong { color: inherit; font-weight: 700; }
 
 ::selection {
   background-color: $color-primary;

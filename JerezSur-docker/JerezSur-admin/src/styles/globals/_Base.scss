@@ -1,5 +1,29 @@
 @use '../globals/_Variables' as *;
 
+/* ─────────────────────────────────────────────────────────────
+   CSS CUSTOM PROPERTIES GLOBALES
+   Permiten usar var(--color-primary) en cualquier contexto,
+   incluso en JavaScript o estilos en línea.
+───────────────────────────────────────────────────────────── */
+:root {
+  --color-primary:      #00439c;
+  --color-primary-dark: #003380;
+  --color-secondary:    #67b437;
+  --color-bg:           #f7f9fc;
+  --color-surface:      #ffffff;
+  --color-text:         #1f2937;
+  --color-border:       #e5e7eb;
+  --shadow-sm:          0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-md:          0 10px 24px rgba(0, 0, 0, 0.1);
+  --radius-md:          14px;
+  --transition-base:    0.3s ease;
+}
+
+/* Desplazamiento suave para anclas */
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   overflow-x: hidden;
   background-color: $color-surface-alt;

@@ -291,14 +291,7 @@ export const FormInmuebleModal = ({ onCrear, onCancelar, error: externalError }:
                 <Field label="Ciudad *"><input type="text" required value={form.ciudad} onChange={e => setForm({ ...form, ciudad: e.target.value })} /></Field>
                 <Field label="Zona"><input type="text" placeholder="ej: Mopu, Chapín..." value={form.zona || ''} onChange={e => setForm({ ...form, zona: e.target.value })} /></Field>
               </div>
-              <div className="form-row">
-                <Field label="Destacado en portada">
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-                    <input type="checkbox" checked={!!form.destacado} onChange={e => setForm({ ...form, destacado: e.target.checked })} style={{ width: 'auto' }} />
-                    <span>Mostrar en destacados (máx. 3)</span>
-                  </label>
-                </Field>
-              </div>
+              {/* El campo "destacado" se gestiona en la sección "Inmuebles destacados" del panel */}
 
               <p className="section-title">Gastos y Cargas</p>
               <div className="form-row">

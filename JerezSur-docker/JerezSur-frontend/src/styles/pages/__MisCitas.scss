@@ -1,5 +1,42 @@
 @use '../globals/_Variables' as *;
 
+/* Hero de mis citas */
+.miscitas-hero {
+  min-height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background:
+    linear-gradient(
+      160deg,
+      rgba(0, 30, 80, 0.88) 0%,
+      rgba(0, 67, 156, 0.62) 55%,
+      rgba(0, 30, 80, 0.84) 100%
+    ),
+    url('https://images.unsplash.com/photo-1506784983877-45594efa4cbe?auto=format&fit=crop&w=1920&q=80')
+    center center / cover no-repeat;
+  color: white;
+
+  &__content {
+    padding: 2rem 1.5rem;
+  }
+
+  &__titulo {
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-weight: 800;
+    color: white;
+    margin: 0 0 0.5rem;
+    letter-spacing: -0.02em;
+  }
+
+  &__sub {
+    font-size: 1rem;
+    color: rgba(255,255,255,0.82);
+    margin: 0;
+  }
+}
+
 .mis-citas {
   background-color: $color-bg;
   padding: 3rem 0;

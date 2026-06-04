@@ -8,17 +8,20 @@
   justify-content: center;
   text-align: center;
   color: $color-white;
-  padding: 2rem 1rem;
+  padding: 0 1rem;
   overflow: hidden;
 
+  // Foto principal del hero: vista aérea de Jerez de la Frontera
+  // Para cambiarla, sustituye la URL por la nueva imagen o pon una ruta local tipo '/MiHero.jpg'
   background:
     linear-gradient(
-      175deg,
-      rgba(0, 18, 48, 0.82) 0%,
-      rgba(0, 40, 100, 0.48) 55%,
-      rgba(0, 18, 48, 0.70) 100%
+      160deg,
+      rgba(0, 15, 45, 0.88) 0%,
+      rgba(0, 50, 120, 0.55) 50%,
+      rgba(0, 25, 70, 0.78) 100%
     ),
-    url('/Hero.jpg') center center / cover no-repeat;
+    url('https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1920&q=80')
+    center 60% / cover no-repeat;
 
 
   &::before {

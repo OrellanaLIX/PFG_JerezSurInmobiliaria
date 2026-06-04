@@ -72,4 +72,8 @@ public interface InmuebleRepository extends JpaRepository<Inmueble, Long> {
         List<Inmueble> findByDestacadoTrueOrderByFechaRegistroAsc();
 
         List<Inmueble> findByDestacadoTrueOrderByFechaRegistroDesc();
+
+        // Devuelve todos los inmuebles en los que un vendedor concreto tiene participación
+        @Query("SELECT DISTINCT i FROM Inmueble i JOIN i.propietariosPorcentaje p WHERE KEY(p).id = :vendedorId")
+        List<Inmueble> findByVendedorId(@Param("vendedorId") Long vendedorId);
 }

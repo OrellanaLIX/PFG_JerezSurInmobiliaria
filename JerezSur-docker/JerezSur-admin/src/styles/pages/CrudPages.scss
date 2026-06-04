@@ -132,20 +132,25 @@
     }
 
     thead tr {
-      background-color: $color-surface-alt;
-      border-bottom: 2px solid $color-border;
+      // Cabecera más distinguible: fondo más intenso y tipografía enfatizada
+      background: linear-gradient(to bottom, #eef2f9, $color-surface-alt);
+      border-bottom: 2px solid $color-border-strong;
     }
 
     th {
       padding: $space-4;
       text-align: left;
-      font-weight: 600;
-      color: $color-text;
+      font-weight: 700;
+      font-size: $font-size-xs;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: $color-text-soft;
       user-select: none;
 
       &.sortable {
         cursor: pointer;
         user-select: none;
+        transition: color $transition-fast;
 
         &:hover {
           color: $color-primary;
@@ -155,10 +160,13 @@
 
     tbody tr {
       border-bottom: 1px solid $color-border;
-      transition: background-color $transition-base;
+      // Transición más elegante que incluye la transformación lateral
+      transition: background-color $transition-smooth, transform $transition-fast;
 
       &:hover {
         background-color: $color-primary-light;
+        // Desplazamiento sutil hacia la derecha al hacer hover
+        transform: translateX(2px);
       }
 
       &:last-child {
@@ -180,25 +188,64 @@
       gap: $space-2;
       white-space: nowrap;
 
+      // Botones de acción elegantes: solo icono con tooltip al hover
       button {
-        padding: $space-2 $space-3;
-        font-size: $font-size-xs;
-        border: 1px solid $color-border;
-        background-color: $color-surface;
+        position: relative;
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: $font-size-sm;
+        border: 1px solid transparent;
+        background-color: transparent;
         border-radius: $radius-xs;
         cursor: pointer;
-        transition: all $transition-base;
+        color: $color-text-soft;
+        transition: all $transition-smooth;
+
+        // Tooltip generado desde el atributo aria-label o data-tooltip
+        &[aria-label]::after,
+        &[data-tooltip]::after {
+          content: attr(aria-label);
+          position: absolute;
+          bottom: calc(100% + 6px);
+          left: 50%;
+          transform: translateX(-50%) translateY(4px);
+          background: $color-text;
+          color: $color-white;
+          font-size: 0.68rem;
+          font-weight: 600;
+          padding: 3px 8px;
+          border-radius: $radius-xs;
+          white-space: nowrap;
+          pointer-events: none;
+          opacity: 0;
+          transition: opacity $transition-fast, transform $transition-fast;
+          z-index: 10;
+        }
+
+        &[data-tooltip]::after {
+          content: attr(data-tooltip);
+        }
 
         &:hover {
           background-color: $color-primary-light;
-          border-color: $color-primary;
+          border-color: $color-border;
           color: $color-primary;
+
+          &[aria-label]::after,
+          &[data-tooltip]::after {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+          }
         }
 
         &.btn-delete {
           &:hover {
             background-color: rgba($color-error, 0.1);
-            border-color: $color-error;
+            border-color: rgba($color-error, 0.3);
             color: $color-error;
           }
         }
@@ -206,7 +253,7 @@
         &.btn-edit {
           &:hover {
             background-color: rgba($color-primary, 0.1);
-            border-color: $color-primary;
+            border-color: rgba($color-primary, 0.3);
             color: $color-primary;
           }
         }
@@ -214,7 +261,7 @@
         &.btn-view {
           &:hover {
             background-color: rgba($color-secondary, 0.1);
-            border-color: $color-secondary;
+            border-color: rgba($color-secondary, 0.3);
             color: $color-secondary;
           }
         }
@@ -281,7 +328,8 @@
     max-width: 600px;
     width: 100%;
     box-shadow: $shadow-lg;
-    animation: slideUp 0.3s ease-out;
+    // Animación de entrada combinando escala + translateY para mayor impacto
+    animation: modalEntrada 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) both;
     max-height: 90vh;
     overflow-y: auto;
 
@@ -869,6 +917,19 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+// Animación de entrada del modal: combina escala y desplazamiento vertical
+// para un efecto de aparición más natural y premium
+@keyframes modalEntrada {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
 

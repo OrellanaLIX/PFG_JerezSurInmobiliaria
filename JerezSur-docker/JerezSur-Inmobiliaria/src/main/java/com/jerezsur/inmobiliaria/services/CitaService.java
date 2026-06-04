@@ -5,6 +5,7 @@ import com.jerezsur.inmobiliaria.dto.SolicitudCitaUsuarioDTO;
 import com.jerezsur.inmobiliaria.models.*;
 import com.jerezsur.inmobiliaria.models.enums.EstadoCita;
 import com.jerezsur.inmobiliaria.repositories.*;
+import java.time.format.DateTimeFormatter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,6 +36,7 @@ public class CitaService {
     private final UsuarioRepository usuarioRepository;
     private final InmuebleRepository inmuebleRepository;
     private final TareaRepository tareaRepository;
+    private final NotificacionService notificacionService;
 
     /**
      * Un trabajador acepta una cita que estaba pendiente.
@@ -58,6 +60,22 @@ public class CitaService {
         cita.setTrabajador(trabajador);
         cita.setEstado(EstadoCita.CONFIRMADA);
         Cita actualizada = citaRepository.save(cita);
+
+        // Notificar al usuario por email con los detalles de la cita confirmada
+        try {
+            String fechaFormateada = actualizada.getFechaHora()
+                    .format(DateTimeFormatter.ofPattern("dd/MM/yyyy 'a las' HH:mm"));
+            String lugar = actualizada.getInmueble() != null
+                    ? actualizada.getInmueble().getDireccion() + ", " + actualizada.getInmueble().getCiudad()
+                    : "Nuestra oficina en Jerez de la Frontera";
+            String detalles = "Fecha: " + fechaFormateada + "\n"
+                    + "Lugar: " + lugar
+                    + (actualizada.getMotivo() != null && !actualizada.getMotivo().isBlank()
+                    ? "\nMotivo: " + actualizada.getMotivo() : "");
+            notificacionService.notificarCitaConfirmada(actualizada.getUsuario(), detalles);
+        } catch (Exception e) {
+            // La notificación no debe bloquear la confirmación
+        }
 
         return mapearACitaResponse(actualizada);
     }

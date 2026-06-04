@@ -16,7 +16,6 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Builder.Default;
@@ -39,13 +38,14 @@ public class MensajeContacto {
     private Long id;
 
     // --- DATOS DEL REMITENTE ---
-    @NotNull(message = "El nombre es obligatorio")
+    // nombre es el único campo realmente obligatorio para gestionar el contacto
     private String nombre;
 
     @Email(message = "El formato del email no es válido")
     private String email;
 
-    @NotNull(message = "El teléfono es obligatorio")
+    // telefono es opcional — los usuarios logueados pueden no tenerlo
+    @Column(nullable = true)
     private String telefono;
 
     // --- CONTENIDO DEL MENSAJE ---
@@ -57,10 +57,12 @@ public class MensajeContacto {
 
     // --- RELACIONES ---
 
-    // Inmueble por el que se está solicitando información (puede ser nulo si es
-    // consulta general)
+    // Inmueble vinculado (si la consulta es sobre un inmueble específico).
+    // @JsonIgnore en el listado general para evitar LazyInitializationException.
+    // El detalle de un mensaje devuelve el inmueble como Map manual en el controller.
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "inmueble_id")
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private Inmueble inmueble;
 
     // --- AUDITORÍA Y CONTROL ---

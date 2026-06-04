@@ -14,7 +14,15 @@ const NotFound = () => {
   return (
     <main className="not-found" id="main-content">
       <div className="not-found__container">
-        <span className="not-found__code">404</span>
+        {/* Ilustración circular con icono de casa y pregunta */}
+        <div className="not-found__illustration" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+            <polyline points="9 22 9 12 15 12 15 22" />
+          </svg>
+        </div>
+        {/* El 404 grande es decorativo; el heading real es el h1 */}
+        <span className="not-found__code" aria-hidden="true">404</span>
         <h1 className="not-found__title">Página no encontrada</h1>
         <p className="not-found__text">
           Lo sentimos, la página que buscas no existe o ha sido movida.

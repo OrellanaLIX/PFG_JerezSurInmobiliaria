@@ -179,6 +179,11 @@ main{
   }
 }
 
+// Animación para el spinner del botón de envío
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 // Animación para que los campos aparezcan con estilo
 @keyframes fadeInSlide {
   from {

@@ -1,17 +1,18 @@
 @use '../globals/_Variables' as *;
 @use '../components/_Buttons' as *;
 
-/* Hero de sobre nosotros — arquitectura española/Jerez */
+/* Hero de sobre nosotros — vivienda española moderna */
+/* Para cambiar la imagen sustituye la URL de Unsplash por la tuya */
 .about-hero {
   background:
     linear-gradient(
       155deg,
-      rgba(0, 15, 45, 0.82) 0%,
-      rgba(0, 45, 95, 0.50) 55%,
-      rgba(0, 15, 45, 0.78) 100%
+      rgba(0, 20, 55, 0.85) 0%,
+      rgba(0, 60, 130, 0.52) 50%,
+      rgba(0, 20, 55, 0.82) 100%
     ),
-    url('https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1920&q=80&fm=webp')
-    center 40% / cover no-repeat;
+    url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1920&q=80')
+    center 45% / cover no-repeat;
 }
 
 // 2. Estilos de Sección Genéricos

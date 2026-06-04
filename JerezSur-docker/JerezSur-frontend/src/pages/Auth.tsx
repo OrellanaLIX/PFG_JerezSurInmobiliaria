@@ -61,8 +61,8 @@ const Auth: React.FC = () => {
         break;
 
       case 'ROLE_VENDEDOR':
-        // Propietarios van a su gestión de inmuebles
-        navigate('/propietario');
+        // Propietarios van a la página de propietarios
+        navigate('/propietarios');
         break;
 
       case 'ROLE_ADMIN':

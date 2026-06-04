@@ -1,0 +1,311 @@
+/* Estilos del componente SearchableEntitySelect */
+/* Reemplaza los inputs de ID numérico por una lista buscable con datos reales del backend */
+@use '../../styles/globals/_Variables' as *;
+
+.ses {
+  position: relative;
+  width: 100%;
+
+  &--disabled {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+
+  /* Etiqueta del campo */
+  &__label {
+    display: block;
+    font-size: $font-size-sm;
+    font-weight: 600;
+    color: $color-text;
+    margin-bottom: $space-2;
+  }
+
+  &__required { color: $color-error; }
+
+  /* Registro seleccionado — muestra el item elegido con opción de quitar */
+  &__selected {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+    padding: $space-3 $space-4;
+    border: 1.5px solid $color-primary;
+    border-radius: $radius-sm;
+    background: rgba($color-primary, 0.03);
+    min-height: 48px;
+  }
+
+  &__selected-img {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: $radius-xs;
+    flex-shrink: 0;
+    border: 1px solid $color-border;
+  }
+
+  &__selected-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  &__selected-label {
+    font-weight: 600;
+    color: $color-text;
+    font-size: $font-size-sm;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__selected-sub {
+    font-size: $font-size-xs;
+    color: $color-text-soft;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Botón X para deseleccionar */
+  &__clear {
+    width: 28px;
+    height: 28px;
+    border: 1px solid $color-border;
+    background: $color-surface;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    color: $color-text-soft;
+    transition: all $transition-fast;
+
+    &:hover {
+      background: rgba($color-error, 0.08);
+      border-color: $color-error;
+      color: $color-error;
+    }
+  }
+
+  /* Botón que abre el dropdown (cuando no hay nada seleccionado) */
+  &__trigger {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+    padding: $space-3 $space-4;
+    border: 1.5px solid $color-border;
+    border-radius: $radius-sm;
+    background: $color-surface;
+    color: $color-text-soft;
+    font-size: $font-size-sm;
+    cursor: pointer;
+    transition: all $transition-fast;
+    text-align: left;
+    min-height: 48px;
+
+    &:hover:not(:disabled) {
+      border-color: $color-primary;
+      color: $color-primary;
+      background: rgba($color-primary, 0.02);
+    }
+
+    &:disabled {
+      background: $color-surface-alt;
+      cursor: not-allowed;
+    }
+
+    span {
+      flex: 1;
+    }
+  }
+
+  /* Contenedor del dropdown */
+  &__dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    background: $color-surface;
+    border: 1px solid $color-border;
+    border-radius: $radius-md;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08);
+    z-index: 200;
+    animation: sesDropdownIn 0.15s cubic-bezier(0.25, 1, 0.5, 1);
+    overflow: hidden;
+  }
+
+  /* Área de búsqueda dentro del dropdown */
+  &__search {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    padding: $space-3 $space-4;
+    border-bottom: 1px solid $color-border;
+    background: $color-surface-alt;
+  }
+
+  &__search-icon {
+    color: $color-text-soft;
+    flex-shrink: 0;
+  }
+
+  &__search-input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    outline: none;
+    font-size: $font-size-sm;
+    color: $color-text;
+    font-family: $font-family-base;
+
+    &::placeholder { color: $color-text-muted; }
+  }
+
+  &__search-clear {
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: $color-text-soft;
+    padding: 2px 4px;
+    border-radius: 4px;
+    font-size: $font-size-xs;
+    transition: color $transition-fast;
+
+    &:hover { color: $color-error; }
+  }
+
+  /* Lista de resultados */
+  &__results {
+    max-height: 280px;
+    overflow-y: auto;
+    padding: $space-2;
+
+    &::-webkit-scrollbar { width: 4px; }
+    &::-webkit-scrollbar-track { background: transparent; }
+    &::-webkit-scrollbar-thumb { background: $color-border; border-radius: 2px; }
+  }
+
+  /* Estado vacío o cargando */
+  &__state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: $space-2;
+    padding: $space-5;
+    color: $color-text-soft;
+    font-size: $font-size-sm;
+    text-align: center;
+
+    &--empty svg { opacity: 0.35; }
+  }
+
+  /* Spinner de carga */
+  &__spinner {
+    width: 18px;
+    height: 18px;
+    border: 2px solid $color-border;
+    border-top-color: $color-primary;
+    border-radius: 50%;
+    animation: sesSpin 0.7s linear infinite;
+  }
+
+  /* Opción individual en la lista */
+  &__option {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+    padding: $space-3 $space-3;
+    border: none;
+    background: transparent;
+    border-radius: $radius-xs;
+    cursor: pointer;
+    text-align: left;
+    transition: background $transition-fast;
+
+    &:hover {
+      background: $color-surface-alt;
+    }
+
+    &--selected {
+      background: rgba($color-primary, 0.06);
+
+      .ses__option-label { color: $color-primary; }
+    }
+  }
+
+  &__option-img {
+    width: 40px;
+    height: 36px;
+    object-fit: cover;
+    border-radius: $radius-xs;
+    flex-shrink: 0;
+    border: 1px solid $color-border;
+  }
+
+  &__option-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  &__option-label {
+    font-weight: 600;
+    font-size: $font-size-sm;
+    color: $color-text;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__option-sub {
+    font-size: $font-size-xs;
+    color: $color-text-soft;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__option-id {
+    font-size: $font-size-xs;
+    color: $color-text-muted;
+    font-family: monospace;
+    flex-shrink: 0;
+  }
+
+  /* Badge de estado */
+  &__badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: $radius-pill;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* Texto de ayuda */
+  &__help {
+    margin-top: $space-2;
+    font-size: $font-size-xs;
+    color: $color-text-soft;
+  }
+}
+
+@keyframes sesDropdownIn {
+  from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes sesSpin {
+  to { transform: rotate(360deg); }
+}

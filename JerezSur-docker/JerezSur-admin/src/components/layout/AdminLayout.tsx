@@ -2,7 +2,7 @@
 // El Outlet de React Router renderiza la página activa (Inmuebles, Citas, etc.) dentro de este layout.
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { LayoutDashboard, Calendar, LogOut, Home } from 'lucide-react';
+import { LayoutDashboard, Calendar, LogOut, Home, Star, Building2, Users, Mail, FileText } from 'lucide-react';
 import '../../styles/layout/AdminLayout.scss';
 
 export const AdminLayout = () => {
@@ -43,28 +43,35 @@ export const AdminLayout = () => {
             to="/usuarios"
             className={({ isActive }) => `admin-layout__nav-link ${isActive ? 'active' : ''}`}
           >
-            <Calendar size={20} />
+            <Users size={20} />
             Usuarios
           </NavLink>
           <NavLink
             to="/contactos"
             className={({ isActive }) => `admin-layout__nav-link ${isActive ? 'active' : ''}`}
           >
-            <Calendar size={20} />
+            <Mail size={20} />
             Contactos
           </NavLink>
           <NavLink
             to="/inmuebles"
             className={({ isActive }) => `admin-layout__nav-link ${isActive ? 'active' : ''}`}
           >
-            <Calendar size={20} />
+            <Building2 size={20} />
             Inmuebles
+          </NavLink>
+          <NavLink
+            to="/destacados"
+            className={({ isActive }) => `admin-layout__nav-link ${isActive ? 'active' : ''}`}
+          >
+            <Star size={20} />
+            Destacados
           </NavLink>
           <NavLink
             to="/contratos"
             className={({ isActive }) => `admin-layout__nav-link ${isActive ? 'active' : ''}`}
           >
-            <Calendar size={20} />
+            <FileText size={20} />
             Operaciones
           </NavLink>
         </nav>

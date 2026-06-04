@@ -181,12 +181,18 @@ const MisCitas: React.FC = () => {
 
   return (
     <main className="mis-citas">
+      {/* HERO */}
+      <section className="miscitas-hero">
+        <div className="miscitas-hero__content">
+          <h1 className="miscitas-hero__titulo">Mis citas</h1>
+          <p className="miscitas-hero__sub">Gestiona tus visitas a propiedades en Jerez</p>
+        </div>
+      </section>
+
       <div className="mis-citas__container">
 
         {/* LISTA DE CITAS */}
         <section className="mis-citas__lista">
-          <h1>Mis citas</h1>
-
           {loadingCitas && <p>Cargando citas...</p>}
           {errorCitas && <p style={{ color: 'red' }}>Error al cargar citas: {errorCitas}</p>}
 
