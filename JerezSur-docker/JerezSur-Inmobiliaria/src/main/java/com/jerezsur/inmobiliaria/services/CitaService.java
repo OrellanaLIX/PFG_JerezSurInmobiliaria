@@ -100,6 +100,15 @@ public class CitaService {
         return mapearACitaResponse(citaRepository.save(cita));
     }
 
+    /** Actualiza la fecha/hora y el motivo de una cita sin cambiar su estado. */
+    public CitaResponseDTO actualizarCita(Long citaId, java.time.LocalDateTime fechaHora, String motivo) {
+        Cita cita = citaRepository.findById(citaId)
+                .orElseThrow(() -> new RuntimeException("Cita no encontrada con ID: " + citaId));
+        cita.setFechaHora(fechaHora);
+        cita.setMotivo(motivo);
+        return mapearACitaResponse(citaRepository.save(cita));
+    }
+
     /**
      * Cancela una cita. La dejamos en BD para tener histórico
      * en lugar de borrarla directamente.

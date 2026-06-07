@@ -62,6 +62,12 @@ export const useCitas = () => {
     await cargar();
   };
 
+  // Actualiza fecha/hora y motivo de una cita sin cambiar su estado
+  const actualizar = async (id: number, cambios: { fechaHora: string; motivo: string }) => {
+    await citaService.actualizar(id, cambios);
+    await cargar();
+  };
+
   return {
     citas,
     loading,
@@ -72,5 +78,6 @@ export const useCitas = () => {
     completar,
     cancelar,
     noPresentado,
+    actualizar,
   };
 };

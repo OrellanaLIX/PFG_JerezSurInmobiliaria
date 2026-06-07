@@ -98,7 +98,7 @@
 
 > "El frontend está construido en React con TypeScript y se diseñó con enfoque Mobile-First."
 
-> "Se usa SASS para los estilos y DaisyUI como librería de componentes, lo que permite consistencia visual sin escribir CSS repetitivo."
+> "Los estilos están escritos íntegramente en SASS con una arquitectura de ficheros modular: variables globales, componentes reutilizables y estilos por página separados. No se usa ninguna librería de componentes externa; todo el sistema de diseño —botones, formularios, tarjetas, cabecera— está implementado a medida con BEM como convención de nomenclatura."
 
 > "El patrón arquitectónico principal son los custom hooks: cada entidad —inmuebles, citas, trabajadores, contratos— tiene su hook propio que encapsula el estado, las llamadas a la API con Axios y el manejo de errores. El componente de página solo consume el hook y renderiza."
 

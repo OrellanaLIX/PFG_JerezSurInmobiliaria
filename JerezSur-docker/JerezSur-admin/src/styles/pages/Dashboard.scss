@@ -67,8 +67,7 @@
       top: $space-4;
       // height fijo = toda la pantalla visible menos el header del panel
       height: calc(100vh - 90px);
-      min-height: 480px;
-      // overflow:hidden cierra el contexto flex para que el scroll interno funcione
+      min-height: 100%;
       overflow: hidden;
       display: flex;
       flex-direction: column;
@@ -78,8 +77,8 @@
         flex: 1;
         display: flex;
         flex-direction: column;
-        min-height: 0; // CRÍTICO: sin esto, flex items no se reducen y el scroll no funciona
-        overflow: hidden;
+        min-height: 100%;
+        overflow: auto;
         background: $color-surface;
         border: 1px solid $color-border;
         border-radius: $radius-lg;
@@ -93,7 +92,7 @@
       // La lista SÍ scrollea cuando hay más tareas de las que caben en pantalla
       .tareas__lista {
         flex: 1;
-        min-height: 0; // CRÍTICO: ídem
+        min-height: 100%;
         overflow-y: auto;
         padding: $space-2 $space-3;
         scrollbar-width: thin;

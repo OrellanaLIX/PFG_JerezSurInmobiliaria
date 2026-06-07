@@ -50,4 +50,10 @@ export const citaService = {
     const { data } = await api.patch<Cita>(`/citas/${citaId}/no-presentado`);
     return data;
   },
+
+  // Actualiza la fecha/hora y el motivo de una cita sin cambiar su estado
+  actualizar: async (citaId: number, cambios: { fechaHora: string; motivo: string }): Promise<Cita> => {
+    const { data } = await api.patch<Cita>(`/citas/${citaId}`, cambios);
+    return data;
+  },
 };

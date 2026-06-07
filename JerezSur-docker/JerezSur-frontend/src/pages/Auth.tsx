@@ -5,7 +5,7 @@ import { useToast } from '../components/ui/Toast';
 import LoginForm from '../components/auth/LoginForm';
 import RegisterForm from '../components/auth/RegistroForm';
 import SocialAuth from '../components/auth/SocialAuth';
-import logo from '../assets/imgs/Mono.png';
+import logo from '../assets/imgs/Mono.webp';
 
 // 1. Actualizamos la interfaz con los roles correctos
 interface UserData {

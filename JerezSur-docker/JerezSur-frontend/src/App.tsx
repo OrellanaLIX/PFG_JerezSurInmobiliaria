@@ -2,6 +2,7 @@
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { useEffect } from 'react';
 import { AppRoutes } from './routes/AppRoutes';
+import { AuthProvider } from './context/AuthContext';
 import './styles/App.scss';
 
 const clientGGId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
@@ -33,7 +34,9 @@ function App() {
 
   return (
     <GoogleOAuthProvider clientId={clientGGId}>
-      <AppRoutes />
+      <AuthProvider>
+        <AppRoutes />
+      </AuthProvider>
     </GoogleOAuthProvider>
   );
 }

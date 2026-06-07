@@ -1,5 +1,6 @@
 package com.jerezsur.inmobiliaria.controllers;
 
+import com.jerezsur.inmobiliaria.dto.ActualizarCitaDTO;
 import com.jerezsur.inmobiliaria.dto.CitaAdminDTO;
 import com.jerezsur.inmobiliaria.dto.CitaResponseDTO;
 import com.jerezsur.inmobiliaria.dto.SolicitudCitaPublicaDTO;
@@ -98,5 +99,13 @@ public class CitaController {
     @PatchMapping("/{citaId}/no-presentado")
     public ResponseEntity<CitaResponseDTO> noPresentado(@PathVariable Long citaId) {
         return ResponseEntity.ok(citaService.noPresentadoCita(citaId));
+    }
+
+    // Actualiza la fecha/hora y el motivo de una cita sin cambiar su estado
+    @PatchMapping("/{citaId}")
+    public ResponseEntity<CitaResponseDTO> actualizarCita(
+            @PathVariable Long citaId,
+            @Valid @RequestBody ActualizarCitaDTO dto) {
+        return ResponseEntity.ok(citaService.actualizarCita(citaId, dto.getFechaHora(), dto.getMotivo()));
     }
 }

@@ -26,6 +26,7 @@ const AdminCitas = () => {
     completar,
     cancelar,
     noPresentado,
+    actualizar,
   } = useCitas();
 
   const { feedback, showSuccess, showError, clearFeedback } = useFeedback();
@@ -117,6 +118,10 @@ const AdminCitas = () => {
     } catch { showError('Error al actualizar la cita.'); }
   };
 
+  const handleActualizar = async (id: number, data: Partial<Cita>) => {
+    await actualizar(id, { fechaHora: data.fechaHora as string, motivo: data.motivo ?? '' });
+  };
+
   if (loading) return <p>Cargando citas...</p>;
   if (error) return <p className="error-text">{error}</p>;
 
@@ -176,6 +181,7 @@ const AdminCitas = () => {
           onCompletar={handleCompletar}
           onCancelar={handleCancelar}
           onNoPresentado={handleNoPresentado}
+          onActualizar={handleActualizar}
         />
       )}
 
