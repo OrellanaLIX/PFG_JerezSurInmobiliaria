@@ -14,57 +14,40 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
 // Servicio para citas de usuarios anónimos (sin cuenta registrada).
-// Cuando alguien rellena el formulario público de cita, este servicio:
-//   1. Busca o crea un usuario preregistrado con su teléfono
-//   2. Lo registra como Interesado si no lo era ya
-//   3. Crea la cita en estado PENDIENTE (sin trabajador asignado)
-//   4. Crea una tarea en el dashboard para que un trabajador la coja y la acepte
+// Los datos del solicitante (nombre, teléfono, email) se guardan directamente
+// en la cita — no se crea ningún usuario. Si después se registra con el mismo
+// email o teléfono, "Mis citas" vinculará automáticamente su historial.
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class CitaPublicaService {
 
     private final UsuarioRepository usuarioRepository;
-    private final InteresadoRepository interesadoRepository;
     private final InmuebleRepository inmuebleRepository;
     private final CitaRepository citaRepository;
     private final TareaRepository tareaRepository;
     private final TrabajadorRepository trabajadorRepository;
 
     public CitaResponseDTO solicitarCitaAnonima(SolicitudCitaPublicaDTO dto) {
-        // 1. Buscamos al usuario por teléfono — si ya existe lo reutilizamos para no duplicar
-        Usuario usuario = usuarioRepository.findByTelefono(dto.getTelefono())
-                .orElseGet(() -> crearUsuarioPreregistrado(dto));
-
-        // 2️⃣ Si no es Interesado todavía, lo creamos
-        if (usuario.getInteresado() == null) {
-            Interesado interesado = Interesado.builder()
-                    .usuario(usuario)
-                    .build();
-            interesadoRepository.save(interesado);
-        }
-
-        // 3️⃣ Buscar inmueble (si se especificó)
         Inmueble inmueble = null;
         if (dto.getInmuebleId() != null) {
-            inmueble = inmuebleRepository.findById(dto.getInmuebleId())
-                    .orElse(null);
+            inmueble = inmuebleRepository.findById(dto.getInmuebleId()).orElse(null);
         }
 
-        // 4️⃣ Crear cita SIN trabajador asignado
+        // No se crea ningún usuario: los datos del solicitante van directamente en la cita.
+        // Si después se registra con el mismo email o teléfono, "Mis citas" los vinculará.
         Cita cita = Cita.builder()
                 .fechaHora(dto.getFechaHora())
                 .motivo(dto.getMotivo())
                 .estado(EstadoCita.PENDIENTE_ASIGNACION)
-                .usuario(usuario)
+                .nombreAnonimo(dto.getNombre())
+                .telefonoAnonimo(dto.getTelefono())
+                .emailAnonimo(dto.getEmail())
                 .inmueble(inmueble)
                 .build();
 
         Cita citaGuardada = citaRepository.save(cita);
-
-        // 5️⃣ Crear tarea GLOBAL (sin trabajador) para que cualquiera la coja
-        crearTareaGlobalParaAceptarCita(citaGuardada, usuario, inmueble);
-
+        crearTareaGlobalParaAceptarCita(citaGuardada, inmueble);
         return mapearACitaResponse(citaGuardada);
     }
 
@@ -132,7 +115,7 @@ public class CitaPublicaService {
                 .build();
 
         Cita citaGuardada = citaRepository.save(cita);
-        crearTareaGlobalParaAceptarCita(citaGuardada, usuario, inmueble);
+        crearTareaGlobalParaAceptarCita(citaGuardada, inmueble);
         return mapearACitaResponse(citaGuardada);
     }
 
@@ -140,33 +123,24 @@ public class CitaPublicaService {
     // MÉTODOS PRIVADOS
     // ============================================================
 
-    // Crea un usuario mínimo con los datos del formulario de cita anónima.
-    // La cuenta no está activada porque aún no tiene contraseña — si decide registrarse
-    // después, el sistema lo detectará y vinculará las citas por teléfono.
-    private Usuario crearUsuarioPreregistrado(SolicitudCitaPublicaDTO dto) {
-        Usuario nuevo = Usuario.builder()
-                .telefono(dto.getTelefono())
-                .nombre(dto.getNombre())
-                .email(dto.getEmail())
-                .cuentaActivada(false)
-                .origen(OrigenUsuario.WEB_CITA)
-                .role(Role.ROLE_NOROL)
-                .verified(false)
-                .build();
-
-        return usuarioRepository.save(nuevo);
-    }
-
-    private void crearTareaGlobalParaAceptarCita(Cita cita, Usuario cliente, Inmueble inmueble) {
+    private void crearTareaGlobalParaAceptarCita(Cita cita, Inmueble inmueble) {
         String formatoFecha = cita.getFechaHora().format(
                 DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
         );
 
-        String titulo = "🆕 Nueva solicitud de cita: " + cliente.getNombre();
+        String nombreMostrar = cita.getUsuario() != null
+                ? cita.getUsuario().getNombre()
+                : cita.getNombreAnonimo();
+
+        String titulo = "🆕 Nueva solicitud de cita: " + nombreMostrar;
+
+        String telefonoMostrar = cita.getUsuario() != null
+                ? cita.getUsuario().getTelefono()
+                : cita.getTelefonoAnonimo();
 
         StringBuilder descripcion = new StringBuilder();
         descripcion.append("Fecha solicitada: ").append(formatoFecha).append("\n");
-        descripcion.append("Teléfono: ").append(cliente.getTelefono()).append("\n");
+        descripcion.append("Teléfono: ").append(telefonoMostrar).append("\n");
 
         if (inmueble != null) {
             descripcion.append("Inmueble: ").append(inmueble.getDireccion()).append("\n");
@@ -192,10 +166,13 @@ public class CitaPublicaService {
     }
 
     private CitaResponseDTO mapearACitaResponse(Cita cita) {
+        String nombreCliente   = cita.getUsuario() != null ? cita.getUsuario().getNombre()   : cita.getNombreAnonimo();
+        String telefonoCliente = cita.getUsuario() != null ? cita.getUsuario().getTelefono() : cita.getTelefonoAnonimo();
+
         return CitaResponseDTO.builder()
                 .id(cita.getId())
-                .nombreCliente(cita.getUsuario().getNombre())
-                .telefonoCliente(cita.getUsuario().getTelefono())
+                .nombreCliente(nombreCliente)
+                .telefonoCliente(telefonoCliente)
                 .fechaHora(cita.getFechaHora())
                 .motivo(cita.getMotivo())
                 .estado(cita.getEstado().name())

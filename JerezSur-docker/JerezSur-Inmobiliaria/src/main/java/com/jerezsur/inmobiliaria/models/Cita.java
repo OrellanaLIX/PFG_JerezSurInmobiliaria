@@ -50,10 +50,20 @@ public class Cita {
     @Column(nullable = false, length = 50)
     private EstadoCita estado = EstadoCita.PENDIENTE_ASIGNACION;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "usuario_id", nullable = false)
+    // Nulo en citas anónimas: en ese caso los datos del cliente van en los campos *Anonimo
+    @ManyToOne(optional = true)
+    @JoinColumn(name = "usuario_id", nullable = true)
     @com.fasterxml.jackson.annotation.JsonIgnoreProperties({"usuario", "trabajador", "interesado", "vendedor", "citas"})
     private Usuario usuario;
+
+    @Column(length = 150)
+    private String nombreAnonimo;
+
+    @Column(length = 30)
+    private String telefonoAnonimo;
+
+    @Column(length = 150)
+    private String emailAnonimo;
 
     @ManyToOne
     @JoinColumn(name = "trabajador_id")

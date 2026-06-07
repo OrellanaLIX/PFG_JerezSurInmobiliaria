@@ -38,9 +38,15 @@ public interface CitaRepository extends JpaRepository<Cita, Long> {
 
     @Query("""
         SELECT DISTINCT c FROM Cita c
-        WHERE c.usuario.id = :usuarioId
-           OR (:email IS NOT NULL AND c.usuario.email = :email)
-           OR (:telefono IS NOT NULL AND c.usuario.telefono = :telefono)
+        LEFT JOIN c.usuario u
+        WHERE
+          (u IS NOT NULL AND (
+            u.id = :usuarioId
+            OR (:email IS NOT NULL AND u.email = :email)
+            OR (:telefono IS NOT NULL AND u.telefono = :telefono)
+          ))
+          OR (:email IS NOT NULL AND c.emailAnonimo = :email)
+          OR (:telefono IS NOT NULL AND c.telefonoAnonimo = :telefono)
         ORDER BY c.fechaHora DESC
         """)
     List<Cita> findCitasPorUsuarioEmailOTelefono(

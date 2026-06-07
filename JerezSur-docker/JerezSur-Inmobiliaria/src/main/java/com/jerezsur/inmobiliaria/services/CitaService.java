@@ -264,12 +264,15 @@ public class CitaService {
      * (por ejemplo, una cita sin trabajador asignado todavía).
      */
     private CitaResponseDTO mapearACitaResponse(Cita cita) {
-        // Datos del cliente (siempre debería haber uno)
+        // Datos del cliente: usuario registrado o campos anónimos directos en la cita
         String nombreCliente   = "Desconocido";
         String telefonoCliente = "Sin teléfono";
         if (cita.getUsuario() != null) {
             nombreCliente   = cita.getUsuario().getNombre();
-            telefonoCliente = cita.getUsuario().getTelefono();
+            telefonoCliente = cita.getUsuario().getTelefono() != null ? cita.getUsuario().getTelefono() : "Sin teléfono";
+        } else if (cita.getNombreAnonimo() != null) {
+            nombreCliente   = cita.getNombreAnonimo();
+            telefonoCliente = cita.getTelefonoAnonimo() != null ? cita.getTelefonoAnonimo() : "Sin teléfono";
         }
 
         // El trabajador puede ser null si nadie ha aceptado la cita todavía
