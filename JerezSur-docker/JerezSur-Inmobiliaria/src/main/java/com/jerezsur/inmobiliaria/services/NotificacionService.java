@@ -129,6 +129,143 @@ public class NotificacionService {
     }
 
     // ──────────────────────────────────────────
+    // NUEVA CITA ASIGNADA A UN TRABAJADOR
+    // ──────────────────────────────────────────
+
+    public void notificarCitaAsignadaATrabajador(Usuario trabajadorUsuario, String detallesCita, long citaId) {
+        if (trabajadorUsuario == null || trabajadorUsuario.getEmail() == null) return;
+        String detallesHtml = detallesCita.replace("\n", "<br/>");
+        String urlAdmin = baseUrl + "/citas?citaId=" + citaId;
+        String cuerpoHtml = "<div style='font-family:Arial,sans-serif;max-width:600px;margin:auto;background:#f7f9fc;padding:0'>"
+            + "<div style='background:#00439c;padding:28px 32px;border-radius:8px 8px 0 0'>"
+            + "  <h1 style='color:white;margin:0;font-size:22px'>JerezSur Inmobiliaria</h1>"
+            + "</div>"
+            + "<div style='background:white;padding:32px;border-radius:0 0 8px 8px;border:1px solid #e5e7eb'>"
+            + "  <h2 style='color:#00439c;margin-top:0'>📅 Nueva cita asignada</h2>"
+            + "  <p>Hola <strong>" + trabajadorUsuario.getNombre() + "</strong>,</p>"
+            + "  <p>Se te ha asignado una nueva cita de visita.</p>"
+            + "  <div style='background:#f0f7ff;padding:16px 20px;border-left:4px solid #00439c;border-radius:4px;margin:20px 0'>"
+            + "    <strong>Detalles de la cita:</strong><br/><br/>" + detallesHtml
+            + "  </div>"
+            + "  <p style='text-align:center;margin:24px 0'>"
+            + "    <a href='" + urlAdmin + "' style='background:#00439c;color:white;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:bold;font-size:14px;display:inline-block'>"
+            + "      Ver en el panel"
+            + "    </a>"
+            + "  </p>"
+            + "  <hr style='border:none;border-top:1px solid #e5e7eb;margin:24px 0'/>"
+            + "  <p style='color:#9ca3af;font-size:12px;margin:0'>JerezSur Inmobiliaria — Jerez de la Frontera</p>"
+            + "</div>"
+            + "</div>";
+        emailService.enviarAlUsuario(trabajadorUsuario.getEmail(), "Nueva cita asignada — JerezSur Inmobiliaria", cuerpoHtml);
+    }
+
+    // ──────────────────────────────────────────
+    // CUENTA ELIMINADA
+    // ──────────────────────────────────────────
+
+    public void notificarCuentaEliminada(Usuario usuario) {
+        if (usuario.getEmail() == null) return;
+        String cuerpoHtml = "<div style='font-family:Arial,sans-serif;max-width:600px;margin:auto;background:#f7f9fc;padding:0'>"
+            + "<div style='background:#00439c;padding:28px 32px;border-radius:8px 8px 0 0'>"
+            + "  <h1 style='color:white;margin:0;font-size:22px'>JerezSur Inmobiliaria</h1>"
+            + "</div>"
+            + "<div style='background:white;padding:32px;border-radius:0 0 8px 8px;border:1px solid #e5e7eb'>"
+            + "  <h2 style='color:#dc2626;margin-top:0'>Cuenta eliminada</h2>"
+            + "  <p>Hola <strong>" + usuario.getNombre() + "</strong>,</p>"
+            + "  <p>Te informamos de que tu cuenta en <strong>JerezSur Inmobiliaria</strong> ha sido eliminada del sistema.</p>"
+            + "  <p>Si no solicitaste esta acción, por favor contacta con nosotros a la mayor brevedad:</p>"
+            + "  <p>📞 615 061 840 &nbsp;|&nbsp; ✉️ info@jerezsur.com</p>"
+            + "  <hr style='border:none;border-top:1px solid #e5e7eb;margin:24px 0'/>"
+            + "  <p style='color:#9ca3af;font-size:12px;margin:0'>JerezSur Inmobiliaria — Jerez de la Frontera</p>"
+            + "</div>"
+            + "</div>";
+        emailService.enviarAlUsuario(usuario.getEmail(), "Cuenta eliminada — JerezSur Inmobiliaria", cuerpoHtml);
+    }
+
+    // ──────────────────────────────────────────
+    // INMUEBLE ELIMINADO
+    // ──────────────────────────────────────────
+
+    public void notificarInmuebleEliminado(Usuario propietario, String tituloInmueble) {
+        if (propietario.getEmail() == null) return;
+        String cuerpoHtml = "<div style='font-family:Arial,sans-serif;max-width:600px;margin:auto;background:#f7f9fc;padding:0'>"
+            + "<div style='background:#00439c;padding:28px 32px;border-radius:8px 8px 0 0'>"
+            + "  <h1 style='color:white;margin:0;font-size:22px'>JerezSur Inmobiliaria</h1>"
+            + "</div>"
+            + "<div style='background:white;padding:32px;border-radius:0 0 8px 8px;border:1px solid #e5e7eb'>"
+            + "  <h2 style='color:#dc2626;margin-top:0'>Inmueble eliminado</h2>"
+            + "  <p>Hola <strong>" + propietario.getNombre() + "</strong>,</p>"
+            + "  <p>El inmueble <strong>&ldquo;" + tituloInmueble + "&rdquo;</strong> ha sido eliminado del sistema.</p>"
+            + "  <p>Si tienes alguna duda o crees que esto ha sido un error, contacta con nosotros:</p>"
+            + "  <p>📞 615 061 840 &nbsp;|&nbsp; ✉️ info@jerezsur.com</p>"
+            + "  <hr style='border:none;border-top:1px solid #e5e7eb;margin:24px 0'/>"
+            + "  <p style='color:#9ca3af;font-size:12px;margin:0'>JerezSur Inmobiliaria — Jerez de la Frontera</p>"
+            + "</div>"
+            + "</div>";
+        emailService.enviarAlUsuario(propietario.getEmail(), "Inmueble eliminado — JerezSur Inmobiliaria", cuerpoHtml);
+    }
+
+    // ──────────────────────────────────────────
+    // NUEVA OPERACIÓN SOBRE UN INMUEBLE
+    // ──────────────────────────────────────────
+
+    public void notificarNuevaOperacion(Usuario propietario, String tituloInmueble, String tipoOperacion, java.math.BigDecimal precioAcordado) {
+        if (propietario.getEmail() == null) return;
+        String cuerpoHtml = "<div style='font-family:Arial,sans-serif;max-width:600px;margin:auto;background:#f7f9fc;padding:0'>"
+            + "<div style='background:#00439c;padding:28px 32px;border-radius:8px 8px 0 0'>"
+            + "  <h1 style='color:white;margin:0;font-size:22px'>JerezSur Inmobiliaria</h1>"
+            + "</div>"
+            + "<div style='background:white;padding:32px;border-radius:0 0 8px 8px;border:1px solid #e5e7eb'>"
+            + "  <h2 style='color:#00439c;margin-top:0'>Nueva operación registrada</h2>"
+            + "  <p>Hola <strong>" + propietario.getNombre() + "</strong>,</p>"
+            + "  <p>Se ha registrado una nueva operación para tu inmueble <strong>&ldquo;" + tituloInmueble + "&rdquo;</strong>.</p>"
+            + "  <div style='background:#f0f7ff;padding:16px 20px;border-left:4px solid #00439c;border-radius:4px;margin:20px 0'>"
+            + "    <strong>Tipo:</strong> " + tipoOperacion + "<br/>"
+            + "    <strong>Precio acordado:</strong> " + String.format("%,.0f", precioAcordado) + " €"
+            + "  </div>"
+            + "  <p>Nuestro equipo te mantendrá informado del avance del proceso.</p>"
+            + "  <p>📞 615 061 840 &nbsp;|&nbsp; ✉️ info@jerezsur.com</p>"
+            + "  <hr style='border:none;border-top:1px solid #e5e7eb;margin:24px 0'/>"
+            + "  <p style='color:#9ca3af;font-size:12px;margin:0'>JerezSur Inmobiliaria — Jerez de la Frontera</p>"
+            + "</div>"
+            + "</div>";
+        emailService.enviarAlUsuario(propietario.getEmail(), "Nueva operación registrada — JerezSur Inmobiliaria", cuerpoHtml);
+    }
+
+    // ──────────────────────────────────────────
+    // CUENTA CREADA POR ADMIN — OTP ACCESO INICIAL
+    // ──────────────────────────────────────────
+
+    public void notificarCuentaCreadaConOtp(Usuario usuario, String otp) {
+        if (usuario.getEmail() == null) return;
+        String urlLogin = baseUrl + "/login";
+        String cuerpoHtml = "<div style='font-family:Arial,sans-serif;max-width:600px;margin:auto;background:#f7f9fc;padding:0'>"
+            + "<div style='background:#00439c;padding:28px 32px;border-radius:8px 8px 0 0'>"
+            + "  <h1 style='color:white;margin:0;font-size:22px'>JerezSur Inmobiliaria</h1>"
+            + "</div>"
+            + "<div style='background:white;padding:32px;border-radius:0 0 8px 8px;border:1px solid #e5e7eb'>"
+            + "  <h2 style='color:#00439c;margin-top:0'>Tu cuenta ha sido creada</h2>"
+            + "  <p>Hola <strong>" + usuario.getNombre() + "</strong>,</p>"
+            + "  <p>El equipo de JerezSur Inmobiliaria ha creado una cuenta para ti. "
+            + "Para acceder por primera vez, usa el siguiente código de un solo uso:</p>"
+            + "  <div style='background:#f0f7ff;padding:20px;border-radius:8px;text-align:center;margin:20px 0;border:2px dashed #00439c'>"
+            + "    <p style='margin:0 0 8px;font-size:13px;color:#6b7280'>CÓDIGO DE ACCESO</p>"
+            + "    <p style='margin:0;font-size:36px;font-weight:800;letter-spacing:8px;color:#00439c'>" + otp + "</p>"
+            + "  </div>"
+            + "  <p>Accede con tu email (<strong>" + usuario.getEmail() + "</strong>) y este código como contraseña. "
+            + "El sistema te pedirá que establezcas una contraseña propia en tu primer inicio de sesión.</p>"
+            + "  <p style='text-align:center;margin:24px 0'>"
+            + "    <a href='" + urlLogin + "' style='background:#00439c;color:white;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:bold;font-size:14px;display:inline-block'>Ir a mi cuenta</a>"
+            + "  </p>"
+            + "  <p style='color:#9ca3af;font-size:12px'>Si no esperabas este email, ignóralo o contacta con nosotros.</p>"
+            + "  <hr style='border:none;border-top:1px solid #e5e7eb;margin:24px 0'/>"
+            + "  <p style='color:#9ca3af;font-size:12px;margin:0'>JerezSur Inmobiliaria — Jerez de la Frontera</p>"
+            + "</div>"
+            + "</div>";
+        emailService.enviarAlUsuario(usuario.getEmail(), "Bienvenido/a a JerezSur Inmobiliaria — Tu código de acceso", cuerpoHtml);
+    }
+
+    // ──────────────────────────────────────────
     // INMUEBLE VALIDADO Y PUBLICADO
     // ──────────────────────────────────────────
 
@@ -156,52 +293,6 @@ public class NotificacionService {
                     + "</div>";
 
             emailService.enviarAlUsuario(propietario.getEmail(), "¡Tu propiedad ya está publicada! - JerezSur Inmobiliaria", cuerpoHtml);
-        }
-    }
-
-    // ──────────────────────────────────────────
-    // NUEVO INTERESADO
-    // ──────────────────────────────────────────
-
-    public void notificarNuevoInteresado(Usuario usuario) {
-        // No enviamos WhatsApp al admin por cada interesado que completa el perfil
-        // El admin verá la tarea creada automáticamente en el dashboard
-
-        // Sí avisamos al usuario por su canal preferido
-        if (usuario.getTelefono() != null) {
-            whatsappService.enviarAlUsuario(usuario.getTelefono(),
-                    "Hola " + usuario.getNombre() + " 👋\n"
-                    + "Hemos recibido tu solicitud en JerezSur Inmobiliaria.\n"
-                    + "Nos pondremos en contacto contigo pronto.");
-        }
-        if (usuario.getEmail() != null) {
-            emailService.enviarAlUsuario(
-                    usuario.getEmail(),
-                    "Solicitud recibida - JerezSur Inmobiliaria",
-                    buildEmailInteresado(usuario));
-        }
-    }
-
-    // ──────────────────────────────────────────
-    // NUEVO VENDEDOR
-    // ──────────────────────────────────────────
-
-    public void notificarNuevoVendedor(Usuario usuario) {
-        // No enviamos WhatsApp al admin por cada vendedor que completa el perfil
-        // El admin verá la tarea creada automáticamente en el dashboard
-
-        // Sí confirmamos al propietario que hemos recibido su información
-        if (usuario.getTelefono() != null) {
-            whatsappService.enviarAlUsuario(usuario.getTelefono(),
-                    "Hola " + usuario.getNombre() + " 👋\n"
-                    + "Hemos registrado tu propiedad en JerezSur Inmobiliaria.\n"
-                    + "Un agente revisará tu información y contactará contigo pronto.");
-        }
-        if (usuario.getEmail() != null) {
-            emailService.enviarAlUsuario(
-                    usuario.getEmail(),
-                    "Propiedad registrada - JerezSur Inmobiliaria",
-                    buildEmailVendedor(usuario));
         }
     }
 
@@ -239,26 +330,6 @@ public class NotificacionService {
                 + "  <hr style='border:none;border-top:1px solid #e5e7eb;margin:24px 0'/>"
                 + "  <p style='color:#9ca3af;font-size:12px;margin:0'>JerezSur Inmobiliaria — Jerez de la Frontera</p>"
                 + "</div>"
-                + "</div>";
-    }
-
-    private String buildEmailInteresado(Usuario usuario) {
-        return "<div style='font-family:Arial,sans-serif;max-width:600px;margin:auto'>"
-                + "<h2 style='color:#1a1a2e'>Solicitud recibida</h2>"
-                + "<p>Hola <strong>" + usuario.getNombre() + "</strong>,</p>"
-                + "<p>Hemos recibido tu solicitud y estamos buscando inmuebles que se adapten a tus criterios.</p>"
-                + "<p>Nos pondremos en contacto contigo lo antes posible.</p>"
-                + "<hr/><p style='color:#888;font-size:12px'>JerezSur Inmobiliaria</p>"
-                + "</div>";
-    }
-
-    private String buildEmailVendedor(Usuario usuario) {
-        return "<div style='font-family:Arial,sans-serif;max-width:600px;margin:auto'>"
-                + "<h2 style='color:#1a1a2e'>Propiedad registrada</h2>"
-                + "<p>Hola <strong>" + usuario.getNombre() + "</strong>,</p>"
-                + "<p>Hemos registrado la información de tu propiedad correctamente.</p>"
-                + "<p>Un agente de JerezSur Inmobiliaria revisará los detalles y se pondrá en contacto contigo.</p>"
-                + "<hr/><p style='color:#888;font-size:12px'>JerezSur Inmobiliaria</p>"
                 + "</div>";
     }
 }

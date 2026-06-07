@@ -2,7 +2,7 @@
 // Pie de página de la web pública: navegación, servicios y datos de contacto
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import logo from '../../assets/imgs/Mono.png';
+import logo from '../../assets/imgs/Mono.webp';
 import '../../styles/Footer.scss';
 
 const Footer = () => {

@@ -9,17 +9,26 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Map;
 
-// DTO para iniciar una nueva operación inmobiliaria (compraventa o alquiler).
+/**
+ * DTO de entrada para abrir un nuevo expediente de operación inmobiliaria.
+ *
+ * Dependiendo de categoria_operacion ("VENTA" o "ALQUILER"), el servicio creará
+ * una OperacionVenta o una OperacionAlquiler (herencia de tabla única en JPA).
+ * Los campos de venta (arras, escritura) y alquiler (fianza, duración) son opcionales
+ * entre sí: solo se usan los del tipo correspondiente, el resto se ignoran.
+ *
+ * interesadosRol mapea el ID del interesado a su rol en la operación
+ * (COMPRADOR, INQUILINO, AVALISTA...) para registrar quién participa y cómo.
+ */
 @Getter
-// DTO para iniciar una nueva operación inmobiliaria (compraventa o alquiler).
 @Setter
-// DTO para iniciar una nueva operación inmobiliaria (compraventa o alquiler).
 @NoArgsConstructor
 public class CrearOperacionDTO {
 
     private String categoria_operacion; // "VENTA" o "ALQUILER"
     private BigDecimal precioAcordado;
     private Long inmuebleId;
+    private Long trabajadorId; // Trabajador responsable (opcional)
     private Map<Long, RolParticipante> interesadosRol; // { interesadoId: ROL }
 
     // Campos específicos de VENTA

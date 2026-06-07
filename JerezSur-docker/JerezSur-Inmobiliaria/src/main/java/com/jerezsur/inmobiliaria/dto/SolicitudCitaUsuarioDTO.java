@@ -6,13 +6,17 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
-// DTO para solicitar una cita siendo usuario registrado: solo necesita la fecha y el inmueble.
+/**
+ * DTO para solicitar una cita siendo usuario registrado.
+ *
+ * Al estar autenticado ya sabemos quién es el usuario, así que no necesitamos
+ * pedirle nombre ni teléfono de nuevo (eso sería una mala UX). Solo pedimos
+ * la fecha deseada, el motivo y el inmueble que quiere visitar (opcional si es
+ * una consulta general en oficina).
+ */
 @Data
-// DTO para solicitar una cita siendo usuario registrado: solo necesita la fecha y el inmueble.
 @Builder
-// DTO para solicitar una cita siendo usuario registrado: solo necesita la fecha y el inmueble.
 @NoArgsConstructor
-// DTO para solicitar una cita siendo usuario registrado: solo necesita la fecha y el inmueble.
 @AllArgsConstructor
 public class SolicitudCitaUsuarioDTO {
 
@@ -20,6 +24,8 @@ public class SolicitudCitaUsuarioDTO {
     private Long usuarioId;
 
     private Long inmuebleId;
+
+    private Long trabajadorId;
 
     @NotNull(message = "La fecha es obligatoria")
     @Future(message = "La fecha debe ser futura")

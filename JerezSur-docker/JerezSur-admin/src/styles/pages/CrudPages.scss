@@ -38,6 +38,8 @@
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: $space-4;
+    // Extra top margin to visually separate from the page h1
+    margin-top: $space-4;
     margin-bottom: $space-6;
     background-color: $color-surface;
     padding: $space-5;
@@ -61,7 +63,8 @@
     select {
       padding: $space-3 $space-4;
       border: 1px solid $color-border;
-      border-radius: $radius-sm;
+      // Pill-style inputs feel more modern in filter bars
+      border-radius: 12px;
       font-size: $font-size-sm;
       transition: all $transition-base;
 
@@ -141,9 +144,10 @@
       padding: $space-4;
       text-align: left;
       font-weight: 700;
-      font-size: $font-size-xs;
+      // Slightly larger than xs for readability while staying subdued
+      font-size: 0.78rem;
       text-transform: uppercase;
-      letter-spacing: 0.06em;
+      letter-spacing: 0.08em;
       color: $color-text-soft;
       user-select: none;
 
@@ -324,26 +328,29 @@
   &__content {
     background-color: $color-surface;
     border-radius: $radius-lg;
-    padding: $space-8;
-    max-width: 600px;
+    max-width: 680px;
     width: 100%;
     box-shadow: $shadow-lg;
     // Animación de entrada combinando escala + translateY para mayor impacto
     animation: modalEntrada 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    // Prevent the whole content box from overflowing; body section scrolls
     max-height: 90vh;
-    overflow-y: auto;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
 
     @media (max-width: $tablet) {
-      padding: $space-6;
       max-height: 95vh;
     }
   }
 
   &__header {
-    margin-bottom: $space-6;
+    padding: 1.25rem 1.5rem;
+    flex-shrink: 0;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    border-bottom: 1px solid $color-border;
 
     h2 {
       font-size: $font-size-2xl;
@@ -371,7 +378,11 @@
   }
 
   &__body {
-    margin-bottom: $space-6;
+    padding: 1.5rem;
+    flex: 1;
+    // Scrollable body so long forms never push the modal off-screen
+    max-height: 70vh;
+    overflow-y: auto;
   }
 
   &__footer {
@@ -379,7 +390,8 @@
     gap: $space-4;
     justify-content: flex-end;
     border-top: 1px solid $color-border;
-    padding-top: $space-6;
+    padding: 1rem 1.5rem;
+    flex-shrink: 0;
 
     @media (max-width: $tablet) {
       flex-direction: column-reverse;
@@ -657,6 +669,7 @@
   border-bottom: 2px solid $color-border;
   margin-bottom: $space-6;
   overflow-x: auto;
+  min-height: fit-content;
 
   .tab {
     background: none;
@@ -755,6 +768,17 @@
   gap: $space-3;
   margin-top: $space-6;
   justify-content: flex-end;
+
+  // On mobile, save/submit buttons go full width for thumb reach
+  @media (max-width: $tablet) {
+    flex-direction: column-reverse;
+
+    button[type="submit"],
+    .btn--primary {
+      width: 100%;
+      justify-content: center;
+    }
+  }
 }
 
 /* Info box styling */

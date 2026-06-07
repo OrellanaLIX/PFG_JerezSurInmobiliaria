@@ -3,15 +3,18 @@ package com.jerezsur.inmobiliaria.dto;
 import java.math.BigDecimal;
 import lombok.*;
 
-// DTO ligero para los inmuebles destacados de la portada (solo los campos necesarios para la tarjeta).
+/**
+ * DTO minimalista para los inmuebles que aparecen en la sección "destacados" de la portada.
+ *
+ * Solo enviamos los campos que la tarjeta de portada necesita mostrar:
+ * foto, título, precio, tipo de operación y características básicas.
+ * Evitamos incluir datos como descripción o gastos para que la respuesta
+ * sea lo más ligera posible, ya que esta llamada se hace al cargar la página principal.
+ */
 @Getter
-// DTO ligero para los inmuebles destacados de la portada (solo los campos necesarios para la tarjeta).
 @Setter
-// DTO ligero para los inmuebles destacados de la portada (solo los campos necesarios para la tarjeta).
 @Builder
-// DTO ligero para los inmuebles destacados de la portada (solo los campos necesarios para la tarjeta).
 @NoArgsConstructor
-// DTO ligero para los inmuebles destacados de la portada (solo los campos necesarios para la tarjeta).
 @AllArgsConstructor
 public class InmuebleDestacadoDTO {
     private Long id;

@@ -1,57 +1,26 @@
 @use '../globals/_Variables' as *;
 
-/* Hero del perfil de usuario */
-.profile-hero {
-  min-height: 200px;
-  display: flex;
-  align-items: center;
-  background:
-    linear-gradient(
-      155deg,
-      rgba(0, 25, 70, 0.90) 0%,
-      rgba(0, 60, 140, 0.65) 55%,
-      rgba(0, 25, 70, 0.86) 100%
-    ),
-    url('https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=1920&q=80')
-    center 35% / cover no-repeat;
-  color: white;
-  padding: 0 2rem;
-
-  &__content {
-    max-width: $container-max;
-    margin: 0 auto;
-    width: 100%;
-    padding: 2.5rem 0;
-  }
-
-  &__titulo {
-    font-size: clamp(1.5rem, 3vw, 2rem);
-    font-weight: 800;
-    color: white;
-    margin: 0 0 0.4rem;
-    letter-spacing: -0.02em;
-  }
-
-  &__sub {
-    font-size: 0.95rem;
-    color: rgba(255,255,255,0.80);
-    margin: 0;
-  }
-}
-
 /* ==========================================================================
    PERFIL DE USUARIO (ESTILO GLOBAL / CONTENEDOR)
    ========================================================================= */
 .profile-section {
-  padding: 3rem 0;
+  // Sin padding-top: el hero ocupa desde el borde superior del main
   background: linear-gradient(135deg, rgba($color-primary, 0.03) 0%, rgba($color-primary-dark, 0.05) 100%);
+  padding-bottom: 4rem;
 
   &__container {
-    max-width: 920px; // Alineado con el max-width de tus componentes del Home
+    max-width: 920px;
     margin: 0 auto;
+    padding: 2rem 1.5rem 0;
     display: flex;
     flex-direction: column;
     gap: 2rem;
+
+    // El botón "Volver" no debe ocupar todo el ancho
+    > a.btn,
+    > button.btn {
+      align-self: flex-start;
+    }
   }
 }
 
@@ -116,6 +85,36 @@
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   animation: fadeInUp 0.6s ease forwards;
   opacity: 0;
+
+  // IMPORTANTE: float en el legend hace que el navegador lo renderice DENTRO del borde
+  // del fieldset en lugar de encima. Sin esto aparece flotando por encima de la card.
+  legend {
+    float: left;
+    width: 100%;
+    clear: both;
+    padding: 0;
+    margin-bottom: $space-5;
+    font-size: $font-size-sm;
+    font-weight: 700;
+    color: $color-primary;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+
+    &::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: $color-border;
+    }
+  }
+
+  // Necesario para que el contenido que sigue al legend floateado se sitúe debajo
+  > *:not(legend) {
+    clear: both;
+  }
 
   &:hover {
     transform: translateY(-4px);

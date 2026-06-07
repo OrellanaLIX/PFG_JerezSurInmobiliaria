@@ -7,8 +7,6 @@ import java.util.List;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -68,6 +66,7 @@ public class Trabajador {
     // Histórico de citas y visitas gestionadas por el trabajador
     @OneToMany(mappedBy = "trabajador")
     @ToString.Exclude
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private List<Cita> citas;
 
     // Contratos en los que el trabajador ha actuado como representante/testigo
@@ -77,7 +76,7 @@ public class Trabajador {
     private List<Contrato> contratos;
 
     // Vinculación con las credenciales de seguridad del sistema
-    @JsonBackReference
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties({"trabajador", "vendedor", "interesado", "contratos", "citas", "password", "tokenVerificacion", "tokenRecuperacion", "fechaTokenVerificacion", "authorities", "enabled", "accountNonLocked", "credentialsNonExpired", "accountNonExpired", "username"})
     @OneToOne
     @ToString.Exclude
     @JoinColumn(name = "usuario_id")

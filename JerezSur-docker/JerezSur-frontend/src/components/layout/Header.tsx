@@ -2,7 +2,7 @@
 // Incluye acceso al login y al perfil del usuario si ya ha iniciado sesión.
 import { useEffect, useState, useRef } from 'react';
 import { NavLink, Link, useLocation } from 'react-router-dom';
-import logo from '../../assets/imgs/LogoAncho.png';
+import logo from '../../assets/imgs/LogoAncho.webp';
 import '../../styles/Header.scss';
 import { useAuth } from '../../context/AuthContext';
 

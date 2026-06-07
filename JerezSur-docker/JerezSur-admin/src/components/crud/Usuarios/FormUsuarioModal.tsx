@@ -49,7 +49,7 @@ const ROLES: { value: RolPerfil; label: string; desc: string; icon: string }[] =
 
 export const FormUsuarioModal = ({ onCrear, onCancelar }: Props) => {
   const [form, setForm] = useState<NuevoUsuario>({
-    nombre: '', apellidos: '', email: '', telefono: '', password: '', dni: '',
+    nombre: '', apellidos: '', email: '', telefono: '', dni: '',
   });
   const [rol, setRol] = useState<RolPerfil>('ninguno');
   const [datosTrabajador, setDatosTrabajador] = useState<DatosTrabajador>({
@@ -112,8 +112,10 @@ export const FormUsuarioModal = ({ onCrear, onCancelar }: Props) => {
           </div>
           <div className="form-row">
             <div className="form-group"><label>DNI</label><input value={form.dni ?? ''} onChange={f('dni')} placeholder="12345678A" /></div>
-            <div className="form-group"><label>Contraseña temporal</label><input type="password" value={form.password ?? ''} onChange={f('password')} placeholder="Mínimo 8 caracteres" /></div>
           </div>
+          <p style={{ fontSize: '0.82rem', color: '#6b7280', margin: '-0.25rem 0 0.5rem' }}>
+            Se generará un código de acceso de un solo uso y se enviará al email del usuario.
+          </p>
 
           <p className="section-title">Asignar perfil (opcional)</p>
           <div className="role-grid">

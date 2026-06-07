@@ -7,6 +7,7 @@
   align-items: flex-end;
   justify-content: flex-start;
   padding: 1rem 0 0; /* espacio superior mínimo; el contenido va al fondo (flex-end) */
+  padding-bottom: clamp(2rem, 4vw, 3.5rem);
   background:
     linear-gradient(
       165deg,
@@ -56,13 +57,15 @@
    ========================================================================= */
 .inmuebles-toolbar {
   padding: 1.25rem 2rem;
-  background: rgba($color-white, 0.88);
+  background: rgba($color-white, 0.92);
   border-bottom: 1px solid $color-border;
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   position: sticky;
   top: 70px; /* Ajusta según el alto exacto de tu Navbar */
   z-index: 10;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02);
+  transition: box-shadow 0.3s ease, background-color 0.3s ease;
 
   &__container {
     max-width: 1600px;

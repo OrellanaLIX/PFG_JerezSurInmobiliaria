@@ -48,6 +48,37 @@
     background: rgba(0, 0, 0, 0.06);
     color: #6b7280;
   }
+
+  // Variantes por color — usadas en citas, inmuebles, operaciones
+  &--blue {
+    background: rgba(#00439c, 0.10);
+    color: #00439c;
+  }
+
+  &--green {
+    background: rgba(#2e9b4d, 0.12);
+    color: #1e7a3a;
+  }
+
+  &--amber {
+    background: rgba(#e6a700, 0.14);
+    color: #9a6e00;
+  }
+
+  &--gray {
+    background: rgba(0, 0, 0, 0.06);
+    color: #6b7280;
+  }
+
+  &--red {
+    background: rgba(#d9534f, 0.12);
+    color: #a32522;
+  }
+
+  &--yellow {
+    background: rgba(#e6a700, 0.14);
+    color: #9a6e00;
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════════

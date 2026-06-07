@@ -12,4 +12,4 @@ Disallow: /mis-citas
 Disallow: /recuperar-password
 Disallow: /acceder
 
-Sitemap: http://localhost/sitemap.xml
+Sitemap: https://jerezsur.com/sitemap.xml

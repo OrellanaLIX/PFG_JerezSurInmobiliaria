@@ -40,11 +40,6 @@ public class GmailEmailService implements EmailService {
         enviar(destinatario, asunto, cuerpoHtml);
     }
 
-    @Override
-    public void enviarAlAdmin(String asunto, String cuerpoHtml) {
-        enviar(emailAdmin, asunto, cuerpoHtml);
-    }
-
     // Método privado que realiza el envío real del email en formato HTML
     // Si falla, solo lo logueamos como error — no lanzamos excepción para no romper el flujo principal
     private void enviar(String destinatario, String asunto, String cuerpoHtml) {

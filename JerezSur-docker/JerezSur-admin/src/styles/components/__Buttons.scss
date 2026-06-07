@@ -6,7 +6,8 @@
   align-items: center;
   justify-content: center;
   gap: 0.625rem;
-  min-height: 48px;
+  // Consistent height baseline for all button variants
+  min-height: 40px;
   padding: 0.9rem 1.5rem;
   border-radius: $radius-sm;
   border: 2px solid transparent;
@@ -15,6 +16,8 @@
   font-weight: 700;
   line-height: 1;
   text-align: center;
+  // Prevent label from wrapping inside action buttons
+  white-space: nowrap;
   transition:
     transform $transition-fast,
     box-shadow $transition-base,
@@ -30,6 +33,15 @@
 
   &:active {
     transform: translateY(0);
+  }
+
+  &:disabled,
+  &[disabled] {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+    pointer-events: none;
   }
 
   &--primary {

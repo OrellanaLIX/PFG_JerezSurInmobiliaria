@@ -9,6 +9,4 @@ package com.jerezsur.inmobiliaria.services;
 public interface EmailService {
     // Envía un email HTML al usuario (bienvenida, verificación, confirmación de cita, etc.)
     void enviarAlUsuario(String destinatario, String asunto, String cuerpoHtml);
-    // Envía un email al administrador (notificaciones internas)
-    void enviarAlAdmin(String asunto, String cuerpoHtml);
 }

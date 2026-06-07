@@ -35,6 +35,7 @@
   &--primary {
     background-color: $color-primary;
     color: $color-white;
+    letter-spacing: 0.3px;
 
     &:hover {
       background-color: $color-primary-dark;
@@ -42,11 +43,11 @@
   }
 
   &--secondary {
-    background-color: $color-secondary;
+    background-color: $color-secondary-accessible;
     color: $color-white;
 
     &:hover {
-      background-color: $color-secondary-dark;
+      background-color: #305f0e;
     }
   }
 

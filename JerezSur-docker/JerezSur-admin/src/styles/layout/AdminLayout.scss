@@ -48,8 +48,9 @@
     transition: all $transition-base;
 
     &:hover {
-      opacity: 0.85;
-      transform: translateX(2px);
+      opacity: 0.9;
+      transform: translateX(3px);
+      transition: all $transition-smooth;
     }
 
     svg {
@@ -61,10 +62,13 @@
     display: flex;
     flex-direction: column;
     gap: $space-2;
+    // Breathing room between brand separator and first link
+    padding: 0.5rem 0;
 
     @media (max-width: $tablet) {
       flex-direction: row;
       flex-wrap: wrap;
+      padding: 0;
     }
   }
 
@@ -76,6 +80,8 @@
     // Posición relativa para el indicador lateral izquierdo
     position: relative;
     color: rgba($color-white, 0.7);
+    // Inactive links are visually dimmed to emphasise the active one
+    opacity: 0.75;
     border-radius: $radius-sm;
     // Transición suave de fondo, color e indicador
     transition: background-color $transition-smooth, color $transition-smooth, padding-left $transition-smooth;
@@ -101,6 +107,7 @@
       // Fondo más elegante con transición suave
       background-color: rgba($color-white, 0.12);
       color: $color-white;
+      opacity: 1;
       padding-left: calc(#{$space-4} + 4px);
 
       &::before {
@@ -113,6 +120,7 @@
       background-color: $color-secondary;
       color: $color-white;
       font-weight: 600;
+      opacity: 1;
       padding-left: calc(#{$space-4} + 6px);
 
       // Indicador lateral izquierdo visible en el enlace activo

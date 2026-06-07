@@ -89,4 +89,5 @@ export interface NuevoInmueble {
   destacado?: boolean;
   propietariosPorcentaje: Record<string, number>;
   imagenesUrls?: string[];
+  caracteristicasExtra?: Record<string, string>;
 }

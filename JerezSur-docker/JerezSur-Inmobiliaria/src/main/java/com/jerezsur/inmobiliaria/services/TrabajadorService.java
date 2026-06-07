@@ -31,13 +31,16 @@ public class TrabajadorService {
     // CRUD BASICO
     // ------------------------------------------------------------------
 
-    // LISTAR TODOS
+    // LISTAR TODOS (con filtro opcional de nombre)
     @Transactional(readOnly = true)
-    public Page<Trabajador> listarTodos(int page, int size, String sortBy, String sortDir) {
+    public Page<Trabajador> listarTodos(String tit, int page, int size, String sortBy, String sortDir) {
 
         Sort sort = Sort.by(Sort.Direction.fromString(sortDir), sortBy);
         PageRequest pageable = PageRequest.of(page, size, sort);
 
+        if (tit != null && !tit.isBlank()) {
+            return trabajadorRepository.buscarPorNombre(tit, pageable);
+        }
         return trabajadorRepository.findAll(pageable);
     }
 

@@ -48,7 +48,8 @@ interface ValueCardProps {
 
 const TeamMemberCard = ({ image, name, title, bio }: TeamMemberCardProps) => (
     <div className="team-member-card">
-        <img src={image} alt={`Retrato de ${name}`} className="team-member-card__image" />
+        <img src={image} alt={`Retrato de ${name}`} className="team-member-card__image"
+             loading="lazy" decoding="async" width="400" height="400" />
         <div className="team-member-card__info">
             <h4 className="team-member-card__name">{name}</h4>
             <p className="team-member-card__title">{title}</p>
@@ -78,7 +79,7 @@ const SobreNosotros = () => {
         <div className="page-wrapper about-us-page">
             <main>
                 {/* 1. Hero Section Adaptada a tus nuevos estilos */}
-                <section className="hero about-hero">
+                <section className="about-hero">
                     <div className="hero__content">
                         <h1>Tu confianza, nuestro compromiso.</h1>
                         <p>

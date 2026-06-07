@@ -5,8 +5,10 @@ import type { TipoOperacion, EstadoInmueble, TipoInmueble } from '../../../Enum/
 import type { ImagenInmueble } from '../../../types/imagen';
 import { inmuebleService } from '../../../services/inmuebleService';
 import api from '../../../services/api';
+import { useBodyScroll } from '../../../hooks/useBodyScroll';
 import '../../../styles/App.scss';
 import { ArchivoFila, Field, Badge } from './_shared';
+import PropietariosEditor from '../../ui/PropietariosEditor';
 
 type Tab = 'datos' | 'propietarios' | 'archivos' | 'imagenes';
 
@@ -44,8 +46,14 @@ export const DetalleInmuebleModal = ({ inmueble, loading, onCerrar, onEliminar, 
   const [tab, setTab] = useState<Tab>('datos');
   const [guardando, setGuardando] = useState(false);
 
+  // Bloquear scroll del body mientras se abre el modal
+  useBodyScroll(true);
+
   // ── Estado del formulario principal (siempre editable) ──
   const [form, setForm] = useState<Partial<InmuebleDetalle>>({});
+
+  // ── Estado de propietarios editable ──
+  const [propietariosLocal, setPropietariosLocal] = useState<Record<string, number>>({});
 
   // ── Características extra (clave-valor editables) ──
   const [extras, setExtras] = useState<{ clave: string; valor: string }[]>([]);
@@ -86,6 +94,8 @@ export const DetalleInmuebleModal = ({ inmueble, loading, onCerrar, onEliminar, 
     setExtras(
       Object.entries(inmueble.caracteristicasExtra || {}).map(([clave, valor]) => ({ clave, valor }))
     );
+    // Inicializar propietarios locales
+    setPropietariosLocal(inmueble.propietariosPorcentaje ? { ...inmueble.propietariosPorcentaje } : {});
     // Cargar imágenes desde el endpoint /detalle que las trae dentro de una transacción.
     // El endpoint base /inmuebles/{id} usa lazy loading y las imágenes llegan vacías.
     api.get(`/inmuebles/${inmueble.id}/detalle`)
@@ -145,6 +155,19 @@ export const DetalleInmuebleModal = ({ inmueble, loading, onCerrar, onEliminar, 
   const manejarEliminar = () => {
     if (!confirm('¿Eliminar inmueble del sistema?')) return;
     procesarAccion(() => onEliminar(inmueble.id), 'Inmueble eliminado correctamente.', true);
+  };
+
+
+  // ── Guardar propietarios ──
+  const guardarPropietarios = () => {
+    const suma = Object.values(propietariosLocal).reduce((a, b) => a + b, 0);
+    if (Object.keys(propietariosLocal).length > 0 && suma !== 100) {
+      return toast.warning(`Los porcentajes deben sumar 100%. Ahora suman ${suma}%.`);
+    }
+    procesarAccion(
+      () => inmuebleService.actualizar(inmueble.id, { propietariosPorcentaje: propietariosLocal } as any),
+      'Propietarios actualizados correctamente.'
+    );
   };
 
   // ── Guardar características extra ──
@@ -244,7 +267,6 @@ export const DetalleInmuebleModal = ({ inmueble, loading, onCerrar, onEliminar, 
       await api.delete(`/media/imagen/${imagenId}`);
       setImagenesLocales(prev => prev.filter(img => img.id !== imagenId));
       toast.success('Imagen eliminada.');
-      recargarInmueble().catch(() => null);
     } catch (error: any) {
       const msg = error?.response?.data?.message || error?.message || 'No se pudo eliminar la imagen.';
       toast.error(`Error: ${msg}`);
@@ -253,10 +275,9 @@ export const DetalleInmuebleModal = ({ inmueble, loading, onCerrar, onEliminar, 
 
   const handleHacerPortada = async (img: ImagenInmueble) => {
     try {
-      await inmuebleService.actualizar(inmueble.id, { imagenPortadaUrl: img.url } as any);
+      await api.patch(`/media/imagen/${img.id}/portada`);
       setImagenesLocales(prev => prev.map(i => ({ ...i, esPortada: i.id === img.id })));
       toast.success('Portada actualizada.');
-      recargarInmueble().catch(() => null);
     } catch (error: any) {
       const msg = error?.response?.data?.message || error?.message || 'No se pudo cambiar la portada.';
       toast.error(`Error: ${msg}`);
@@ -580,36 +601,15 @@ export const DetalleInmuebleModal = ({ inmueble, loading, onCerrar, onEliminar, 
           {/* ── PROPIETARIOS ── */}
           {tab === 'propietarios' && (
             <>
-              {inmueble.propietariosPorcentaje && Object.keys(inmueble.propietariosPorcentaje).length > 0 ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                  {Object.entries(inmueble.propietariosPorcentaje).map(([vendedorKey, porcentaje]) => {
-                    let nombreVendedor = 'Vendedor Desconocido';
-                    try {
-                      const vendedorObj = JSON.parse(vendedorKey);
-                      nombreVendedor = vendedorObj.usuario?.nombre
-                        ? `${vendedorObj.usuario.nombre} ${vendedorObj.usuario.apellidos || ''}`
-                        : `Vendedor ID: ${vendedorObj.id}`;
-                    } catch {
-                      nombreVendedor = vendedorKey;
-                    }
-
-                    return (
-                      <div key={vendedorKey} style={{
-                        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                        padding: '0.75rem 1rem', borderRadius: '6px',
-                        border: '1px solid #dee2e6', backgroundColor: '#f8f9fa',
-                      }}>
-                        <span style={{ fontWeight: 500 }}>{nombreVendedor}</span>
-                        <Badge text={`${porcentaje}%`} color="blue" />
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="info-box">No hay propietarios asignados a este inmueble.</div>
-              )}
-              <div className="alert alert-warning" style={{ marginTop: '1rem' }}>
-                Para modificar los propietarios o porcentajes, usa la edición completa del inmueble.
+              <p className="section-title">Propietarios del inmueble</p>
+              <PropietariosEditor
+                propietarios={propietariosLocal}
+                onChange={setPropietariosLocal}
+              />
+              <div className="form-actions">
+                <button onClick={guardarPropietarios} disabled={guardando} className="btn btn-primary">
+                  {guardando ? 'Guardando...' : 'Guardar propietarios'}
+                </button>
               </div>
             </>
           )}

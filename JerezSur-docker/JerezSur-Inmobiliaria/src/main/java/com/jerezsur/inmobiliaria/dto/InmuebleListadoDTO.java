@@ -3,15 +3,21 @@ package com.jerezsur.inmobiliaria.dto;
 import lombok.*;
 import java.math.BigDecimal;
 
-// DTO para el listado paginado de inmuebles: campos resumidos optimizados para mostrar en la rejilla de búsqueda.
+/**
+ * DTO ligero para el listado paginado de inmuebles en la web pública y el panel admin.
+ *
+ * No exponemos todos los campos del modelo Inmueble (como notas privadas o refCatastral)
+ * porque aquí solo necesitamos lo justo para pintar las tarjetas de la rejilla de búsqueda.
+ * Cuantos menos datos viajan por la red, más rápida es la respuesta paginada.
+ *
+ * Los booleanos de características (ascensor, garaje, jardín, piscina) se extraen
+ * del mapa caracteristicasExtra en el servicio para que el frontend pueda filtrar
+ * por ellos sin tener que parsear el mapa él mismo.
+ */
 @Getter
-// DTO para el listado paginado de inmuebles: campos resumidos optimizados para mostrar en la rejilla de búsqueda.
 @Setter
-// DTO para el listado paginado de inmuebles: campos resumidos optimizados para mostrar en la rejilla de búsqueda.
 @Builder
-// DTO para el listado paginado de inmuebles: campos resumidos optimizados para mostrar en la rejilla de búsqueda.
 @NoArgsConstructor
-// DTO para el listado paginado de inmuebles: campos resumidos optimizados para mostrar en la rejilla de búsqueda.
 @AllArgsConstructor
 public class InmuebleListadoDTO {
     private Long    id;

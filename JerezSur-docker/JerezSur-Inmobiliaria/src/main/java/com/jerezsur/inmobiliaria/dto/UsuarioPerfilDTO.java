@@ -9,8 +9,14 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
- * DTO seguro para devolver datos del usuario al frontend.
- * Nunca expone la contraseña ni datos internos.
+ * DTO que devuelve el perfil completo de un usuario al frontend de forma segura.
+ *
+ * Nunca incluimos la contraseña ni el hash porque no tiene sentido exponerlos.
+ * Este DTO es "polimórfico": dependiendo del rol del usuario, algunos campos
+ * estarán rellenos y otros serán null. Por ejemplo, un trabajador tiene
+ * cargo y fechaInicioContrato, pero un interesado tiene zonaInteres y presupuesto.
+ * Es más sencillo tener un único DTO con todos los campos que crear una jerarquía
+ * de DTOs para cada tipo de usuario.
  */
 @Data
 public class UsuarioPerfilDTO {

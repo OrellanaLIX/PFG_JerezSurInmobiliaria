@@ -9,7 +9,17 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
-// DTO para crear un nuevo inmueble desde el formulario del panel de administración.
+/**
+ * DTO de entrada para crear un nuevo inmueble desde el panel de administración.
+ *
+ * Lleva validaciones Bean Validation (@NotBlank, @Positive...) para que el backend
+ * rechace datos incorrectos antes de llegar al servicio. Esto evita guardar inmuebles
+ * sin título, con precio negativo o sin propietario asignado.
+ *
+ * El mapa propietariosPorcentaje asocia el ID del vendedor a su porcentaje de participación
+ * (deben sumar 100). Usamos Long como clave porque React envía el ID como número,
+ * y el servicio lo convierte a la entidad Vendedor antes de guardar.
+ */
 @Data
 public class InmuebleCrearDTO {
 
@@ -64,4 +74,7 @@ public class InmuebleCrearDTO {
     // 🌟 EN EL DTO LA LLAVE ES SIMPLEMENTE UN LONG (El ID del vendedor que manda React)
     @NotEmpty(message = "Debe asignar al menos un propietario")
     private Map<Long, Double> propietariosPorcentaje;
+
+    // Características adicionales clave-valor (ej: "Ascensor" → "Sí", "Piscina" → "Comunitaria")
+    private Map<String, String> caracteristicasExtra;
 }

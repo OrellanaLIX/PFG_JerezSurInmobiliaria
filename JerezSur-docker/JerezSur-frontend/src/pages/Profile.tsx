@@ -534,14 +534,6 @@ const Profile: React.FC = () => {
 
   return (
     <main data-header-transparent data-footer-hidden className="profile-section">
-      {/* HERO */}
-      <section className="profile-hero">
-        <div className="profile-hero__content">
-          <h1 className="profile-hero__titulo">Mi perfil</h1>
-          <p className="profile-hero__sub">Gestiona tus datos y preferencias</p>
-        </div>
-      </section>
-
       <div className="profile-section__container">
 
         {/* BOTÓN VOLVER (ESTILO GHOST DE TU SISTEMA) */}

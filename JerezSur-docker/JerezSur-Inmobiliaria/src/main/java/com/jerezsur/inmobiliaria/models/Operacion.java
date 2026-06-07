@@ -82,6 +82,12 @@ public abstract class Operacion {
     })
     private Inmueble inmueble;
 
+    // Trabajador responsable de la operación (opcional)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "trabajador_id")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    private Trabajador trabajador;
+
     @OneToMany(mappedBy = "operacion", cascade = CascadeType.ALL)
     @JsonIgnoreProperties({"operacion"})
     private List<Contrato> documentos;

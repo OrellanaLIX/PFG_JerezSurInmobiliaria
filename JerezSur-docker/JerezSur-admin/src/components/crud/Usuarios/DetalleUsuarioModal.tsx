@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useBodyScroll } from '../../../hooks/useBodyScroll';
 import { toast } from 'react-toastify'; 
 import type { UsuarioDetalle, Role, TrabajadorPerfil, InteresadoPerfil, VendedorPerfil } from '../../../types/usuario';
 import '../../../styles/App.scss';
@@ -16,6 +17,9 @@ interface Props {
 export const DetalleUsuarioModal = ({ usuario, loading, onCerrar, onActualizar, onEliminar }: Props) => {
   const [seccion, setSeccion] = useState<Seccion>('datos');
   const [guardando, setGuardando] = useState(false);
+
+  // Bloquear scroll del body mientras se abre el modal
+  useBodyScroll(true);
 
   // Estado local de edición
   const [datosBase, setDatosBase] = useState<Partial<UsuarioDetalle>>({

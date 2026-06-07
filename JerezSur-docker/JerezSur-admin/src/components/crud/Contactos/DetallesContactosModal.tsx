@@ -2,6 +2,7 @@
 // Muestra la información del remitente, el mensaje y el inmueble vinculado (si aplica).
 // El toggle de leído/no leído y el botón de eliminar están en el footer.
 import { useState } from 'react';
+import { useBodyScroll } from '../../../hooks/useBodyScroll';
 import type { MensajeContactoDetalle } from '../../../types/contacto';
 import '../../../styles/App.scss';
 
@@ -26,6 +27,9 @@ const Field = ({ label, children }: { label: string; children: React.ReactNode }
 
 export const DetalleContactoModal = ({ contacto, loading, onCerrar, onEliminar, onActualizar }: Props) => {
   const [guardando, setGuardando] = useState(false);
+  
+  // Bloquear scroll del body mientras se abre el modal
+  useBodyScroll(true);
 
   if (loading) return (
     <div className="form-modal show">

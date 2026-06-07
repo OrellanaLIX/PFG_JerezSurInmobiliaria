@@ -8,11 +8,12 @@
   justify-content: center;
   text-align: center;
   color: $color-white;
-  padding: 0 1rem;
+  padding: 3rem 1rem;
   overflow: hidden;
 
-  // Foto principal del hero: vista aérea de Jerez de la Frontera
-  // Para cambiarla, sustituye la URL por la nueva imagen o pon una ruta local tipo '/MiHero.jpg'
+  // Foto principal del hero: imagen local preloaded en index.html con fetchpriority=high.
+  // Usar la ruta local evita una petición cross-origin y sincroniza con el <link rel="preload">
+  // de index.html, lo que mejora significativamente el LCP en Lighthouse.
   background:
     linear-gradient(
       160deg,
@@ -20,7 +21,7 @@
       rgba(0, 50, 120, 0.55) 50%,
       rgba(0, 25, 70, 0.78) 100%
     ),
-    url('https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1920&q=80')
+    url('/Hero.jpg')
     center 60% / cover no-repeat;
 
 
@@ -251,21 +252,17 @@
   }
 }
 
-/* Entrada del logo: entra con ligero scale desde 0.92 */
+/* Entrada del logo: entra con ligero scale desde 0.92.
+   Solo anima opacity y transform (propiedades compuestas por GPU).
+   El filter se aplica estáticamente en .logo-hero para evitar repaints en CPU. */
 @keyframes hero-logo-in {
   from {
     opacity: 0;
     transform: scale(0.92) translateY(12px);
-    filter:
-      drop-shadow(0 4px 12px rgba(0, 0, 0, 0))
-      drop-shadow(0 0 0 rgba(0, 0, 0, 0));
   }
   to {
     opacity: 1;
     transform: scale(1) translateY(0);
-    filter:
-      drop-shadow(0 4px 12px rgba(0, 0, 0, 0.22))
-      drop-shadow(0 12px 32px rgba(0, 0, 0, 0.18));
   }
 }
 

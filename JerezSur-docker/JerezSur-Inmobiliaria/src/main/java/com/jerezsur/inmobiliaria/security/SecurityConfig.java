@@ -19,12 +19,15 @@ import java.util.List;
 /**
  * Clase de configuración de seguridad de Spring Boot
  *
- * Aquí es donde definimos qué rutas son públicas y cuáles necesitan un token JWT.
- * También configuramos el CORS para que el frontend pueda hacer peticiones al backend
+ * Aquí es donde definimos qué rutas son públicas y cuáles necesitan un token
+ * JWT.
+ * También configuramos el CORS para que el frontend pueda hacer peticiones al
+ * backend
  * sin que el navegador las bloquee por política de mismo origen.
  *
  * Aprendí que Spring Security funciona con una cadena de filtros: cada petición
- * pasa por ellos antes de llegar al controlador. El filtro JWT que creé va el primero.
+ * pasa por ellos antes de llegar al controlador. El filtro JWT que creé va el
+ * primero.
  */
 @Configuration
 @RequiredArgsConstructor
@@ -34,9 +37,12 @@ public class SecurityConfig {
     private final JwtAuthFilter jwtAuthFilter;
 
     /**
-     * BCrypt es el algoritmo que usamos para cifrar las contraseñas en la base de datos.
-     * Nunca guardamos la contraseña en texto plano, eso sería un fallo de seguridad enorme.
-     * BCrypt genera un hash diferente cada vez aunque la contraseña sea la misma (por el salt).
+     * BCrypt es el algoritmo que usamos para cifrar las contraseñas en la base de
+     * datos.
+     * Nunca guardamos la contraseña en texto plano, eso sería un fallo de seguridad
+     * enorme.
+     * BCrypt genera un hash diferente cada vez aunque la contraseña sea la misma
+     * (por el salt).
      */
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -48,7 +54,8 @@ public class SecurityConfig {
      * Le decimos a Spring qué rutas necesitan autenticación y cuáles son públicas.
      *
      * Desactivamos CSRF porque usamos JWT (tokens) en vez de sesiones de servidor.
-     * Con JWT no hay problema de CSRF porque el token lo manda el cliente en cada petición.
+     * Con JWT no hay problema de CSRF porque el token lo manda el cliente en cada
+     * petición.
      */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -105,7 +112,8 @@ public class SecurityConfig {
      *
      * Sin esto, el navegador bloquearía las peticiones del frontend al backend
      * porque están en puertos distintos (5173 vs 8080 en desarrollo, por ejemplo).
-     * En Docker van en el mismo dominio pero por si acaso lo dejamos configurado bien.
+     * En Docker van en el mismo dominio pero por si acaso lo dejamos configurado
+     * bien.
      */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
@@ -113,13 +121,7 @@ public class SecurityConfig {
 
         // Orígenes permitidos: HTTP y HTTPS para localhost (desarrollo)
         // + puertos directos de Vite en caso de ejecutar sin Docker
-        config.setAllowedOrigins(List.of(
-                "https://localhost",
-                "http://localhost",
-                "http://localhost:5173",
-                "http://localhost:5174",
-                "https://localhost:5173",
-                "https://localhost:5174"));
+        config.setAllowedOrigins(List.of("https://localhost"));
 
         // Métodos HTTP que permitimos desde el frontend
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
@@ -127,7 +129,8 @@ public class SecurityConfig {
         // Permitimos todas las cabeceras, incluyendo Authorization para el JWT
         config.setAllowedHeaders(List.of("*"));
 
-        // Necesario para que el navegador envíe las credenciales (cookie o Authorization header)
+        // Necesario para que el navegador envíe las credenciales (cookie o
+        // Authorization header)
         config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

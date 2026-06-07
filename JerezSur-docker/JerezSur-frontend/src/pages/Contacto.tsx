@@ -131,7 +131,7 @@ const Contacto = () => {
   return (
     <main className="contact">
       {/* ── HERO ── */}
-      <section className="hero contact-hero">
+      <section className="contact-hero">
         <div className="hero__content">
           <h1>Estamos aquí para ayudarte</h1>
           <p>

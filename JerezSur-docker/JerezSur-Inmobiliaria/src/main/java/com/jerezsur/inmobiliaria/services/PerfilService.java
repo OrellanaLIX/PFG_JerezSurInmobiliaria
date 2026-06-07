@@ -9,6 +9,7 @@ import com.jerezsur.inmobiliaria.models.*;
 import com.jerezsur.inmobiliaria.models.enums.Role;
 import com.jerezsur.inmobiliaria.models.enums.TipoOperacion;
 import com.jerezsur.inmobiliaria.repositories.*;
+import lombok.extern.slf4j.Slf4j;
 
 import jakarta.persistence.EntityNotFoundException;
 
@@ -25,6 +26,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 //   - Vendedor: tiene inmuebles que quiere vender
 //   - Trabajador: empleado de la agencia con acceso al panel admin
 // Este servicio maneja la creación, actualización y vinculación de esos subperfiles.
+@Slf4j
 @Service
 public class PerfilService {
 
@@ -48,6 +50,9 @@ public class PerfilService {
 
     @Autowired
     private NotificacionService notificacionService;
+
+    @Autowired
+    private MensajeContactoService mensajeContactoService;
 
     // ==========================================
     // BUILD DTO — construye el DTO completo del perfil incluyendo todos los subperfiles
@@ -158,6 +163,43 @@ public class PerfilService {
         actualizarRolSegunPerfiles(usuario);
 
         usuarioRepository.save(usuario);
+
+        // Si el usuario escribió comentarios o detalles de propiedad, los registramos
+        // como mensaje de contacto para que el equipo pueda dar seguimiento.
+        // Esto también dispara la notificación por WhatsApp al admin.
+        try {
+            registrarMensajeOnboarding(usuario, request);
+        } catch (Exception e) {
+            // No bloqueamos el onboarding si falla el mensaje secundario
+            log.warn("[ONBOARDING] No se pudo registrar el mensaje de contacto: {}", e.getMessage());
+        }
+    }
+
+    // Crea un mensaje de contacto con los comentarios libres que el usuario escribió
+    // durante el onboarding. El trabajador los verá en el panel de mensajes.
+    private void registrarMensajeOnboarding(Usuario usuario, OnboardingRequest request) {
+        boolean tieneDetalles   = request.getDetallesPropiedad() != null && !request.getDetallesPropiedad().isBlank();
+        boolean tieneComentarios = request.getComentariosExtra() != null && !request.getComentariosExtra().isBlank();
+
+        if (!tieneDetalles && !tieneComentarios) return; // No hay nada que registrar
+
+        StringBuilder texto = new StringBuilder();
+        texto.append("[Onboarding] Nuevo usuario con perfil: ").append(request.getPerfil()).append("\n\n");
+
+        if (tieneDetalles) {
+            texto.append("Detalles de propiedad:\n").append(request.getDetallesPropiedad().trim()).append("\n\n");
+        }
+        if (tieneComentarios) {
+            texto.append("Comentarios adicionales:\n").append(request.getComentariosExtra().trim());
+        }
+
+        MensajeContacto mensaje = new MensajeContacto();
+        mensaje.setNombre(usuario.getNombre() != null ? usuario.getNombre() : "Usuario onboarding");
+        mensaje.setEmail(usuario.getEmail());
+        mensaje.setTelefono(usuario.getTelefono() != null ? usuario.getTelefono() : "");
+        mensaje.setMensaje(texto.toString());
+
+        mensajeContactoService.enviarMensaje(mensaje);
     }
 
     // ==========================================
@@ -296,7 +338,6 @@ public class PerfilService {
             interesado = new Interesado();
             interesado.setUsuario(usuario);
             crearTareaRevisionUsuario(usuario, "interesado");
-            notificacionService.notificarNuevoInteresado(usuario);
         }
         actualizarInteresado(interesado, request);
     }
@@ -318,7 +359,6 @@ public class PerfilService {
             vendedor = new Vendedor();
             vendedor.setUsuario(usuario);
             crearTareaRevisionUsuario(usuario, "vendedor");
-            notificacionService.notificarNuevoVendedor(usuario);
         }
         actualizarVendedor(vendedor, request);
     }

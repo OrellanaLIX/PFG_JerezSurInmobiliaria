@@ -21,12 +21,14 @@ const PropertyCard = ({ property, viewMode }: PropertyCardProps) => {
     // Usamos <article> porque semánticamente cada card es un contenido independiente
     <article className={`property-card property-card--${viewMode}`}>
       <div className="property-card__media">
-        <Link to={`/inmuebles/${property.id}`}>
+        <Link to={`/inmuebles/${property.id}`}
+              aria-label={`Ver detalle de ${property.title}`}
+              tabIndex={-1}>
           {/* Si hay imagen la mostramos; si no, mostramos un placeholder con icono */}
           {property.image ? (
-            <img src={property.image} alt={property.title} loading="lazy" width="400" height="300" />
+            <img src={property.image} alt="" loading="lazy" decoding="async" width="400" height="300" />
           ) : (
-            <div className="property-card__media-no-image">
+            <div className="property-card__media-no-image" aria-hidden="true">
               <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" aria-hidden="true">
                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
                 <circle cx="8.5" cy="8.5" r="1.5" />

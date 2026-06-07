@@ -31,10 +31,12 @@ export const GraficosPanel = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Intentamos el endpoint nuevo que devuelve KPIs + múltiples gráficos del microservicio Python.
+    // Si falla (p.ej. Python no está disponible), hacemos fallback al endpoint antiguo que solo
+    // devuelve un gráfico de resumen, para que el panel no quede completamente en blanco.
     api.get<PanelData>('/estadisticas/panel')
       .then(({ data }) => setPanel(data))
       .catch(() => {
-        // Fallback: intenta el endpoint antiguo
         api.get<{ datos: PanelData['kpis']; imagen: string }>('/estadisticas/dashboard')
           .then(({ data }) => setPanel({
             kpis: data.datos,
@@ -50,6 +52,8 @@ export const GraficosPanel = () => {
   if (!panel) return null;
 
   const { kpis, graficos } = panel;
+  // Comprobamos si el microservicio Python ha generado algún gráfico para mostrar la sección visual.
+  // Si Python no responde, tienePython = false y solo se muestran las KPI cards nativas.
   const tienePython = !!(graficos.kpis || graficos.barras || graficos.dona || graficos.evolucion);
 
   return (

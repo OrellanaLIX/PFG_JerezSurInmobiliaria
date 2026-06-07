@@ -209,7 +209,7 @@
       font-size: 1.1rem;
       font-weight: 700;
       line-height: 1.35;
-      transition: color 0.2s ease;
+      transition: color 0.3s cubic-bezier(0.25, 1, 0.5, 1);
       display: -webkit-box;
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
@@ -249,9 +249,10 @@
     display: flex;
     gap: 1rem;
     flex-wrap: wrap;
-    padding: 0.75rem 0;
+    padding: 0.875rem 0;
     border-top: 1px solid $color-border;
     border-bottom: 1px solid $color-border;
+    margin: 0.25rem 0;
   }
 
   &__feature {
@@ -303,12 +304,25 @@
   }
 
   &__price {
-    font-size: 1.4rem;
+    font-size: 1.5rem;
     font-weight: 800;
     // Color primario oscuro para mayor contraste WCAG AA (ratio > 4.5:1)
     color: $color-primary-dark;
     line-height: 1;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.025em;
+  }
+
+  // ── Botón Ver detalles ──
+  // Se integra visualmente con el footer de la tarjeta
+  .btn--sm {
+    min-height: 38px;
+    padding: 0.5rem 1.1rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    border-radius: $radius-sm;
+    white-space: nowrap;
+    flex-shrink: 0;
   }
 }
 

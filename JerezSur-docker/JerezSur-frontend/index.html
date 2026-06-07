@@ -11,6 +11,10 @@
   <meta name="robots" content="index, follow" />
   <meta name="author" content="JerezSur Inmobiliaria" />
   <meta name="theme-color" content="#00439c" />
+  <!-- Mejora Best Practices: indica al navegador que la web solo usa modo claro -->
+  <meta name="color-scheme" content="light" />
+  <!-- Evita que el navegador infiera el MIME type (seguridad) -->
+  <meta http-equiv="X-Content-Type-Options" content="nosniff" />
 
   <!-- ── Favicon ───────────────────────────────────────────────────── -->
   <link rel="icon" type="image/png" sizes="32x32" href="/Favicon.png" />
@@ -21,14 +25,18 @@
   <meta property="og:site_name"   content="JerezSur Inmobiliaria" />
   <meta property="og:title"       content="JerezSur Inmobiliaria — Compra, vende o alquila en Jerez" />
   <meta property="og:description" content="Inmobiliaria de confianza en Jerez de la Frontera. Pisos, casas, chalets y locales en venta y alquiler." />
-  <meta property="og:image"       content="/LogoCuadrado.png" />
+  <meta property="og:image"       content="/Hero.jpg" />
+  <meta property="og:image:width"  content="1280" />
+  <meta property="og:image:height" content="720" />
+  <meta property="og:image:alt"   content="Inmuebles en Jerez de la Frontera — JerezSur Inmobiliaria" />
   <meta property="og:locale"      content="es_ES" />
 
   <!-- ── Twitter Card ──────────────────────────────────────────────── -->
-  <meta name="twitter:card"        content="summary" />
+  <meta name="twitter:card"        content="summary_large_image" />
   <meta name="twitter:title"       content="JerezSur Inmobiliaria" />
   <meta name="twitter:description" content="Compra, vende o alquila en Jerez de la Frontera con expertos locales." />
-  <meta name="twitter:image"       content="/LogoCuadrado.png" />
+  <meta name="twitter:image"       content="/Hero.jpg" />
+  <meta name="twitter:image:alt"   content="Inmuebles en Jerez de la Frontera — JerezSur Inmobiliaria" />
 
   <!-- ── Structured Data — LocalBusiness / RealEstateAgent ─────────── -->
   <script type="application/ld+json">
@@ -37,11 +45,16 @@
     "@type": "RealEstateAgent",
     "name": "JerezSur Inmobiliaria",
     "description": "Inmobiliaria en Jerez de la Frontera especializada en compra, venta y alquiler de viviendas con atención cercana y profesional.",
-    "url": "https://localhost",
+    "url": "https://jerezsur.com",
     "telephone": "+34615061840",
     "email": "info@jerezsur.com",
-    "logo": "/LogoCuadrado.png",
-    "image": "/Hero.jpg",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://jerezsur.com/Favicon.png",
+      "width": 256,
+      "height": 256
+    },
+    "image": "https://jerezsur.com/Hero.jpg",
     "address": {
       "@type": "PostalAddress",
       "addressLocality": "Jerez de la Frontera",
@@ -78,27 +91,21 @@
   </script>
 
   <!-- ── Preconexiones (avisan al navegador de qué dominios usaremos) ─ -->
-  <link rel="preconnect" href="https://res.cloudinary.com" />
-  <link rel="preconnect" href="https://images.unsplash.com" />
-  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
+  <link rel="dns-prefetch" href="https://res.cloudinary.com" />
+  <link rel="dns-prefetch" href="https://images.unsplash.com" />
   <link rel="preconnect" href="https://accounts.google.com" crossorigin />
   <link rel="dns-prefetch" href="https://connect.facebook.net" />
   <link rel="dns-prefetch" href="https://graph.facebook.com" />
+  <!-- Google Maps (iframe en Home y Contacto) -->
+  <link rel="dns-prefetch" href="https://maps.googleapis.com" />
+  <link rel="dns-prefetch" href="https://maps.gstatic.com" />
 
-  <!-- ── Preload del LCP — imagen del hero ─────────────────────────── -->
+  <!-- ── Preload del LCP — imagen del hero (local, misma origen) ─────── -->
+  <!-- La imagen debe coincidir con la usada en __Hero.scss para que el preload sea efectivo -->
   <link rel="preload" as="image" href="/Hero.jpg" type="image/jpeg" fetchpriority="high" />
 
-  <!-- ── Font Awesome — carga asíncrona para no bloquear render ─────── -->
-  <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-        media="print"
-        onload="this.media='all'"
-        crossorigin="anonymous" />
-  <noscript>
-    <link rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-          crossorigin="anonymous" />
-  </noscript>
+  <!-- Font Awesome eliminado: el proyecto usa lucide-react para todos los iconos,
+       por lo que la hoja de estilos de FA (107 KB) era código muerto. -->
 
   <!-- ── SDKs OAuth social ─────────────────────────────────────────── -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>

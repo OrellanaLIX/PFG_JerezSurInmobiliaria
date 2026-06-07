@@ -51,12 +51,10 @@ export const usuarioService = {
       apellidos: usuario.apellidos,
       email: usuario.email,
       telefono: usuario.telefono,
-      password: usuario.password,
       dni: usuario.dni,
-      origen: usuario.origen
     };
 
-    const { data } = await api.post<Usuario>('/usuarios/registro', payload);
+    const { data } = await api.post<Usuario>('/usuarios/admin/crear', payload);
     const creado = data;
 
     if (usuario.rol && usuario.rol !== 'ninguno') {

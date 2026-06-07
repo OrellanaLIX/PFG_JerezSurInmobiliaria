@@ -47,7 +47,9 @@
     display: grid;
     grid-template-columns: 1fr 360px;
     gap: $space-5;
-    align-items: start; // La columna de stats dicta la altura; las tareas se ajustan
+    // stretch: ambas columnas se estiran a la altura de la más alta (la de gráficos).
+    // Esto permite que las tareas ocupen exactamente el mismo espacio que el contenido izquierdo.
+    align-items: stretch;
 
     @media (max-width: $laptop) {
       grid-template-columns: 1fr;
@@ -60,15 +62,18 @@
     gap: $space-4;
 
     &--tasks {
-      // Columna de tareas: sticky para que siga al scroll, height fijo para el scroll interno
+      // sticky: el panel sigue al scroll pero no se sale de la columna del grid
       position: sticky;
       top: $space-4;
-      // calc(100vh - header admin ~64px - padding top/bottom ~64px - dash header ~80px)
-      height: calc(100vh - 180px);
+      // height fijo = toda la pantalla visible menos el header del panel
+      height: calc(100vh - 90px);
+      min-height: 480px;
+      // overflow:hidden cierra el contexto flex para que el scroll interno funcione
+      overflow: hidden;
       display: flex;
       flex-direction: column;
 
-      // .tareas ocupa TODO el alto y gestiona internamente qué parte scrollea
+      // .tareas ocupa TODO el alto disponible de la columna y gestiona el scroll interno
       .tareas {
         flex: 1;
         display: flex;
@@ -81,11 +86,11 @@
         box-shadow: $shadow-xs;
       }
 
-      // Header y form NO scrollean — tamaño fijo
+      // Header y form son fijos — no scrollean con la lista
       .tareas__header { flex-shrink: 0; }
       .tareas__form   { flex-shrink: 0; }
 
-      // La lista SÍ scrollea — ocupa el espacio restante
+      // La lista SÍ scrollea cuando hay más tareas de las que caben en pantalla
       .tareas__lista {
         flex: 1;
         min-height: 0; // CRÍTICO: ídem
@@ -172,6 +177,8 @@
   border: 1px solid $color-border;
   border-radius: $radius-md;
   padding: $space-4 $space-4 $space-3;
+  // Consistent height across all KPI cards regardless of content length
+  min-height: 100px;
   overflow: hidden;
   transition: transform $transition-smooth, box-shadow $transition-smooth, background $transition-smooth;
   cursor: default;
@@ -190,7 +197,8 @@
   &__accent {
     position: absolute;
     top: 0; left: 0; right: 0;
-    height: 4px;
+    // Slimmer accent stripe — more refined, less heavy
+    height: 3px;
     background-color: var(--kpi-color, #{$color-primary});
     border-radius: $radius-md $radius-md 0 0;
   }

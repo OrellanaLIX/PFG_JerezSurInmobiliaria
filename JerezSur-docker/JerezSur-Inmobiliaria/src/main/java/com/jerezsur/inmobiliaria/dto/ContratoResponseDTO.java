@@ -8,15 +8,18 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 
-// DTO de respuesta para los contratos: incluye los datos básicos del contrato y la URL del PDF cifrado.
+/**
+ * DTO de respuesta para los contratos vinculados a una operación inmobiliaria.
+ *
+ * Expone solo lo necesario para el panel de administración: tipo de contrato (modelo),
+ * estado de firma y la URL del PDF en Cloudinary. No incluimos las cláusulas completas
+ * en el listado para no sobrecargar la respuesta; esas se cargan al abrir el detalle.
+ * El trabajadorId nos permite saber qué agente firma el contrato sin cargar la entidad completa.
+ */
 @Getter
-// DTO de respuesta para los contratos: incluye los datos básicos del contrato y la URL del PDF cifrado.
 @Setter
-// DTO de respuesta para los contratos: incluye los datos básicos del contrato y la URL del PDF cifrado.
 @NoArgsConstructor
-// DTO de respuesta para los contratos: incluye los datos básicos del contrato y la URL del PDF cifrado.
 @AllArgsConstructor
-// DTO de respuesta para los contratos: incluye los datos básicos del contrato y la URL del PDF cifrado.
 @Builder
 public class ContratoResponseDTO {
     private Long id;

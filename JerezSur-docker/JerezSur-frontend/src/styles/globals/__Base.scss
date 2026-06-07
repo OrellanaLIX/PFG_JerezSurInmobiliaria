@@ -10,8 +10,9 @@
   --color-primary:        #00439c;
   --color-primary-dark:   #003380;
   --color-primary-light:  #dce8f8;
-  --color-secondary:      #67b437;
-  --color-secondary-dark: #4e9226;
+  --color-secondary:             #67b437;
+  --color-secondary-dark:        #4e9226;
+  --color-secondary-accessible:  #3d7a12;
   --color-bg:             #f7f9fc;
   --color-surface:        #ffffff;
   --color-surface-alt:    #f1f5f9;
@@ -81,10 +82,7 @@ strong { color: inherit; font-weight: 700; }
   color: $color-white;
 }
 
-:focus-visible {
-  outline: 3px solid rgba($color-primary, 0.3);
-  outline-offset: 3px;
-}
+/* focus-visible definido en __Utilities.scss con outline sólido (WCAG 2.4.11 compliant) */
 
 /* =====================================================
    ESTILOS GLOBALES DE FORMULARIOS
@@ -147,9 +145,10 @@ textarea {
 label {
   display: block;
   font-size: $font-size-sm;
-  font-weight: 600;
+  font-weight: 700;
   color: $color-text;
   margin-bottom: $space-2;
+  letter-spacing: 0.3px;
 }
 
 fieldset {

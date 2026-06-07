@@ -4,7 +4,15 @@ import java.math.BigDecimal;
 
 import lombok.Data;
 
-// DTO del flujo de onboarding: completa el perfil del usuario después del primer login social.
+/**
+ * DTO del flujo de onboarding para usuarios que acceden por primera vez con Google o Facebook.
+ *
+ * Cuando alguien se registra con OAuth social, creamos su cuenta con datos mínimos
+ * (email, nombre del proveedor) y marcamos cambiarPasswd=true. En el siguiente acceso
+ * lo redirigimos al onboarding para que complete su perfil: elija su rol (interesado,
+ * propietario o ambos) y rellene los datos específicos de ese rol.
+ * Solo entonces se le da acceso completo a la aplicación.
+ */
 @Data
 public class OnboardingRequest {
 

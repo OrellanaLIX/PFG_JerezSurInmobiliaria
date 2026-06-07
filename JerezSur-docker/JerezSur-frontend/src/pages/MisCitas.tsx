@@ -40,7 +40,7 @@ const buildGoogleCalendarUrl = (fechaHoraISO: string, titulo: string, lugar: str
   const params = new URLSearchParams({
     action:   'TEMPLATE',
     text:     titulo,
-    details:  'Cita en JerezSur Inmobiliaria',
+    details:  'Cita con JerezSur Inmobiliaria',
     location: lugar,
     dates:    `${start}/${end}`,
   });
@@ -93,9 +93,10 @@ const MisCitas: React.FC = () => {
     setLoadingCitas(true);
     setErrorCitas('');
 
-    const token = localStorage.getItem('token') || '';
+    // getToken() soporta tanto 'token' como 'accessToken' — ambas claves usan los distintos flujos de login
+    const token = localStorage.getItem('token') || localStorage.getItem('accessToken') || '';
     fetch(`${API_BASE}/citas/usuario/${user.id}`, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
     })
       .then((r) => {
         if (!r.ok) throw new Error(`Error ${r.status}`);

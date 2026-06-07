@@ -18,7 +18,10 @@
     grid-template-columns: 1.3fr 1fr 1fr 1.2fr;
     gap: 2rem;
 
-    @media (max-width: $laptop) { grid-template-columns: repeat(2, 1fr); }
+    @media (max-width: $laptop) {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 3rem 2.5rem;
+    }
     @media (max-width: $tablet) { grid-template-columns: 1fr; }
   }
 
@@ -58,7 +61,7 @@
     transition: color $transition-base, opacity $transition-fast;
 
     &:hover {
-      color: #dff3df;
+      color: rgba(255, 255, 255, 0.95);
       opacity: 1;
     }
   }

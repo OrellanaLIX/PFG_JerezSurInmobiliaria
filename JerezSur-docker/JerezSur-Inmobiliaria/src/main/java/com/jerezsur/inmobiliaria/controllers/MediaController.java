@@ -68,6 +68,31 @@ public class MediaController {
         }
     }
 
+    // Marca una imagen existente como portada del inmueble y desmarca las demás
+    @PatchMapping("/imagen/{id}/portada")
+    @Transactional
+    public ResponseEntity<?> marcarPortada(@PathVariable Long id) {
+        try {
+            Imagen imagen = imagenRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Imagen no encontrada"));
+
+            Inmueble inmueble = imagen.getInmueble();
+            if (inmueble == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "La imagen no está asociada a ningún inmueble"));
+            }
+
+            inmueble.getImagenes().forEach(img -> {
+                img.setEsPortada(img.getId().equals(id));
+                imagenRepository.save(img);
+            });
+
+            return ResponseEntity.ok(Map.of("mensaje", "Portada actualizada correctamente", "imagenId", id));
+        } catch (Exception e) {
+            log.error("Error al marcar portada para imagen {}", id, e);
+            return ResponseEntity.status(500).body(Map.of("error", "Error al actualizar la portada."));
+        }
+    }
+
     // Elimina una imagen tanto de Cloudinary como de la base de datos
     @DeleteMapping("/imagen/{id}")
     public ResponseEntity<?> eliminarImagen(@PathVariable Long id) {

@@ -1,3 +1,7 @@
+// Componente de vista mensual del calendario de citas para el panel de administración.
+// Recibe la lista de citas del mes activo y las pinta en la celda del día correspondiente.
+// Al pulsar un día vacío se abre el formulario de nueva cita con esa fecha preseleccionada,
+// y al pulsar una cita existente se abre el modal de detalle para gestionarla.
 import { useMemo } from 'react';
 import type { Cita } from '../../../types/cita';
 import {
@@ -11,12 +15,12 @@ import '../../../styles/App.scss';
 
 interface CalendarioProps {
   año: number;
-  mes: number; // 0-11
+  mes: number; // 0-11 (igual que el índice de Date.getMonth())
   citas: Cita[];
-  onCambiarMes: (delta: number) => void;
+  onCambiarMes: (delta: number) => void; // +1 = mes siguiente, -1 = mes anterior
   onIrHoy: () => void;
   onClickCita: (cita: Cita) => void;
-  onClickDia: (fecha: Date) => void;
+  onClickDia: (fecha: Date) => void; // se usa para preseleccionar la fecha en el formulario
 }
 
 export const Calendario = ({
@@ -28,6 +32,8 @@ export const Calendario = ({
   onClickCita,
   onClickDia,
 }: CalendarioProps) => {
+  // Recalculamos la cuadrícula solo cuando cambia el mes o la lista de citas,
+  // no en cada render, para no recalcular 42 celdas innecesariamente
   const dias = useMemo(
     () => generarMesCalendario(año, mes, citas),
     [año, mes, citas]

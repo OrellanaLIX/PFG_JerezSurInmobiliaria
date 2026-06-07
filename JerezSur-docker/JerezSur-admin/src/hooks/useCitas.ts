@@ -38,9 +38,9 @@ export const useCitas = () => {
     await cargar();
   };
 
-  // Acepta una cita (la asigna al trabajador logueado) y recarga
-  const aceptar = async (id: number) => {
-    await citaService.aceptar(id);
+  // Acepta una cita (la asigna al trabajador indicado o al logueado) y recarga
+  const aceptar = async (id: number, trabajadorId?: number | null) => {
+    await citaService.aceptar(id, trabajadorId);
     await cargar();
   };
 

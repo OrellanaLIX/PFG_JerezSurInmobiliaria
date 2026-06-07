@@ -1,5 +1,3 @@
-// Inicializador de datos de prueba: crea inmuebles, usuarios y citas de ejemplo al arrancar la app.
-// Solo se ejecuta si la BD está vacía (en modo de desarrollo o primera puesta en marcha).
 package com.jerezsur.inmobiliaria.config;
 
 import com.jerezsur.inmobiliaria.models.*;
@@ -19,6 +17,17 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Componente que inserta datos de ejemplo la primera vez que arranca la aplicación.
+ *
+ * Implementa CommandLineRunner para ejecutarse justo después del arranque de Spring.
+ * @Order(2) lo coloca después de cualquier otro inicializador con prioridad más alta
+ * (por ejemplo, el que crea el rol admin por defecto).
+ *
+ * La guardia "if (inmuebleRepo.count() > 0)" evita que se dupliquen los datos
+ * si el servidor se reinicia con la BD ya poblada. Solo actúa en una BD vacía,
+ * que es el caso de la primera puesta en marcha con Docker o en desarrollo local.
+ */
 @Slf4j
 @Component
 @Order(2)
@@ -82,7 +91,7 @@ public class DataSeeder implements CommandLineRunner {
                 .observaciones("Propietario de varios inmuebles en Jerez.").build());
 
         // 4. INMUEBLES
-        Inmueble p1 = inmuebleRepo.save(Inmueble.builder().referencia("JS-001")
+        Inmueble p1 = Inmueble.builder().referencia("JS-001")
                 .titulo("Piso luminoso de 3 habitaciones en Chapin")
                 .descripcion("Precioso piso en segunda planta con ascensor, completamente reformado en 2021. "
                         + "Cocina americana integrada, suelos de marmol y ventanas de doble acristalamiento.")
@@ -91,11 +100,12 @@ public class DataSeeder implements CommandLineRunner {
                 .habitaciones(3).banos(1).superficieUtil(88.0).mConstruidos(102.0)
                 .direccion("C/ Poeta Munoz Seca, 14").zona("Chapin")
                 .codigoPostal("11407").ciudad("Jerez de la Frontera")
-                .comunidad(new BigDecimal("65")).ibi(new BigDecimal("420")).tieneDerrama(false).destacado(true)
-                .caracteristicasExtra(Map.of("Ascensor", "Si", "Garaje", "Opcional", "Piscina", "Si"))
-                .propietariosPorcentaje(Map.of(vAntonio, 100.0)).build());
+                .comunidad(new BigDecimal("65")).ibi(new BigDecimal("420")).tieneDerrama(false).destacado(true).build();
+        p1.setCaracteristicasExtra(Map.of("Ascensor", "Si", "Garaje", "Opcional", "Piscina", "Si"));
+        addPropietario(p1, vAntonio, 100.0);
+        p1 = inmuebleRepo.save(p1);
 
-        Inmueble p2 = inmuebleRepo.save(Inmueble.builder().referencia("JS-002")
+        Inmueble p2 = Inmueble.builder().referencia("JS-002")
                 .titulo("Atico con terraza privada y vistas al centro historico")
                 .descripcion("Espectacular atico en la ultima planta de edificio senorial. Terraza de 40 m2 "
                         + "con vistas panoramicas a la Catedral de Jerez.")
@@ -103,51 +113,60 @@ public class DataSeeder implements CommandLineRunner {
                 .estado(EstadoInmueble.DISPONIBLE).tipo(TipoInmueble.ATICO)
                 .habitaciones(2).banos(2).superficieUtil(75.0).mConstruidos(115.0)
                 .direccion("C/ Larga, 28").zona("Centro").codigoPostal("11402").ciudad("Jerez de la Frontera")
-                .comunidad(new BigDecimal("95")).ibi(new BigDecimal("580")).tieneDerrama(false).destacado(true)
-                .caracteristicasExtra(Map.of("Terraza", "40 m2", "Ascensor", "Si", "Vistas", "Catedral"))
-                .propietariosPorcentaje(Map.of(vAntonio, 100.0)).build());
+                .comunidad(new BigDecimal("95")).ibi(new BigDecimal("580")).tieneDerrama(false).destacado(true).build();
+        p2.setCaracteristicasExtra(Map.of("Terraza", "40 m2", "Ascensor", "Si", "Vistas", "Catedral"));
+        addPropietario(p2, vAntonio, 100.0);
+        p2 = inmuebleRepo.save(p2);
 
-        Inmueble p3 = inmuebleRepo.save(Inmueble.builder().referencia("JS-003")
+        Inmueble p3 = Inmueble.builder().referencia("JS-003")
                 .titulo("Casa adosada con jardin en El MOPU")
                 .descripcion("Adosado en esquina con jardin privado de 60 m2, garaje incorporado y trastero.")
                 .precio(new BigDecimal("215000")).operacion(TipoOperacion.VENTA)
                 .estado(EstadoInmueble.DISPONIBLE).tipo(TipoInmueble.ADOSADO)
                 .habitaciones(3).banos(2).superficieUtil(120.0).mConstruidos(140.0)
                 .direccion("Avda. de Carteya, 52").zona("MOPU").codigoPostal("11405").ciudad("Jerez de la Frontera")
-                .comunidad(new BigDecimal("55")).ibi(new BigDecimal("490")).tieneDerrama(false).destacado(true)
-                .caracteristicasExtra(Map.of("Jardin", "60 m2", "Garaje", "Incluido", "Piscina", "Si")).build());
+                .comunidad(new BigDecimal("55")).ibi(new BigDecimal("490")).tieneDerrama(false).destacado(true).build();
+        p3.setCaracteristicasExtra(Map.of("Jardin", "60 m2", "Garaje", "Incluido", "Piscina", "Si"));
+        addPropietario(p3, vAntonio, 100.0);
+        p3 = inmuebleRepo.save(p3);
 
-        Inmueble p4 = inmuebleRepo.save(Inmueble.builder().referencia("JS-004")
+        Inmueble p4 = Inmueble.builder().referencia("JS-004")
                 .titulo("Piso de 2 habitaciones ideal para alquilar en Ronda")
                 .descripcion("Piso en buen estado listo para entrar a vivir. Salon amplio, cocina equipada.")
                 .precio(new BigDecimal("750")).operacion(TipoOperacion.ALQUILER)
                 .estado(EstadoInmueble.DISPONIBLE).tipo(TipoInmueble.PISO)
                 .habitaciones(2).banos(1).superficieUtil(68.0).mConstruidos(78.0)
                 .direccion("C/ Taxdirt, 8").zona("Ronda").codigoPostal("11403").ciudad("Jerez de la Frontera")
-                .comunidad(new BigDecimal("45")).ibi(new BigDecimal("310")).tieneDerrama(false).destacado(false)
-                .caracteristicasExtra(Map.of("Portero", "Si", "Armarios empotrados", "Si")).build());
+                .comunidad(new BigDecimal("45")).ibi(new BigDecimal("310")).tieneDerrama(false).destacado(false).build();
+        p4.setCaracteristicasExtra(Map.of("Portero", "Si", "Armarios empotrados", "Si"));
+        addPropietario(p4, vAntonio, 100.0);
+        p4 = inmuebleRepo.save(p4);
 
-        Inmueble p5 = inmuebleRepo.save(Inmueble.builder().referencia("JS-005")
+        Inmueble p5 = Inmueble.builder().referencia("JS-005")
                 .titulo("Estudio amueblado en pleno centro de Jerez")
                 .descripcion("Estudio de diseno totalmente amueblado y equipado. Ideal para estudiantes.")
                 .precio(new BigDecimal("480")).operacion(TipoOperacion.ALQUILER)
                 .estado(EstadoInmueble.DISPONIBLE).tipo(TipoInmueble.ESTUDIO)
                 .habitaciones(1).banos(1).superficieUtil(32.0).mConstruidos(35.0)
                 .direccion("Pl. del Arenal, 3").zona("Centro").codigoPostal("11401").ciudad("Jerez de la Frontera")
-                .comunidad(new BigDecimal("30")).tieneDerrama(false).destacado(false)
-                .caracteristicasExtra(Map.of("Amueblado", "Si", "Disponibilidad", "Inmediata")).build());
+                .comunidad(new BigDecimal("30")).tieneDerrama(false).destacado(false).build();
+        p5.setCaracteristicasExtra(Map.of("Amueblado", "Si", "Disponibilidad", "Inmediata"));
+        addPropietario(p5, vAntonio, 100.0);
+        p5 = inmuebleRepo.save(p5);
 
-        Inmueble p6 = inmuebleRepo.save(Inmueble.builder().referencia("JS-006")
+        Inmueble p6 = Inmueble.builder().referencia("JS-006")
                 .titulo("Chalet independiente con piscina privada en La Cartuja")
                 .descripcion("Magnifico chalet con piscina privada de 40 m2, jardin de 500 m2 y garaje para 2 coches.")
                 .precio(new BigDecimal("485000")).operacion(TipoOperacion.VENTA)
                 .estado(EstadoInmueble.DISPONIBLE).tipo(TipoInmueble.CHALET)
                 .habitaciones(4).banos(3).superficieUtil(280.0).mConstruidos(320.0)
                 .direccion("C/ Pintor Sorolla, 7").zona("La Cartuja").codigoPostal("11408").ciudad("Jerez de la Frontera")
-                .comunidad(new BigDecimal("120")).ibi(new BigDecimal("1100")).tieneDerrama(false).destacado(true)
-                .caracteristicasExtra(Map.of("Piscina privada", "Si", "Jardin", "500 m2", "Garaje", "2 plazas")).build());
+                .comunidad(new BigDecimal("120")).ibi(new BigDecimal("1100")).tieneDerrama(false).destacado(true).build();
+        p6.setCaracteristicasExtra(Map.of("Piscina privada", "Si", "Jardin", "500 m2", "Garaje", "2 plazas"));
+        addPropietario(p6, vAntonio, 100.0);
+        p6 = inmuebleRepo.save(p6);
 
-        Inmueble p7 = inmuebleRepo.save(Inmueble.builder().referencia("JS-007")
+        Inmueble p7 = Inmueble.builder().referencia("JS-007")
                 .titulo("Piso de 4 habitaciones con parking en La Granja")
                 .descripcion("Amplio piso familiar con 4 habitaciones, 2 banos y parking comunitario.")
                 .precio(new BigDecimal("185000")).operacion(TipoOperacion.VENTA)
@@ -155,18 +174,22 @@ public class DataSeeder implements CommandLineRunner {
                 .habitaciones(4).banos(2).superficieUtil(115.0).mConstruidos(130.0)
                 .direccion("C/ Columela, 19").zona("La Granja").codigoPostal("11406").ciudad("Jerez de la Frontera")
                 .comunidad(new BigDecimal("80")).ibi(new BigDecimal("510")).tieneDerrama(true)
-                .valorDerrama(new BigDecimal("2400")).destacado(false)
-                .caracteristicasExtra(Map.of("Parking", "Incluido", "Trastero", "Si")).build());
+                .valorDerrama(new BigDecimal("2400")).destacado(false).build();
+        p7.setCaracteristicasExtra(Map.of("Parking", "Incluido", "Trastero", "Si"));
+        addPropietario(p7, vAntonio, 100.0);
+        p7 = inmuebleRepo.save(p7);
 
-        Inmueble p8 = inmuebleRepo.save(Inmueble.builder().referencia("JS-008")
+        Inmueble p8 = Inmueble.builder().referencia("JS-008")
                 .titulo("Local comercial en zona de alto trafico peatonal")
                 .descripcion("Local diafano con escaparate de 6 metros. Ideal para hosteleria o comercio.")
                 .precio(new BigDecimal("1400")).operacion(TipoOperacion.ALQUILER)
                 .estado(EstadoInmueble.DISPONIBLE).tipo(TipoInmueble.LOCAL_COMERCIAL)
                 .habitaciones(null).banos(1).superficieUtil(95.0).mConstruidos(100.0)
                 .direccion("C/ Consistorio, 5").zona("Centro").codigoPostal("11401").ciudad("Jerez de la Frontera")
-                .tieneDerrama(false).destacado(false)
-                .caracteristicasExtra(Map.of("Escaparate", "6 m", "Almacen", "Si")).build());
+                .tieneDerrama(false).destacado(false).build();
+        p8.setCaracteristicasExtra(Map.of("Escaparate", "6 m", "Almacen", "Si"));
+        addPropietario(p8, vAntonio, 100.0);
+        p8 = inmuebleRepo.save(p8);
 
         // 5. IMAGENES
         guardarImagenes(p1, List.of(
@@ -199,15 +222,15 @@ public class DataSeeder implements CommandLineRunner {
         citaRepo.save(Cita.builder()
                 .fechaHora(LocalDateTime.now().plusDays(7).withHour(11).withMinute(0))
                 .motivo("Consulta sobre opciones de alquiler en el centro.")
-                .estado(EstadoCita.PENDIENTE).usuario(uMaria).trabajador(tLaura).inmueble(null).build());
+                .estado(EstadoCita.PENDIENTE_ASIGNACION).usuario(uMaria).trabajador(tLaura).inmueble(null).build());
         citaRepo.save(Cita.builder()
                 .fechaHora(LocalDateTime.now().minusDays(5).withHour(17).withMinute(0))
                 .motivo("Visita al chalet de La Cartuja.")
-                .estado(EstadoCita.REALIZADA).usuario(uJuan).trabajador(tCarlos).inmueble(p6).build());
+                .estado(EstadoCita.COMPLETADA).usuario(uJuan).trabajador(tCarlos).inmueble(p6).build());
         citaRepo.save(Cita.builder()
                 .fechaHora(LocalDateTime.now().plusDays(14).withHour(9).withMinute(30))
                 .motivo("Solicitud de visita al estudio del Arenal.")
-                .estado(EstadoCita.PENDIENTE).usuario(uMaria).trabajador(null).inmueble(p5).build());
+                .estado(EstadoCita.PENDIENTE_ASIGNACION).usuario(uMaria).trabajador(null).inmueble(p5).build());
 
         // 7. OPERACIONES
         OperacionVenta opVenta = new OperacionVenta();
@@ -268,6 +291,11 @@ public class DataSeeder implements CommandLineRunner {
         log.info("DataSeeder: datos de ejemplo insertados correctamente.");
     }
 
+    /**
+     * Crea un usuario solo si no existe ya en la BD (comprueba por email).
+     * Esto permite re-ejecutar el seeder de forma segura sin duplicar datos.
+     * La contraseña se hashea con BCrypt antes de guardarla, igual que en el registro real.
+     */
     private Usuario crearUsuario(String email, String nombre, String apellidos,
                                   String telefono, String dni, String password, Role role) {
         return usuarioRepo.findByEmail(email).orElseGet(() -> usuarioRepo.save(
@@ -278,8 +306,18 @@ public class DataSeeder implements CommandLineRunner {
         ));
     }
 
+    private void addPropietario(Inmueble inmueble, Vendedor vendedor, double porcentaje) {
+        InmueblePropietario ip = new InmueblePropietario();
+        ip.setId(new InmueblePropietarioId(null, vendedor.getId()));
+        ip.setInmueble(inmueble);
+        ip.setVendedor(vendedor);
+        ip.setPorcentaje(porcentaje);
+        inmueble.getPropietarios().add(ip);
+    }
+
     private void guardarImagenes(Inmueble inmueble, List<String> urls) {
         for (int i = 0; i < urls.size(); i++) {
+            // i == 0 → primera imagen es la portada que aparece en el listado
             imagenRepo.save(Imagen.builder().url(urls.get(i)).esPortada(i == 0).inmueble(inmueble).build());
         }
     }

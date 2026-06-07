@@ -13,9 +13,11 @@ export interface Cita {
   fechaHora: string; // ISO 8601: "2026-05-25T17:30:00"
   motivo?: string;
   estado: EstadoCita;
+  trabajadorId?: number;
   nombreTrabajador?: string;
   direccionInmueble?: string;
   inmuebleId?: number;
+  inmuebleTitulo?: string;
 }
 
 export interface NuevaCita {
@@ -25,4 +27,5 @@ export interface NuevaCita {
   fechaHora: string;
   motivo?: string;
   inmuebleId?: number;
+  trabajadorId?: number;
 }

@@ -132,6 +132,21 @@ button {
   }
 }
 
+.btn-warning {
+  background-color: $color-warning;
+  color: $color-white;
+
+  &:hover:not(:disabled) {
+    background-color: darken($color-warning, 8%);
+    box-shadow: $shadow-md;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
 .btn-sm {
   padding: $space-2 $space-3;
   font-size: $font-size-xs;

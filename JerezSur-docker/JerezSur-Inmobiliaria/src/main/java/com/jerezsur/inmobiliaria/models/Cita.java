@@ -47,8 +47,8 @@ public class Cita {
 
     @Enumerated(EnumType.STRING)
     @Default
-    @Column(nullable = false, length = 25)
-    private EstadoCita estado = EstadoCita.PENDIENTE;
+    @Column(nullable = false, length = 50)
+    private EstadoCita estado = EstadoCita.PENDIENTE_ASIGNACION;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "usuario_id", nullable = false)

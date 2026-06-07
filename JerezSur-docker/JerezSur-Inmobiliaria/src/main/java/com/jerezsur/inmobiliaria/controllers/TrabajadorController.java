@@ -31,16 +31,16 @@ public class TrabajadorController {
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
-    // --- LISTAR PLANTILLA COMPLETA ---
+    // --- LISTAR PLANTILLA COMPLETA (con búsqueda opcional por nombre) ---
     @GetMapping
     public ResponseEntity<Page<Trabajador>> listarTodos(
+            @RequestParam(required = false) String tit,
             @RequestParam(required = false, defaultValue = "0") @Min(0) int page,
             @RequestParam(required = false, defaultValue = "10") @Min(1) @Max(100) int size,
             @RequestParam(required = false, defaultValue = "id") String sortBy,
             @RequestParam(required = false, defaultValue = "asc") String sortDir) {
 
-        return ResponseEntity.ok(trabajadorService.listarTodos(page,
-                size, sortBy, sortDir));
+        return ResponseEntity.ok(trabajadorService.listarTodos(tit, page, size, sortBy, sortDir));
     }
 
     // --- OBTENER DETALLES DE UN TRABAJADOR ---

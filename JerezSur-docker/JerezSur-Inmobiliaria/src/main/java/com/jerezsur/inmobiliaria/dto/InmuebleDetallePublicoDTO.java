@@ -6,13 +6,20 @@ import java.util.Map;
 
 import lombok.*;
 
-// DTO de detalle público de un inmueble: excluye campos internos como notas privadas o costes del propietario.
+/**
+ * DTO con el detalle completo de un inmueble para la ficha pública de la web.
+ *
+ * A diferencia de InmuebleListadoDTO (que solo lleva lo justo para la tarjeta),
+ * este DTO incluye todos los campos que el visitante puede ver: descripción completa,
+ * características extra, imágenes, gastos de comunidad, etc.
+ *
+ * Lo que NO incluimos aquí es: notas privadas del agente, referencia catastral,
+ * datos de los propietarios y documentos internos (nota simple, plano...).
+ * Esos campos solo los ven los trabajadores desde el panel de administración.
+ */
 @Data
-// DTO de detalle público de un inmueble: excluye campos internos como notas privadas o costes del propietario.
 @Builder
-// DTO de detalle público de un inmueble: excluye campos internos como notas privadas o costes del propietario.
 @NoArgsConstructor
-// DTO de detalle público de un inmueble: excluye campos internos como notas privadas o costes del propietario.
 @AllArgsConstructor
 public class InmuebleDetallePublicoDTO {
 

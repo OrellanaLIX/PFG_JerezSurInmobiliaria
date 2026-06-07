@@ -48,7 +48,7 @@ public class CitaService {
                 .orElseThrow(() -> new RuntimeException("Cita no encontrada con ID: " + citaId));
 
         // Comprobamos que la cita sigue disponible para aceptar
-        if (cita.getEstado() != EstadoCita.PENDIENTE) {
+        if (cita.getEstado() != EstadoCita.PENDIENTE_ASIGNACION) {
             throw new RuntimeException(
                     "Esta cita ya fue aceptada por otro trabajador o está en un estado que no permite la aceptación"
             );
@@ -88,7 +88,15 @@ public class CitaService {
         Cita cita = citaRepository.findById(citaId)
                 .orElseThrow(() -> new RuntimeException("Cita no encontrada con ID: " + citaId));
 
-        cita.setEstado(EstadoCita.REALIZADA);
+        cita.setEstado(EstadoCita.COMPLETADA);
+        return mapearACitaResponse(citaRepository.save(cita));
+    }
+
+    public CitaResponseDTO noPresentadoCita(Long citaId) {
+        Cita cita = citaRepository.findById(citaId)
+                .orElseThrow(() -> new RuntimeException("Cita no encontrada con ID: " + citaId));
+
+        cita.setEstado(EstadoCita.NO_PRESENTADO);
         return mapearACitaResponse(citaRepository.save(cita));
     }
 
@@ -156,18 +164,45 @@ public class CitaService {
             inmueble = inmuebleRepository.findById(dto.getInmuebleId()).orElse(null);
         }
 
+        // El trabajador es opcional: puede asignarse ahora o después
+        Trabajador trabajador = null;
+        if (dto.getTrabajadorId() != null) {
+            trabajador = trabajadorRepository.findById(dto.getTrabajadorId()).orElse(null);
+        }
+
         Cita cita = Cita.builder()
                 .fechaHora(dto.getFechaHora())
                 .motivo(dto.getMotivo())
-                .estado(EstadoCita.PENDIENTE)
+                .estado(EstadoCita.PENDIENTE_ASIGNACION)
                 .usuario(usuario)
                 .inmueble(inmueble)
+                .trabajador(trabajador)
                 .build();
 
         Cita citaGuardada = citaRepository.save(cita);
 
         // Creamos la tarea DESPUÉS de guardar para tener el ID real de la cita
         crearTareaParaCita(citaGuardada, usuario, inmueble);
+
+        // Si hay trabajador pre-asignado, notificarle por email
+        if (trabajador != null && trabajador.getUsuario() != null) {
+            try {
+                String fechaFormateada = citaGuardada.getFechaHora()
+                        .format(DateTimeFormatter.ofPattern("dd/MM/yyyy 'a las' HH:mm"));
+                String lugar = inmueble != null
+                        ? inmueble.getDireccion() + ", " + inmueble.getCiudad()
+                        : "Oficina — Jerez de la Frontera";
+                String detalles = "Cliente: " + usuario.getNombre() + "\n"
+                        + "Fecha: " + fechaFormateada + "\n"
+                        + "Lugar: " + lugar
+                        + (citaGuardada.getMotivo() != null && !citaGuardada.getMotivo().isBlank()
+                        ? "\nMotivo: " + citaGuardada.getMotivo() : "");
+                notificacionService.notificarCitaAsignadaATrabajador(
+                        trabajador.getUsuario(), detalles, citaGuardada.getId());
+            } catch (Exception e) {
+                // No bloquear la creación si el email falla
+            }
+        }
 
         return mapearACitaResponse(citaGuardada);
     }
@@ -203,8 +238,8 @@ public class CitaService {
                 .descripcion(desc.toString())
                 .fecha(LocalDate.now().plusDays(1))
                 .prioridad("ALTA")
-                .enlace("/citas")
-                .etiquetaEnlace("Ver citas")
+                .enlace("/citas?citaId=" + cita.getId())
+                .etiquetaEnlace("Ver cita")
                 .fechaCreacion(LocalDate.now())
                 .build();
 
@@ -229,9 +264,13 @@ public class CitaService {
         }
 
         // El trabajador puede ser null si nadie ha aceptado la cita todavía
+        Long   trabajadorId     = null;
         String nombreTrabajador = null;
-        if (cita.getTrabajador() != null && cita.getTrabajador().getUsuario() != null) {
-            nombreTrabajador = cita.getTrabajador().getUsuario().getNombre();
+        if (cita.getTrabajador() != null) {
+            trabajadorId = cita.getTrabajador().getId();
+            if (cita.getTrabajador().getUsuario() != null) {
+                nombreTrabajador = cita.getTrabajador().getUsuario().getNombre();
+            }
         }
 
         // El inmueble puede ser null si es una cita genérica en oficina
@@ -250,7 +289,8 @@ public class CitaService {
                 .telefonoCliente(telefonoCliente)
                 .fechaHora(cita.getFechaHora())
                 .motivo(cita.getMotivo())
-                .estado(cita.getEstado() != null ? cita.getEstado().name() : "PENDIENTE")
+                .estado(cita.getEstado() != null ? cita.getEstado().name() : "PENDIENTE_ASIGNACION")
+                .trabajadorId(trabajadorId)
                 .nombreTrabajador(nombreTrabajador)
                 .direccionInmueble(direccionInmueble)
                 .inmuebleId(inmuebleId)

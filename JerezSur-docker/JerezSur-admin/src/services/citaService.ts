@@ -18,19 +18,17 @@ export const citaService = {
     return data;
   },
 
-  // Crea una nueva cita desde el panel admin (el trabajador la crea manualmente)
+  // Crea una nueva cita desde el panel admin usando el endpoint dedicado que no deduplica por teléfono
   crear: async (cita: NuevaCita): Promise<Cita> => {
-    const { data } = await api.post<Cita>('/citas/solicitar', {
-      ...cita,
-      aceptaPrivacidad: true,
-    });
+    const { data } = await api.post<Cita>('/citas/admin/crear', cita);
     return data;
   },
 
-  // Acepta una cita pendiente y la asigna al trabajador logueado
-  aceptar: async (citaId: number): Promise<Cita> => {
+  // Acepta una cita pendiente y la asigna al trabajador indicado (o al logueado si no se especifica)
+  aceptar: async (citaId: number, trabajadorId?: number | null): Promise<Cita> => {
+    const tid = trabajadorId ?? getTrabajadorId();
     const { data } = await api.patch<Cita>(
-      `/citas/${citaId}/aceptar?trabajadorId=${getTrabajadorId()}`
+      `/citas/${citaId}/aceptar?trabajadorId=${tid}`
     );
     return data;
   },

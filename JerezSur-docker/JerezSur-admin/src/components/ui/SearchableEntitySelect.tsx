@@ -53,33 +53,48 @@ const SearchableEntitySelect = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Busca opciones en el backend cuando el usuario escribe
+  // Refs para props inestables: evitan que search se recree en cada render del padre
+  const queryParamsRef = useRef(queryParams);
+  queryParamsRef.current = queryParams;
+  const mapOptionRef = useRef(mapOption);
+  mapOptionRef.current = mapOption;
+
+  // search solo depende de endpoint (string estable); queryParams y mapOption se leen via ref
   const search = useCallback(async (q: string) => {
     setLoading(true);
     try {
       const params = new URLSearchParams({
-        ...queryParams,
+        ...queryParamsRef.current,
         size: '10',
         page: '0',
         ...(q ? { tit: q } : {}),
       });
       const { data } = await api.get(`${endpoint}?${params}`);
       const items: any[] = data?.content ?? (Array.isArray(data) ? data : []);
-      setOptions(items.map(mapOption));
+      setOptions(items.map(mapOptionRef.current));
     } catch {
       setOptions([]);
     } finally {
       setLoading(false);
     }
-  }, [endpoint, queryParams, mapOption]);
+  }, [endpoint]);
 
-  // Debounce: espera 300ms después de que el usuario deja de escribir
+  // Carga inmediata al abrir el dropdown (sin debounce para no bloquear la apertura)
+  useEffect(() => {
+    if (!open) return;
+    search(query);
+    inputRef.current?.focus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  // Debounce solo al cambiar el texto de búsqueda (no al abrir)
   useEffect(() => {
     if (!open) return;
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => search(query), 300);
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
-  }, [query, open, search]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query]);
 
   // Cierra el dropdown si se hace clic fuera del componente
   useEffect(() => {
@@ -91,14 +106,6 @@ const SearchableEntitySelect = ({
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
-
-  // Cuando se abre el dropdown, carga las primeras opciones
-  useEffect(() => {
-    if (open) {
-      search(query);
-      inputRef.current?.focus();
-    }
-  }, [open]);
 
   const handleSelect = (opt: Option) => {
     setSelected(opt);
@@ -115,11 +122,11 @@ const SearchableEntitySelect = ({
 
   const badgeStyle = (color?: string): CSSProperties => {
     const map: Record<string, { bg: string; color: string }> = {
-      green:  { bg: 'rgba(46,155,77,0.12)',   color: '#1e7a3a' },
-      blue:   { bg: 'rgba(0,67,156,0.10)',     color: '#00439c' },
-      orange: { bg: 'rgba(230,167,0,0.12)',    color: '#b07f00' },
-      red:    { bg: 'rgba(217,83,79,0.12)',    color: '#a32522' },
-      gray:   { bg: 'rgba(107,114,128,0.10)',  color: '#6b7280' },
+      green: { bg: 'rgba(46,155,77,0.12)', color: '#1e7a3a' },
+      blue: { bg: 'rgba(0,67,156,0.10)', color: '#00439c' },
+      orange: { bg: 'rgba(230,167,0,0.12)', color: '#b07f00' },
+      red: { bg: 'rgba(217,83,79,0.12)', color: '#a32522' },
+      gray: { bg: 'rgba(107,114,128,0.10)', color: '#6b7280' },
     };
     const s = map[color || 'gray'] ?? map.gray;
     return { background: s.bg, color: s.color };
@@ -131,7 +138,7 @@ const SearchableEntitySelect = ({
         {label}{required && <span className="ses__required"> *</span>}
       </label>
 
-      {/* Registro seleccionado actualmente */}
+      {/* 1. Registro seleccionado actualmente */}
       {selected || value ? (
         <div className="ses__selected">
           {selected?.imageUrl && (
@@ -155,18 +162,20 @@ const SearchableEntitySelect = ({
           )}
         </div>
       ) : (
-        // Botón para abrir el dropdown de búsqueda
-        <button
-          type="button"
-          className="ses__trigger"
-          onClick={() => !disabled && setOpen(true)}
-          disabled={disabled}
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
-          <span>{placeholder}</span>
-        </button>
+        // MODIFICACIÓN AQUÍ: Solo mostramos el botón estático si el buscador NO está abierto
+        !open && (
+          <button
+            type="button"
+            className="ses__trigger"
+            onClick={() => !disabled && setOpen(true)}
+            disabled={disabled}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <span>{placeholder}</span>
+          </button>
+        )
       )}
 
       {/* Dropdown de búsqueda */}

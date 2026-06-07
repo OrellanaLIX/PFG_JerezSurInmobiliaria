@@ -47,7 +47,6 @@ export const useUsuarios = () => {
     await cargar();
   };
 
-  // 👇 1. ASEGÚRATE DE QUE ESTA FUNCIÓN ESTÁ AQUÍ DEFINIDA
   const actualizar = async (id: number, usuarioData: Partial<Usuario>) => {
     await usuarioService.actualizar(id, usuarioData);
     await cargar(); // Recarga la lista general tras el PUT
@@ -61,7 +60,6 @@ export const useUsuarios = () => {
     await cargar();
   };
 
-  // 👇 2. EL ERROR SE QUITARÁ AL AÑADIR "actualizar" AQUÍ ABAJO
   return {
     usuarios,
     usuarioSeleccionado,
@@ -72,7 +70,7 @@ export const useUsuarios = () => {
     cargarDetalle,
     limpiarSeleccionado,
     crear,
-    actualizar, // <--- Añade esto si faltaba
+    actualizar,
     eliminar,
   };
 };

@@ -1,6 +1,7 @@
 // Página de gestión de citas del panel de administración.
 // Permite ver las citas en vista calendario o en lista, y gestionarlas (aceptar, completar, cancelar).
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useCitas } from '../hooks/useCitas';
 import { useFeedback } from '../hooks/useFeedback';
 import { FeedbackBanner } from '../components/layout/FeedbackBanner';
@@ -28,6 +29,7 @@ const AdminCitas = () => {
   } = useCitas();
 
   const { feedback, showSuccess, showError, clearFeedback } = useFeedback();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const hoy = new Date();
   // Estado para el mes y año que muestra el calendario
@@ -41,6 +43,20 @@ const AdminCitas = () => {
   const [mostrarForm, setMostrarForm] = useState(false);
   // fechaInicialForm: cuando el trabajador pulsa un día del calendario, se pasa como fecha sugerida al formulario
   const [fechaInicialForm, setFechaInicialForm] = useState<Date | undefined>(undefined);
+
+  // Abre automáticamente la cita indicada por el param ?citaId=XX
+  useEffect(() => {
+    if (loading || citas.length === 0) return;
+    const paramId = searchParams.get('citaId');
+    if (!paramId) return;
+    const id = Number(paramId);
+    const cita = citas.find(c => c.id === id);
+    if (cita) {
+      setVista('lista');
+      setCitaSeleccionada(cita);
+      setSearchParams({}, { replace: true });
+    }
+  }, [loading, citas, searchParams]);
 
   // Navega al mes anterior o siguiente gestionando el cambio de año automáticamente
   const cambiarMes = useCallback((delta: number) => {
@@ -69,9 +85,9 @@ const AdminCitas = () => {
     }
   };
 
-  const handleAceptar = async (id: number) => {
+  const handleAceptar = async (id: number, trabajadorId?: number | null) => {
     try {
-      await aceptar(id);
+      await aceptar(id, trabajadorId);
       setCitaSeleccionada(null);
       showSuccess('Cita aceptada.');
     } catch { showError('Error al aceptar la cita.'); }

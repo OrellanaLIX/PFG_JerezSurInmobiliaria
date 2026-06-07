@@ -32,6 +32,7 @@ export const FormCitaModal = ({ fechaInicial, onCrear, onCancelar }: FormCitaMod
   const [hora, setHora]             = useState('10:00');
   const [motivo, setMotivo]         = useState('');
   const [inmuebleId, setInmuebleId] = useState<number | null>(null);
+  const [trabajadorId, setTrabajadorId] = useState<number | null>(null);
   const [enviando, setEnviando]     = useState(false);
   const [errorMsg, setErrorMsg]     = useState<string | null>(null);
 
@@ -54,6 +55,7 @@ export const FormCitaModal = ({ fechaInicial, onCrear, onCancelar }: FormCitaMod
         fechaHora:  `${fecha}T${hora}:00`,
         motivo:     motivo.trim() || undefined,
         inmuebleId: inmuebleId ?? undefined,
+        trabajadorId: trabajadorId ?? undefined,
       };
 
       await onCrear(nueva);
@@ -123,6 +125,22 @@ export const FormCitaModal = ({ fechaInicial, onCrear, onCancelar }: FormCitaMod
             onChange={id => setInmuebleId(id)}
             queryParams={{ estado: 'DISPONIBLE', size: '10' }}
             helpText="Deja vacío si la cita es en la oficina sin inmueble específico"
+          />
+
+          {/* ── TRABAJADOR RESPONSABLE ── */}
+          <p className="section-title" style={{ marginTop: '1rem' }}>Trabajador responsable</p>
+          <SearchableEntitySelect
+            label="Asignar a trabajador"
+            placeholder="Buscar trabajador por nombre..."
+            endpoint="/trabajadores"
+            mapOption={(item: any) => ({
+              id: item.id,
+              label: item.usuario ? `${item.usuario.nombre} ${item.usuario.apellidos || ''}` : `Trabajador #${item.id}`,
+              sublabel: item.usuario?.email || '',
+            })}
+            value={trabajadorId}
+            onChange={id => setTrabajadorId(id)}
+            helpText="Opcional - deja vacío si no necesitas asignar a un trabajador específico"
           />
 
           {/* ── FECHA Y HORA ── */}

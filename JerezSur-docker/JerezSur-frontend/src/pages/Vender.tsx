@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import '../styles/Vender.scss';
+import { useSEO } from '../hooks/useSEO';
 
 interface FormData {
   nombre: string;
@@ -13,6 +14,12 @@ interface FormData {
 }
 
 const Vender = () => {
+  useSEO({
+    title: 'Vende tu vivienda',
+    description: 'Vende tu vivienda en Jerez de la Frontera con JerezSur Inmobiliaria. Tasación gratuita sin compromiso. Te acompañamos en todo el proceso de venta.',
+    canonical: window.location.origin + '/propietarios',
+  });
+
   const [formData, setFormData] = useState<FormData>({
     nombre: '',
     apellidos: '',
@@ -61,7 +68,7 @@ const Vender = () => {
     <main className="propietarios">
 
       {/* HERO */}
-      <section className="hero propietarios-hero">
+      <section className="propietarios-hero">
         <div className="hero__content">
           <h1>Gestiona tus inmuebles con nosotros</h1>
           <p>Accede a tu área privada para gestionar tus propiedades, consultar estadísticas y estar al día de todo el proceso de venta.</p>

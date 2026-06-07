@@ -1,5 +1,6 @@
 package com.jerezsur.inmobiliaria.services;
 
+import com.jerezsur.inmobiliaria.dto.VendedorListadoDTO;
 import com.jerezsur.inmobiliaria.exceptions.ResourceNotFoundException;
 import com.jerezsur.inmobiliaria.models.Vendedor;
 import com.jerezsur.inmobiliaria.repositories.VendedorRepository;
@@ -22,29 +23,41 @@ public class VendedorService {
     // CRUD BÁSICO
     // ------------------------------------------------------------------
 
-    // LISTAR TODOS CORREGIDO
+    // LISTAR TODOS (con filtro opcional de nombre)
     @Transactional(readOnly = true)
-    public Page<Vendedor> listarTodos(int page, int size, String sortBy, String sortDir) {
+    public Page<VendedorListadoDTO> listarTodos(String tit, int page, int size, String sortBy, String sortDir) {
 
-        // Creamos la dirección del ordenamiento
         Sort.Direction direction = Sort.Direction.fromString(sortDir);
-        Sort sort;
-
-        // Si el frontend pide "usuario.nombre", Spring Data JPA requiere que se
-        // mapee reconociendo la propiedad anidada.
-        if ("usuario.nombre".equals(sortBy)) {
-            // Esto le dice a Hibernate: ordena por la propiedad 'nombre' dentro del objeto
-            // 'usuario'
-            sort = Sort.by(direction, "usuario.nombre");
-        } else if ("id".equals(sortBy)) {
-            sort = Sort.by(direction, "id");
-        } else {
-            // Por si acaso mandan cualquier otra propiedad que pueda romper el backend
-            sort = Sort.by(direction, "id");
-        }
+        Sort sort = "usuario.nombre".equals(sortBy)
+                ? Sort.by(direction, "usuario.nombre")
+                : Sort.by(direction, "id");
 
         PageRequest pageable = PageRequest.of(page, size, sort);
-        return vendedorRepository.findAll(pageable);
+
+        if (tit != null && !tit.isBlank()) {
+            return vendedorRepository.buscarPorNombre(tit, pageable).map(this::mapearDTO);
+        }
+        return vendedorRepository.findAll(pageable).map(this::mapearDTO);
+    }
+
+    private VendedorListadoDTO mapearDTO(Vendedor v) {
+        VendedorListadoDTO.UsuarioBasicoDTO usuarioDTO = null;
+        if (v.getUsuario() != null) {
+            usuarioDTO = VendedorListadoDTO.UsuarioBasicoDTO.builder()
+                    .id(v.getUsuario().getId())
+                    .nombre(v.getUsuario().getNombre())
+                    .apellidos(v.getUsuario().getApellidos())
+                    .email(v.getUsuario().getEmail())
+                    .telefono(v.getUsuario().getTelefono())
+                    .activo(v.getUsuario().getCuentaActivada())
+                    .build();
+        }
+        return VendedorListadoDTO.builder()
+                .id(v.getId())
+                .observaciones(v.getObservaciones())
+                .fechaRegistro(v.getFechaRegistro())
+                .usuario(usuarioDTO)
+                .build();
     }
 
     @Transactional(readOnly = true)

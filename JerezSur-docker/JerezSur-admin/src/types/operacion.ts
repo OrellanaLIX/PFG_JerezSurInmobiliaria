@@ -79,6 +79,7 @@ export interface NuevaOperacion {
   categoria_operacion: CategoriaOperacion;
   precioAcordado: number;
   inmuebleId: number;
+  trabajadorId?: number;
   // Mapa de interesados con sus roles: { "1": "TITULAR", "3": "AVALISTA" }
   interesadosRol: Record<string, RolParticipante>;
   // VENTA

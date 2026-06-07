@@ -1,5 +1,6 @@
 package com.jerezsur.inmobiliaria.controllers;
 
+import com.jerezsur.inmobiliaria.dto.CitaAdminDTO;
 import com.jerezsur.inmobiliaria.dto.CitaResponseDTO;
 import com.jerezsur.inmobiliaria.dto.SolicitudCitaPublicaDTO;
 import com.jerezsur.inmobiliaria.dto.SolicitudCitaUsuarioDTO;
@@ -82,5 +83,20 @@ public class CitaController {
     public ResponseEntity<CitaResponseDTO> solicitarCitaUsuario(
             @Valid @RequestBody SolicitudCitaUsuarioDTO dto) {
         return new ResponseEntity<>(citaService.crearCitaDeUsuario(dto), HttpStatus.CREATED);
+    }
+
+    // Crea una cita desde el panel de administración: siempre usa el nombre del formulario
+    // (no reutiliza el nombre de un usuario existente por teléfono) y permite asignar
+    // un trabajador directamente, pasando la cita a CONFIRMADA al instante.
+    @PostMapping("/admin/crear")
+    public ResponseEntity<CitaResponseDTO> crearCitaAdmin(
+            @Valid @RequestBody CitaAdminDTO dto) {
+        return new ResponseEntity<>(citaPublicaService.solicitarCitaAdmin(dto), HttpStatus.CREATED);
+    }
+
+    // Marca la cita como NO_PRESENTADO cuando el cliente no acudió a la visita
+    @PatchMapping("/{citaId}/no-presentado")
+    public ResponseEntity<CitaResponseDTO> noPresentado(@PathVariable Long citaId) {
+        return ResponseEntity.ok(citaService.noPresentadoCita(citaId));
     }
 }

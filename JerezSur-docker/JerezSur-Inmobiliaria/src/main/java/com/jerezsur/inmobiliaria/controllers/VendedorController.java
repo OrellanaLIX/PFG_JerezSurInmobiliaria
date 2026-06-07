@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.jerezsur.inmobiliaria.dto.VendedorListadoDTO;
 import com.jerezsur.inmobiliaria.models.Vendedor;
 import com.jerezsur.inmobiliaria.services.VendedorService;
 
@@ -31,15 +32,16 @@ public class VendedorController {
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
-    // --- LISTAR TODOS LOS VENDEDORES ---
+    // --- LISTAR TODOS LOS VENDEDORES (con búsqueda opcional por nombre) ---
     @GetMapping
-    public ResponseEntity<Page<Vendedor>> listarTodos(
+    public ResponseEntity<Page<VendedorListadoDTO>> listarTodos(
+            @RequestParam(required = false) String tit,
             @RequestParam(required = false, defaultValue = "0") @Min(0) int page,
             @RequestParam(required = false, defaultValue = "10") @Min(1) @Max(100) int size,
             @RequestParam(required = false, defaultValue = "id") String sortBy,
             @RequestParam(required = false, defaultValue = "asc") String sortDir) {
 
-        return ResponseEntity.ok(vendedorService.listarTodos(page, size, sortBy, sortDir));
+        return ResponseEntity.ok(vendedorService.listarTodos(tit, page, size, sortBy, sortDir));
     }
 
     // --- OBTENER DETALLES DE UN VENDEDOR ---

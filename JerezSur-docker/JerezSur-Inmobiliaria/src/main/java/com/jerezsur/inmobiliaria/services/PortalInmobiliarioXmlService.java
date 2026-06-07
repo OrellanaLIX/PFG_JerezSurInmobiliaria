@@ -34,7 +34,7 @@ public class PortalInmobiliarioXmlService {
     @Value("${app.agencia.email:info@jerezsur.com}")
     private String agenciaEmail;
 
-    @Value("${app.agencia.telefono:956000000}")
+    @Value("${app.agencia.telefono:615061840}")
     private String agenciaTelefono;
 
     @Value("${app.agencia.web:https://jerezsur.com}")

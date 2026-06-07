@@ -20,12 +20,14 @@ import com.jerezsur.inmobiliaria.models.Interesado;
 import com.jerezsur.inmobiliaria.models.Operacion;
 import com.jerezsur.inmobiliaria.models.OperacionAlquiler;
 import com.jerezsur.inmobiliaria.models.OperacionVenta;
+import com.jerezsur.inmobiliaria.models.Trabajador;
 import com.jerezsur.inmobiliaria.models.enums.EstadoOperacion;
 import com.jerezsur.inmobiliaria.models.enums.RolParticipante;
 import com.jerezsur.inmobiliaria.models.enums.TipoOperacion;
 import com.jerezsur.inmobiliaria.repositories.InmuebleRepository;
 import com.jerezsur.inmobiliaria.repositories.InteresadoRepository;
 import com.jerezsur.inmobiliaria.repositories.OperacionRepository;
+import com.jerezsur.inmobiliaria.repositories.TrabajadorRepository;
 
 // Servicio de operaciones inmobiliarias: gestiona el ciclo de vida de cada venta o alquiler.
 // Una operación vincula un inmueble con un interesado y pasa por varios estados hasta su cierre.
@@ -40,6 +42,12 @@ public class OperacionService {
 
     @Autowired
     private InteresadoRepository interesadoRepository;
+
+    @Autowired
+    private TrabajadorRepository trabajadorRepository;
+
+    @Autowired
+    private NotificacionService notificacionService;
 
     // ------------------------------------------------------------------
     // CREACIÓN DESDE DTO
@@ -72,6 +80,13 @@ public class OperacionService {
         operacion.setInmueble(inmueble);
         operacion.setPrecioAcordado(dto.getPrecioAcordado());
 
+        // Asignar trabajador si viene en el DTO
+        if (dto.getTrabajadorId() != null) {
+            Trabajador trabajador = trabajadorRepository.findById(dto.getTrabajadorId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Trabajador no encontrado con ID: " + dto.getTrabajadorId()));
+            operacion.setTrabajador(trabajador);
+        }
+
         if (dto.getInteresadosRol() == null || dto.getInteresadosRol().isEmpty()) {
             throw new BusinessValidationException("Debe asignar al menos un interesado a la operación.");
         }
@@ -86,6 +101,22 @@ public class OperacionService {
 
         validarDatosOperacion(operacion);
         Operacion saved = operacionRepository.save(operacion);
+
+        // Notificar a los propietarios del inmueble sobre la nueva operación
+        if (inmueble.getPropietariosPorcentaje() != null) {
+            inmueble.getPropietariosPorcentaje().keySet().forEach(vendedor -> {
+                try {
+                    if (vendedor.getUsuario() != null) {
+                        notificacionService.notificarNuevaOperacion(
+                                vendedor.getUsuario(),
+                                inmueble.getTitulo(),
+                                dto.getCategoria_operacion(),
+                                dto.getPrecioAcordado());
+                    }
+                } catch (Exception ignored) {}
+            });
+        }
+
         return toDTO(saved);
     }
 

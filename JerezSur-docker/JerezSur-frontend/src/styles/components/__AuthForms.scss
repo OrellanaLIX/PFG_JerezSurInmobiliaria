@@ -260,8 +260,10 @@ body.auth-page {
     display: flex;
     align-items: center;
 
+    // !important necesario: el selector global input:not([type=...]) tiene mayor especificidad
+    // por sus múltiples pseudoclases :not() y sobreescribiría este padding sin él
     input {
-      padding-left: 3.25rem;
+      padding-left: 3.25rem !important;
       width: 100%;
     }
   }

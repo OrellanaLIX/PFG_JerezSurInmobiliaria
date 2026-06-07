@@ -2,7 +2,7 @@
 // Muestra el hero con buscador, inmuebles destacados y secciones informativas.
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import logo from '../assets/imgs/LogoAncho.png';
+import logo from '../assets/imgs/LogoAncho.webp';
 import '../styles/Home.scss';
 import { useSEO } from '../hooks/useSEO';
 
@@ -69,6 +69,7 @@ const Home = () => {
   });
 
   const [activeTestimonial, setActiveTestimonial] = useState(0);
+  const [paused, setPaused] = useState(false);
   const [destacados, setDestacados] = useState<FeaturedProperty[]>([]);
 
   useEffect(() => {
@@ -79,11 +80,15 @@ const Home = () => {
   }, []);
 
   useEffect(() => {
+    if (paused) return;
     const interval = window.setInterval(() => {
       setActiveTestimonial((prev) => (prev + 1) % testimonials.length);
     }, 5000);
     return () => window.clearInterval(interval);
-  }, []);
+  }, [paused]);
+
+  const prevTestimonial = () => setActiveTestimonial((prev) => (prev - 1 + testimonials.length) % testimonials.length);
+  const nextTestimonial = () => setActiveTestimonial((prev) => (prev + 1) % testimonials.length);
 
   return (
     <main className="home">
@@ -138,7 +143,7 @@ const Home = () => {
           </div>
 
           <div className="main-actions">
-            <Link to="/Contacto" className="btn btn--ghost">¿Prefieres hablar con personas?</Link>
+            <Link to="/contacto" className="btn btn--ghost">¿Prefieres hablar con personas?</Link>
           </div>
         </div>
       </section>
@@ -262,7 +267,8 @@ const Home = () => {
               <p className='white'>Trabajamos cada operación con cercanía, claridad y profesionalidad para que cada cliente se sienta acompañado de principio a fin.</p>
             </div>
             {/* aria-live="polite" anuncia el cambio de testimonio a lectores de pantalla
-                sin interrumpir lo que estén leyendo */}
+                sin interrumpir lo que estén leyendo.
+                WCAG 2.2.2: controles de pausa y navegación para contenido auto-avanzado. */}
             <div className="home-testimonials__carousel" role="region"
                  aria-label="Testimonios de clientes" aria-live="polite">
               <div className="home-testimonials__slider">
@@ -281,6 +287,32 @@ const Home = () => {
                     </article>
                   ))}
                 </div>
+              </div>
+              {/* Controles de navegación: cumplen WCAG 2.1.1 (teclado) y 2.2.2 (pausa) */}
+              <div className="home-testimonials__controls" role="group" aria-label="Controles de testimonios">
+                <button type="button" onClick={prevTestimonial}
+                        aria-label="Testimonio anterior"
+                        className="home-testimonials__ctrl">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
+                    <polyline points="15 18 9 12 15 6" />
+                  </svg>
+                </button>
+                <button type="button" onClick={() => setPaused(p => !p)}
+                        aria-label={paused ? 'Reanudar rotación automática' : 'Pausar rotación automática'}
+                        aria-pressed={paused}
+                        className="home-testimonials__ctrl">
+                  {paused
+                    ? <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3" /></svg>
+                    : <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true"><rect x="6" y="4" width="4" height="16" /><rect x="14" y="4" width="4" height="16" /></svg>
+                  }
+                </button>
+                <button type="button" onClick={nextTestimonial}
+                        aria-label="Siguiente testimonio"
+                        className="home-testimonials__ctrl">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
+                    <polyline points="9 18 15 12 9 6" />
+                  </svg>
+                </button>
               </div>
             </div>
           </div>

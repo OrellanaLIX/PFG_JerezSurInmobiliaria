@@ -160,15 +160,17 @@
   }
 
   &__badge {
-    display: inline-block;
-    padding: 0.2rem 0.7rem;
+    display: inline-flex;
+    align-items: center;
+    padding: 0.3rem 0.9rem;
     border-radius: $radius-pill;
-    font-size: 0.78rem;
+    font-size: 0.75rem;
     font-weight: 700;
     background-color: $color-primary;
     color: $color-white;
     text-transform: uppercase;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.06em;
+    line-height: 1;
 
     &--estado {
       background-color: $color-secondary;
@@ -182,10 +184,12 @@
   }
 
   &__precio {
-    font-size: clamp(1.6rem, 3vw, 2.1rem);
-    font-weight: 700;
-    color: $color-primary;
+    font-size: clamp(1.9rem, 3.5vw, 2.5rem);
+    font-weight: 800;
+    color: $color-primary-dark;
     margin: 0;
+    letter-spacing: -0.025em;
+    line-height: 1.1;
   }
 
   // --- CARACTERÍSTICAS ---
@@ -291,9 +295,9 @@
   &__cita {
     background-color: $color-surface;
     border-radius: $radius-lg;
-    padding: 2rem;
-    box-shadow: $shadow-sm;
-    border: 1px solid $color-border;
+    padding: 2.25rem;
+    box-shadow: 0 8px 32px rgba(0, 67, 156, 0.10), 0 2px 8px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba($color-primary, 0.1);
     border-top: 4px solid $color-primary;
     position: sticky;
     top: 6rem;

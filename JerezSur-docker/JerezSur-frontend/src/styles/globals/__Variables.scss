@@ -8,9 +8,10 @@ $color-primary: #00439c;          // Azul principal del logo
 $color-primary-dark: #003380;     // Azul más profundo
 $color-primary-light: #dce8f8;    // Azul suave para fondos
 
-$color-secondary: #67b437;        // Verde principal del logo
-$color-secondary-dark: #4e9226;   // Verde hover / contraste
-$color-secondary-light: #e8f4df;  // Verde suave para fondos
+$color-secondary: #67b437;             // Verde principal del logo (decorativo)
+$color-secondary-dark: #4e9226;        // Verde hover / contraste
+$color-secondary-light: #e8f4df;       // Verde suave para fondos
+$color-secondary-accessible: #3d7a12;  // Verde oscurecido para textos/botones — WCAG AA (5.4:1 sobre blanco)
 
 $color-white: #ffffff;
 $color-black: #000000;

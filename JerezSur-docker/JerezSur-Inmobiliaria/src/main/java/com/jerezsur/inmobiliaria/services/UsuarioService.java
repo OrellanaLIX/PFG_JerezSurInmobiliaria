@@ -215,6 +215,40 @@ public class UsuarioService {
     }
 
     /**
+     * Crea un usuario desde el panel de administración sin contraseña.
+     * Genera un OTP de 6 dígitos, lo establece como contraseña temporal,
+     * marca cambiarPasswd=true y envía el OTP al email del nuevo usuario.
+     */
+    @Transactional
+    public Usuario crearPorAdmin(RegistroRequest request) {
+        Usuario usuario = new Usuario();
+        usuario.setEmail(nullIfEmpty(request.getEmail()));
+        usuario.setTelefono(nullIfEmpty(request.getTelefono()));
+        usuario.setNombre(request.getNombre());
+        usuario.setApellidos(request.getApellidos());
+        usuario.setDni(nullIfEmpty(request.getDni()));
+
+        validarDatos(usuario);
+
+        // Generar OTP de 6 dígitos
+        String otp = String.format("%06d", (int)(Math.random() * 1_000_000));
+        usuario.setPassword(passwordEncoder.encode(otp));
+        usuario.setCambiarPasswd(true);
+        usuario.setProvider(AuthProvider.LOCAL);
+        usuario.setCuentaActivada(true); // El admin ya los valida manualmente
+        usuario.setRole(Role.ROLE_NOROL);
+
+        Usuario guardado = usuarioRepository.save(usuario);
+
+        // Enviar OTP por email
+        try {
+            notificacionService.notificarCuentaCreadaConOtp(guardado, otp);
+        } catch (Exception ignored) {}
+
+        return guardado;
+    }
+
+    /**
      * MÉTODO PARA ACTUALIZACIONES O CAMBIOS DE CONTRASEÑA MANUALES
      */
     @Transactional
@@ -247,6 +281,11 @@ public class UsuarioService {
 
         // 4. Guardamos los cambios (Hará un UPDATE automático en la base de datos)
         usuarioRepository.save(usuario);
+
+        // 5. Notificar al usuario de que su cuenta ha sido eliminada
+        try {
+            notificacionService.notificarCuentaEliminada(usuario);
+        } catch (Exception ignored) {}
     }
 
     // ------------------------------------------------------------------

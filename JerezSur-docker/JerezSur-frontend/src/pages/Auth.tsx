@@ -114,10 +114,6 @@ const Auth: React.FC = () => {
 
   return (
     <main className="auth" data-header-transparent data-footer-hidden>
-      <Link to="/" className='btn btn--ghost' >
-        <i className="fas fa-arrow-left"></i> Volver
-      </Link>
-
       <div className="auth__container">
 
         {verificado === 'ok' && (
@@ -138,6 +134,21 @@ const Auth: React.FC = () => {
             ❌ El enlace de verificación no es válido o ya fue usado.
           </div>
         )}
+
+        {/* Enlace discreto de vuelta al inicio — encima del logo, bien integrado */}
+        <Link
+          to="/"
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+            color: 'rgba(255,255,255,0.75)', fontSize: '0.82rem', fontWeight: 500,
+            textDecoration: 'none', alignSelf: 'flex-start',
+            transition: 'color 0.2s',
+          }}
+          onMouseEnter={e => (e.currentTarget.style.color = 'white')}
+          onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.75)')}
+        >
+          ← Inicio
+        </Link>
 
         <div className="auth__logo" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
           <img src={logo} alt="JerezSur Inmobiliaria" />

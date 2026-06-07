@@ -31,6 +31,7 @@ export const FormOperacionModal = ({ onCrear, onCancelar }: Props) => {
     categoria_operacion: 'VENTA',
     precioAcordado: 0,
     inmuebleId: 0,
+    trabajadorId: undefined,
     interesadosRol: {},
     depositoArras: 0,
     fechaLimiteEscritura: '',
@@ -178,6 +179,21 @@ export const FormOperacionModal = ({ onCrear, onCancelar }: Props) => {
                   />
                 </Field>
               </div>
+
+              <p className="section-title">Trabajador responsable</p>
+              <SearchableEntitySelect
+                label="Asignar a trabajador"
+                placeholder="Buscar trabajador por nombre..."
+                endpoint="/trabajadores"
+                mapOption={(item: any) => ({
+                  id: item.id,
+                  label: item.usuario ? `${item.usuario.nombre} ${item.usuario.apellidos || ''}` : `Trabajador #${item.id}`,
+                  sublabel: item.usuario?.email || '',
+                })}
+                value={form.trabajadorId ?? null}
+                onChange={id => setForm({ ...form, trabajadorId: id || undefined })}
+                helpText="Opcional - trabajador responsable del expediente"
+              />
 
               <p className="section-title">
                 Condiciones de {form.categoria_operacion === 'VENTA' ? 'compraventa' : 'arrendamiento'}

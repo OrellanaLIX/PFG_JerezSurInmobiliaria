@@ -5,13 +5,17 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
-// DTO de respuesta para las citas: contiene los datos que el frontend necesita para mostrar una cita.
+/**
+ * DTO de respuesta para las citas. Agrupa los datos necesarios para que el frontend
+ * pueda mostrar una cita sin necesidad de hacer llamadas adicionales al backend:
+ * incluye el nombre del cliente, del trabajador asignado y el título del inmueble
+ * para que tanto el calendario como la lista de citas del admin sean autocontenidos.
+ *
+ * La fecha se serializa en formato ISO 8601 para que JavaScript la parsee sin ambigüedades.
+ */
 @Data
-// DTO de respuesta para las citas: contiene los datos que el frontend necesita para mostrar una cita.
 @Builder
-// DTO de respuesta para las citas: contiene los datos que el frontend necesita para mostrar una cita.
 @NoArgsConstructor
-// DTO de respuesta para las citas: contiene los datos que el frontend necesita para mostrar una cita.
 @AllArgsConstructor
 public class CitaResponseDTO {
 
@@ -24,6 +28,7 @@ public class CitaResponseDTO {
 
     private String motivo;
     private String estado;
+    private Long trabajadorId;
     private String nombreTrabajador;
     private String direccionInmueble;
     private Long inmuebleId;

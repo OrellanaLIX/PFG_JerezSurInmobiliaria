@@ -1,17 +1,44 @@
 // src/styles/Propietarios.scss
 @use '../globals/_Variables' as *;
 
-/* Hero de propietarios — foto de casa moderna con llave/contrato */
+/* Hero de propietarios — compact (no hereda .hero) */
 .propietarios-hero {
+  min-height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 3rem 1rem;
+  color: white;
   background:
     linear-gradient(
       165deg,
-      rgba(0, 20, 55, 0.80) 0%,
-      rgba(0, 50, 110, 0.45) 55%,
-      rgba(0, 20, 55, 0.75) 100%
+      rgba(0, 20, 55, 0.88) 0%,
+      rgba(0, 50, 110, 0.62) 55%,
+      rgba(0, 20, 55, 0.84) 100%
     ),
     url('https://images.unsplash.com/photo-1582407947304-fd86f028f716?auto=format&fit=crop&w=1920&q=80')
     center center / cover no-repeat;
+
+  .hero__content {
+    width: min(720px, 100%);
+
+    h1 {
+      color: white;
+      font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+      font-weight: 800;
+      margin-bottom: 0.75rem;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+
+    p {
+      font-size: clamp(0.95rem, 1.5vw, 1.1rem);
+      color: rgba(255,255,255,0.88);
+      margin: 0 auto;
+      max-width: 560px;
+      line-height: 1.6;
+    }
+  }
 }
 
 /* =========================

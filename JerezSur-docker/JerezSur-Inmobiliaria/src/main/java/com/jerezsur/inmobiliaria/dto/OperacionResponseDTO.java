@@ -13,15 +13,21 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
-// DTO de respuesta para las operaciones: incluye datos del inmueble, interesado y el estado de la operación.
+/**
+ * DTO de respuesta para una operación inmobiliaria (compraventa o alquiler).
+ *
+ * Agrupa en un solo objeto todo lo que el panel admin necesita para mostrar
+ * el expediente: datos del inmueble, compradores con su rol, documentos asociados
+ * y los campos específicos de venta o alquiler según el tipo.
+ *
+ * Usamos clases internas estáticas (InmuebleBasico, ContratoBasico) para evitar
+ * devolver entidades completas con datos innecesarios o referencias circulares
+ * que causarían un bucle infinito al serializar con Jackson.
+ */
 @Getter
-// DTO de respuesta para las operaciones: incluye datos del inmueble, interesado y el estado de la operación.
 @Setter
-// DTO de respuesta para las operaciones: incluye datos del inmueble, interesado y el estado de la operación.
 @NoArgsConstructor
-// DTO de respuesta para las operaciones: incluye datos del inmueble, interesado y el estado de la operación.
 @AllArgsConstructor
-// DTO de respuesta para las operaciones: incluye datos del inmueble, interesado y el estado de la operación.
 @Builder
 public class OperacionResponseDTO {
 

@@ -9,6 +9,8 @@ import com.jerezsur.inmobiliaria.exceptions.BusinessValidationException;
 import com.jerezsur.inmobiliaria.exceptions.ResourceNotFoundException;
 import com.jerezsur.inmobiliaria.models.Imagen;
 import com.jerezsur.inmobiliaria.models.Inmueble;
+import com.jerezsur.inmobiliaria.models.InmueblePropietario;
+import com.jerezsur.inmobiliaria.models.InmueblePropietarioId;
 import com.jerezsur.inmobiliaria.models.Vendedor;
 import com.jerezsur.inmobiliaria.models.enums.EstadoInmueble;
 import com.jerezsur.inmobiliaria.models.enums.TipoInmueble;
@@ -27,7 +29,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 // Servicio principal de inmuebles: contiene toda la lógica de negocio relacionada
@@ -40,6 +41,9 @@ public class InmuebleService {
 
     @Autowired
     private VendedorRepository vendedorRepository;
+
+    @Autowired
+    private NotificacionService notificacionService;
 
     // Versión legada de búsqueda — delega en busquedaFiltrada pasando null en los filtros nuevos
     @Transactional(readOnly = true)
@@ -295,8 +299,19 @@ public class InmuebleService {
 
     @Transactional
     public void eliminar(Long id) {
-        if (!inmuebleRepository.existsById(id)) {
-            throw new ResourceNotFoundException("No se puede eliminar: El inmueble con ID " + id + " no existe.");
+        Inmueble inmueble = inmuebleRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "No se puede eliminar: El inmueble con ID " + id + " no existe."));
+        String titulo = inmueble.getTitulo();
+        // Notificar a los propietarios antes de eliminar
+        if (inmueble.getPropietariosPorcentaje() != null) {
+            inmueble.getPropietariosPorcentaje().keySet().forEach(vendedor -> {
+                try {
+                    if (vendedor.getUsuario() != null) {
+                        notificacionService.notificarInmuebleEliminado(vendedor.getUsuario(), titulo);
+                    }
+                } catch (Exception ignored) {}
+            });
         }
         inmuebleRepository.deleteById(id);
     }
@@ -393,15 +408,23 @@ public class InmuebleService {
         if (dto.getUrlPlanoInmueble() != null) inmueble.setUrlPlanoInmueble(dto.getUrlPlanoInmueble());
         if (dto.getNotasPrivadas() != null) inmueble.setNotasPrivadas(dto.getNotasPrivadas());
 
+        // Características adicionales
+        if (dto.getCaracteristicasExtra() != null) {
+            inmueble.setCaracteristicasExtra(dto.getCaracteristicasExtra());
+        }
+
         // 2. PROCESAMOS EL MAPA DE PROPIETARIOS
-        // Como 'inmueble' ya no se reasigna abajo, Java lo considerará "effectively
-        // final" y compilará sin errores
         dto.getPropietariosPorcentaje().forEach((vendedorId, porcentaje) -> {
             Vendedor vendedor = vendedorRepository.findById(vendedorId)
                     .orElseThrow(
                             () -> new ResourceNotFoundException("El vendedor con ID " + vendedorId + " no existe."));
 
-            inmueble.getPropietariosPorcentaje().put(vendedor, porcentaje);
+            InmueblePropietario ip = new InmueblePropietario();
+            ip.setId(new InmueblePropietarioId(null, vendedorId));
+            ip.setInmueble(inmueble);
+            ip.setVendedor(vendedor);
+            ip.setPorcentaje(porcentaje);
+            inmueble.getPropietarios().add(ip);
         });
 
         // Executamos tus validaciones de negocio (comprobar el 100%, precios, etc.)
@@ -476,13 +499,23 @@ public class InmuebleService {
         if (dto.getUrlPlanoInmueble() != null) inmueble.setUrlPlanoInmueble(dto.getUrlPlanoInmueble());
         if (dto.getNotasPrivadas() != null) inmueble.setNotasPrivadas(dto.getNotasPrivadas());
 
+        // Características adicionales
+        if (dto.getCaracteristicasExtra() != null) {
+            inmueble.setCaracteristicasExtra(dto.getCaracteristicasExtra());
+        }
+
         // 3. Actualizar propietarios si están presentes
         if (dto.getPropietariosPorcentaje() != null && !dto.getPropietariosPorcentaje().isEmpty()) {
-            inmueble.getPropietariosPorcentaje().clear();
+            inmueble.getPropietarios().clear();
             dto.getPropietariosPorcentaje().forEach((vendedorId, porcentaje) -> {
                 Vendedor vendedor = vendedorRepository.findById(vendedorId)
                         .orElseThrow(() -> new ResourceNotFoundException("El vendedor con ID " + vendedorId + " no existe."));
-                inmueble.getPropietariosPorcentaje().put(vendedor, porcentaje);
+                InmueblePropietario ip = new InmueblePropietario();
+                ip.setId(new InmueblePropietarioId(inmueble.getId(), vendedorId));
+                ip.setInmueble(inmueble);
+                ip.setVendedor(vendedor);
+                ip.setPorcentaje(porcentaje);
+                inmueble.getPropietarios().add(ip);
             });
         }
 

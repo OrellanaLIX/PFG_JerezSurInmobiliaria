@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 // ── Helper: descarga un PDF cifrado a través del backend ─────────────
 export const descargarPdfCifrado = async (cloudinaryUrl: string, nombre = 'documento.pdf') => {
   const token = localStorage.getItem('accessToken') || '';
@@ -15,7 +17,6 @@ export const descargarPdfCifrado = async (cloudinaryUrl: string, nombre = 'docum
   const blob = await res.blob();
   const blobUrl = URL.createObjectURL(blob);
 
-  // Abre el PDF en nueva pestaña como inline viewer
   const a = document.createElement('a');
   a.href = blobUrl;
   a.target = '_blank';
@@ -24,11 +25,10 @@ export const descargarPdfCifrado = async (cloudinaryUrl: string, nombre = 'docum
   a.click();
   document.body.removeChild(a);
 
-  // Limpia el blob URL después de 60s
   setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
 };
 
-// ── Componente fila de archivo ────────────────────────────────────────
+// ── Componente fila de archivo (en modal de edición) ─────────────────
 interface ArchivoFilaProps {
   label: string;
   urlActual?: string | null;
@@ -37,7 +37,6 @@ interface ArchivoFilaProps {
   editMode: boolean;
   accept: string;
   onChange: (f: File | null) => void;
-  /** true si el archivo es un PDF cifrado (usa el endpoint de descarga) */
   esPdf?: boolean;
 }
 
@@ -45,8 +44,8 @@ export const ArchivoFila = ({
   label, urlActual, archivoNuevo, inputRef,
   editMode, accept, onChange, esPdf = false,
 }: ArchivoFilaProps) => {
-  const [descargando, setDescargando] = React.useState(false);
-  const [errorDescarga, setErrorDescarga] = React.useState('');
+  const [descargando, setDescargando] = useState(false);
+  const [errorDescarga, setErrorDescarga] = useState('');
 
   const handleVerPdf = async () => {
     if (!urlActual) return;
@@ -77,10 +76,7 @@ export const ArchivoFila = ({
                 type="button"
                 onClick={handleVerPdf}
                 disabled={descargando}
-                style={{
-                  background: 'none', border: 'none', cursor: 'pointer',
-                  color: '#0d6efd', fontSize: '0.9rem', padding: 0, textDecoration: 'underline',
-                }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#0d6efd', fontSize: '0.9rem', padding: 0, textDecoration: 'underline' }}
               >
                 {descargando ? '⏳ Abriendo…' : '🔒 Ver PDF cifrado'}
               </button>
@@ -95,27 +91,17 @@ export const ArchivoFila = ({
 
           {editMode && (
             <>
-              <button
-                type="button"
-                className="btn btn-sm btn-outline"
-                onClick={() => inputRef.current?.click()}
-              >
+              <button type="button" className="btn btn-sm btn-outline" onClick={() => inputRef.current?.click()}>
                 {urlActual || archivoNuevo ? '🔄 Reemplazar' : '⬆️ Subir'}
               </button>
               {archivoNuevo && (
                 <button type="button" className="btn btn-sm btn-ghost" onClick={() => onChange(null)}>✕</button>
               )}
-              <input
-                ref={inputRef}
-                type="file"
-                accept={accept}
-                style={{ display: 'none' }}
-                onChange={e => onChange(e.target.files?.[0] || null)}
-              />
+              <input ref={inputRef} type="file" accept={accept} style={{ display: 'none' }}
+                onChange={e => onChange(e.target.files?.[0] || null)} />
             </>
           )}
         </div>
-
         {errorDescarga && (
           <span style={{ color: '#dc3545', fontSize: '0.8rem' }}>{errorDescarga}</span>
         )}
@@ -149,13 +135,8 @@ export const ArchivoUploader = ({ label, accept, archivo, inputRef, onChange }: 
       {archivo && (
         <button type="button" className="btn btn-sm btn-ghost" onClick={() => onChange(undefined)}>✕</button>
       )}
-      <input
-        ref={inputRef}
-        type="file"
-        accept={accept}
-        style={{ display: 'none' }}
-        onChange={e => onChange(e.target.files?.[0])}
-      />
+      <input ref={inputRef} type="file" accept={accept} style={{ display: 'none' }}
+        onChange={e => onChange(e.target.files?.[0])} />
     </div>
   </div>
 );
@@ -170,6 +151,3 @@ export const Field = ({ label, children }: { label: string; children: React.Reac
 export const Badge = ({ text, color }: { text: string; color: 'blue' | 'green' | 'amber' | 'gray' | 'red' }) => (
   <span className={`badge badge--${color}`}>{text}</span>
 );
-
-// Necesario para useState en el componente ArchivoFila
-import React from 'react';

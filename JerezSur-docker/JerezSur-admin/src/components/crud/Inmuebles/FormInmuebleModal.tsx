@@ -1,10 +1,11 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { toast } from 'react-toastify';
 import type { NuevoInmueble, TipoInmueble } from '../../../types/inmueble';
-import type { Vendedor } from '../../../types/vendedor';
 import api from '../../../services/api';
+import { useBodyScroll } from '../../../hooks/useBodyScroll';
 import '../../../styles/App.scss';
 import { Field, ArchivoUploader } from './_shared';
+import PropietariosEditor from '../../ui/PropietariosEditor';
 
 type Tab = 'datos' | 'propietarios' | 'archivos';
 
@@ -15,7 +16,6 @@ interface ArchivosPendientes {
   imagenes: File[];
 }
 
-// ✅ Corregida la falta de definición de las Props obligatorias
 interface Props {
   onCrear: (inmueble: NuevoInmueble) => Promise<any>;
   onCancelar: () => void;
@@ -24,80 +24,39 @@ interface Props {
 
 export const FormInmuebleModal = ({ onCrear, onCancelar, error: externalError }: Props) => {
   const [tab, setTab] = useState<Tab>('datos');
-  
-  // ✅ Refactorizado el estado inicial eliminando la necesidad de hacer "as any" más adelante
+
+  useBodyScroll(true);
+
   const [form, setForm] = useState<NuevoInmueble>({
-    titulo: '', 
-    precio: 0, 
-    operacion: 'VENTA', 
-    estado: 'DISPONIBLE',
-    tipo: 'PISO', 
-    superficieUtil: 0, 
-    mConstruidos: 0, 
-    habitaciones: 1,
-    banos: 1,
-    direccion: '',
-    zona: '',
-    codigoPostal: '',
-    ciudad: '',
-    destacado: false,
-    descripcion: '',
-    comunidad: 0,
-    ibi: 0,
-    notasPrivadas: '',
-    propietariosPorcentaje: {},
+    titulo: '', precio: 0, operacion: 'VENTA', estado: 'DISPONIBLE',
+    tipo: 'PISO', superficieUtil: 0, mConstruidos: 0, habitaciones: 1,
+    banos: 1, direccion: '', zona: '', codigoPostal: '', ciudad: '',
+    destacado: false, descripcion: '', comunidad: 0, ibi: 0,
+    notasPrivadas: '', propietariosPorcentaje: {},
   });
 
-  // Propietarios
-  const [propietariosPorcentaje, setPropietariosPorcentaje] = useState<Record<string, number>>({});
-  const [vendedores, setVendedores] = useState<Vendedor[]>([]);
-  const [cargandoVendedores, setCargandoVendedores] = useState(false);
-  const [filtroBusqueda, setFiltroBusqueda] = useState('');
-  const [paginaActual, setPaginaActual] = useState(0);
-  const [totalPaginas, setTotalPaginas] = useState(0);
-  const TAMANO_PAGINA = 5;
+  const [extrasEntries, setExtrasEntries] = useState<[string, string][]>([]);
+  const addExtra = () => setExtrasEntries(prev => [...prev, ['', '']]);
+  const removeExtra = (i: number) => setExtrasEntries(prev => prev.filter((_, idx) => idx !== i));
+  const updateExtra = (i: number, field: 0 | 1, value: string) =>
+    setExtrasEntries(prev => prev.map((e, idx) => idx === i ? (field === 0 ? [value, e[1]] : [e[0], value]) : e));
 
-  // Archivos
+  const [propietariosPorcentaje, setPropietariosPorcentaje] = useState<Record<string, number>>({});
   const [archivos, setArchivos] = useState<ArchivosPendientes>({ imagenes: [] });
   const [previews, setPreviews] = useState<string[]>([]);
-
   const [guardando, setGuardando] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  // Refs para inputs de archivo
-  const refNotaSimple = useRef<HTMLInputElement>(null);
+  const refNotaSimple  = useRef<HTMLInputElement>(null);
   const refCertificado = useRef<HTMLInputElement>(null);
-  const refPlano = useRef<HTMLInputElement>(null);
-  const refImagenes = useRef<HTMLInputElement>(null);
-
-  // ✅ Corregida la query del Fetch: ahora "filtroBusqueda" se envía al Backend
-  useEffect(() => {
-    if (tab !== 'propietarios') return;
-    const cargar = async () => {
-      setCargandoVendedores(true);
-      try {
-        const token = localStorage.getItem('token');
-        const url = `/api/vendedores?page=${paginaActual}&size=${TAMANO_PAGINA}&search=${encodeURIComponent(filtroBusqueda)}&sortBy=id&sortDir=asc`;
-        const res = await fetch(url, { headers: { Authorization: token ? `Bearer ${token}` : '' } });
-        if (!res.ok) throw new Error();
-        const data = await res.json();
-        setVendedores(data.content || []);
-        setTotalPaginas(data.totalPages || 0);
-      } catch {
-        toast.error('Error al cargar los vendedores.');
-      } finally {
-        setCargandoVendedores(false);
-      }
-    };
-    cargar();
-  }, [tab, paginaActual, filtroBusqueda]);
+  const refPlano       = useRef<HTMLInputElement>(null);
+  const refImagenes    = useRef<HTMLInputElement>(null);
 
   const handleImagenesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     setArchivos(a => ({ ...a, imagenes: [...a.imagenes, ...files] }));
-    const urls = files.map(f => URL.createObjectURL(f));
-    setPreviews(p => [...p, ...urls]);
+    setPreviews(p => [...p, ...files.map(f => URL.createObjectURL(f))]);
   };
 
   const quitarImagen = (idx: number) => {
@@ -127,8 +86,7 @@ export const FormInmuebleModal = ({ onCrear, onCancelar, error: externalError }:
     const err = validar();
     if (err) {
       setLocalError(err);
-      if (err.includes('propietario') || err.includes('%')) setTab('propietarios');
-      else setTab('datos');
+      setTab(err.includes('propietario') || err.includes('%') ? 'propietarios' : 'datos');
       return;
     }
 
@@ -136,65 +94,55 @@ export const FormInmuebleModal = ({ onCrear, onCancelar, error: externalError }:
     const toastId = toast.loading('⏳ Creando inmueble y subiendo archivos...');
 
     try {
-      // 1. Crear el inmueble primero (sin archivos) para obtener id y referencia
+      const caracteristicasExtra: Record<string, string> = {};
+      extrasEntries.forEach(([k, v]) => { if (k.trim()) caracteristicasExtra[k.trim()] = v; });
       const payload = {
         ...form,
         propietariosPorcentaje,
+        caracteristicasExtra: Object.keys(caracteristicasExtra).length > 0 ? caracteristicasExtra : undefined,
       } as NuevoInmueble;
 
-      const created: any = await onCrear(payload); // devuelve el inmueble creado desde el hook
+      const created: any = await onCrear(payload);
       const inmuebleId = created?.id;
       if (!inmuebleId) throw new Error('No se pudo crear el inmueble (sin ID)');
 
-      // 2. Subir documentos al backend (/api/media/inmueble/{id}/documento)
       const uploadDocumento = async (file: File | undefined, tipo: string) => {
-        if (!file) return undefined;
+        if (!file) return;
         const fd = new FormData();
         fd.append('archivo', file);
         fd.append('tipo', tipo);
-        const res = await api.post(`/media/inmueble/${inmuebleId}/documento`, fd, {
+        await api.post(`/media/inmueble/${inmuebleId}/documento`, fd, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
-        return res.data?.url as string | undefined;
       };
 
-      const urlNotaSimple = await uploadDocumento(archivos.notaSimple, 'nota_simple');
-      const urlCertificadoEnergetico = await uploadDocumento(archivos.certificadoEnergetico, 'certificado_energetico');
-      const urlPlanoInmueble = await uploadDocumento(archivos.plano, 'plano');
+      await Promise.all([
+        uploadDocumento(archivos.notaSimple, 'nota_simple'),
+        uploadDocumento(archivos.certificadoEnergetico, 'certificado_energetico'),
+        uploadDocumento(archivos.plano, 'plano'),
+      ]);
 
-      // 3. Subir imágenes al backend (/api/media/inmueble/{id}/imagen)
-      const uploadImagen = async (file: File, esPortada = false) => {
-        const fd = new FormData();
-        fd.append('archivo', file);
-        fd.append('esPortada', String(esPortada));
-        const res = await api.post(`/media/inmueble/${inmuebleId}/imagen`, fd, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        });
-        return res.data?.url as string | undefined;
-      };
-
-      const urlsImagenes: string[] = [];
       for (let i = 0; i < archivos.imagenes.length; i++) {
-        const url = await uploadImagen(archivos.imagenes[i], i === 0);
-        if (url) urlsImagenes.push(url);
+        const fd = new FormData();
+        fd.append('archivo', archivos.imagenes[i]);
+        fd.append('esPortada', String(i === 0));
+        await api.post(`/media/inmueble/${inmuebleId}/imagen`, fd, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
       }
 
       toast.dismiss(toastId);
-
-      // 4. Final: recargar o notificar éxito
       setSuccessMessage('¡Inmueble creado y archivos subidos correctamente!');
       setTimeout(() => onCancelar(), 1400);
     } catch (err: any) {
       toast.dismiss(toastId);
-      const msg = err?.response?.data?.message || err?.message || 'Error inesperado al guardar';
-      setLocalError(msg);
+      setLocalError(err?.response?.data?.message || err?.message || 'Error inesperado al guardar');
     } finally {
       setGuardando(false);
     }
   };
 
   const displayError = localError || externalError;
-  const sumaPorc = Object.values(propietariosPorcentaje).reduce((a, b) => a + b, 0);
 
   return (
     <div className="form-modal show">
@@ -205,19 +153,18 @@ export const FormInmuebleModal = ({ onCrear, onCancelar, error: externalError }:
           <button type="button" onClick={onCancelar} className="btn" disabled={guardando}>✕</button>
         </div>
 
-        {/* TABS */}
         <div className="tabs">
           <button type="button" onClick={() => setTab('datos')} className={`tab ${tab === 'datos' ? 'active' : ''}`}>
-            🏠 Datos básicos
+            Datos básicos
           </button>
           <button type="button" onClick={() => setTab('propietarios')} className={`tab ${tab === 'propietarios' ? 'active' : ''}`}>
-            👥 Propietarios
+            Propietarios
             {Object.keys(propietariosPorcentaje).length > 0 && (
               <span className="tab-badge">{Object.keys(propietariosPorcentaje).length}</span>
             )}
           </button>
           <button type="button" onClick={() => setTab('archivos')} className={`tab ${tab === 'archivos' ? 'active' : ''}`}>
-            📁 Archivos
+            Archivos
             {(archivos.notaSimple || archivos.certificadoEnergetico || archivos.plano || archivos.imagenes.length > 0) && (
               <span className="tab-badge">
                 {[archivos.notaSimple, archivos.certificadoEnergetico, archivos.plano].filter(Boolean).length + archivos.imagenes.length}
@@ -226,23 +173,18 @@ export const FormInmuebleModal = ({ onCrear, onCancelar, error: externalError }:
           </button>
         </div>
 
-        {/* FEEDBACK */}
-        {displayError && (
-          <div className="feedback feedback--error">🛑 {displayError}</div>
-        )}
-        {successMessage && (
-          <div className="feedback feedback--success">✅ {successMessage}</div>
-        )}
+        {displayError && <div className="feedback feedback--error">🛑 {displayError}</div>}
+        {successMessage && <div className="feedback feedback--success">✅ {successMessage}</div>}
 
         <div className="form-modal__body">
 
-          {/* ── PESTAÑA DATOS BÁSICOS ── */}
+          {/* ── DATOS BÁSICOS ── */}
           {tab === 'datos' && (
             <>
               <p className="section-title">Datos Comerciales</p>
               <Field label="Título Comercial *">
-                <input type="text" placeholder="ej: Piso luminoso en el centro" required value={form.titulo}
-                  onChange={e => setForm({ ...form, titulo: e.target.value })} />
+                <input type="text" placeholder="ej: Piso luminoso en el centro" required
+                  value={form.titulo} onChange={e => setForm({ ...form, titulo: e.target.value })} />
               </Field>
               <div className="form-row">
                 <Field label="Precio (€) *">
@@ -270,6 +212,16 @@ export const FormInmuebleModal = ({ onCrear, onCancelar, error: externalError }:
                     <option value="CHALET">Chalet</option>
                     <option value="ADOSADO">Adosado</option>
                     <option value="APARTAMENTO">Apartamento</option>
+                    <option value="ESTUDIO">Estudio</option>
+                    <option value="DUPLEX">Dúplex</option>
+                    <option value="ATICO">Ático</option>
+                    <option value="LOCAL_COMERCIAL">Local Comercial</option>
+                    <option value="OFICINA">Oficina</option>
+                    <option value="GARAJE">Garaje</option>
+                    <option value="TRASTERO">Trastero</option>
+                    <option value="TERRENO">Terreno</option>
+                    <option value="NAVE_INDUSTRIAL">Nave Industrial</option>
+                    <option value="FINCA">Finca</option>
                   </select>
                 </Field>
               </div>
@@ -291,7 +243,32 @@ export const FormInmuebleModal = ({ onCrear, onCancelar, error: externalError }:
                 <Field label="Ciudad *"><input type="text" required value={form.ciudad} onChange={e => setForm({ ...form, ciudad: e.target.value })} /></Field>
                 <Field label="Zona"><input type="text" placeholder="ej: Mopu, Chapín..." value={form.zona || ''} onChange={e => setForm({ ...form, zona: e.target.value })} /></Field>
               </div>
-              {/* El campo "destacado" se gestiona en la sección "Inmuebles destacados" del panel */}
+
+              <p className="section-title">Extras</p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+                <input type="checkbox" id="destacado" checked={form.destacado || false}
+                  onChange={e => setForm({ ...form, destacado: e.target.checked })}
+                  style={{ width: 'auto', cursor: 'pointer' }} />
+                <label htmlFor="destacado" style={{ cursor: 'pointer', margin: 0 }}>
+                  Inmueble destacado (aparecerá en portada)
+                </label>
+              </div>
+
+              <p className="section-title">Características Adicionales</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                {extrasEntries.map(([k, v], i) => (
+                  <div key={i} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                    <input type="text" placeholder="Característica (ej: Piscina)" value={k}
+                      onChange={e => updateExtra(i, 0, e.target.value)} style={{ flex: 1 }} />
+                    <input type="text" placeholder="Valor (ej: Sí)" value={v}
+                      onChange={e => updateExtra(i, 1, e.target.value)} style={{ flex: 1 }} />
+                    <button type="button" className="btn btn-sm btn-danger" onClick={() => removeExtra(i)}>✕</button>
+                  </div>
+                ))}
+              </div>
+              <button type="button" className="btn btn-ghost" onClick={addExtra} style={{ fontSize: '0.85rem' }}>
+                + Añadir característica
+              </button>
 
               <p className="section-title">Gastos y Cargas</p>
               <div className="form-row">
@@ -301,125 +278,55 @@ export const FormInmuebleModal = ({ onCrear, onCancelar, error: externalError }:
 
               <p className="section-title">Descripción</p>
               <Field label="Descripción pública">
-                <textarea className="textarea-large" value={form.descripcion || ''} onChange={e => setForm({ ...form, descripcion: e.target.value })} placeholder="Descripción visible en el portal..." />
+                <textarea className="textarea-large" value={form.descripcion || ''}
+                  onChange={e => setForm({ ...form, descripcion: e.target.value })}
+                  placeholder="Descripción visible en el portal..." />
               </Field>
               <Field label="Notas privadas (solo personal interno)">
-                <textarea className="textarea-large" value={form.notasPrivadas || ''} onChange={e => setForm({ ...form, notasPrivadas: e.target.value })} placeholder="Información interna no visible al cliente..." />
+                <textarea className="textarea-large" value={form.notasPrivadas || ''}
+                  onChange={e => setForm({ ...form, notasPrivadas: e.target.value })}
+                  placeholder="Información interna no visible al cliente..." />
               </Field>
             </>
           )}
 
-          {/* ── PESTAÑA PROPIETARIOS ── */}
+          {/* ── PROPIETARIOS ── */}
           {tab === 'propietarios' && (
             <>
               <p className="section-title">Asignación de Propietarios</p>
-              <input
-                type="text" placeholder="🔍 Buscar por nombre, apellidos o DNI..."
-                value={filtroBusqueda}
-                onChange={e => { setFiltroBusqueda(e.target.value); setPaginaActual(0); }}
-                style={{ width: '100%', marginBottom: '1rem' }}
+              <PropietariosEditor
+                propietarios={propietariosPorcentaje}
+                onChange={setPropietariosPorcentaje}
               />
-
-              {cargandoVendedores ? (
-                <div style={{ padding: '2rem', textAlign: 'center', color: '#6c757d' }}>⏳ Cargando vendedores...</div>
-              ) : vendedores.length === 0 ? (
-                <div className="info-box">⚠️ No se encontraron vendedores.</div>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1rem' }}>
-                  {vendedores.map(v => {
-                    const idStr = v.id.toString();
-                    const sel = idStr in propietariosPorcentaje;
-                    const nombre = v.usuario ? `${v.usuario.nombre} ${v.usuario.apellidos || ''}` : `Vendedor #${v.id}`;
-                    return (
-                      <div key={v.id} style={{
-                        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem',
-                        padding: '0.75rem', borderRadius: '6px',
-                        backgroundColor: sel ? '#f1f7fd' : '#fff',
-                        border: sel ? '1px solid #b6d4fe' : '1px solid #dee2e6',
-                      }}>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', flex: 1 }}>
-                          <input type="checkbox" checked={sel}
-                            onChange={() => setPropietariosPorcentaje(prev => {
-                              const c = { ...prev };
-                              if (idStr in c) delete c[idStr]; else c[idStr] = 0;
-                              return c;
-                            })} style={{ width: 'auto' }} />
-                          <strong>{nombre}</strong>
-                        </label>
-                        {sel && (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <span style={{ fontSize: '0.85rem', color: '#495057' }}>Participación:</span>
-                            <input type="number" min={0} max={100} style={{ width: '80px', textAlign: 'right' }}
-                              value={propietariosPorcentaje[idStr] ?? ''}
-                              onChange={e => setPropietariosPorcentaje(prev => ({ ...prev, [idStr]: Number(e.target.value) }))} />
-                            <strong>%</strong>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-
-              {totalPaginas > 1 && (
-                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
-                  <button type="button" className="btn" disabled={paginaActual === 0} onClick={() => setPaginaActual(p => p - 1)}>◀</button>
-                  <span>Página {paginaActual + 1} de {totalPaginas}</span>
-                  <button type="button" className="btn" disabled={paginaActual >= totalPaginas - 1} onClick={() => setPaginaActual(p => p + 1)}>▶</button>
-                </div>
-              )}
-
-              <div style={{
-                backgroundColor: '#e9ecef', padding: '1rem', borderRadius: '6px',
-                display: 'flex', justifyContent: 'space-between', fontWeight: '600',
-              }}>
-                <span>Total asignado:</span>
-                <span style={{ color: sumaPorc === 100 ? '#198754' : '#dc3545' }}>{sumaPorc}% / 100%</span>
-              </div>
             </>
           )}
 
-          {/* ── PESTAÑA ARCHIVOS ── */}
+          {/* ── ARCHIVOS ── */}
           {tab === 'archivos' && (
             <>
               <p className="section-title">Documentación Legal</p>
+              <ArchivoUploader label="Nota Simple (PDF)" accept=".pdf"
+                archivo={archivos.notaSimple} inputRef={refNotaSimple}
+                onChange={f => setArchivos(a => ({ ...a, notaSimple: f }))} />
+              <ArchivoUploader label="Certificado Energético (PDF)" accept=".pdf"
+                archivo={archivos.certificadoEnergetico} inputRef={refCertificado}
+                onChange={f => setArchivos(a => ({ ...a, certificadoEnergetico: f }))} />
+              <ArchivoUploader label="Plano del Inmueble (PDF / imagen)" accept=".pdf,image/*"
+                archivo={archivos.plano} inputRef={refPlano}
+                onChange={f => setArchivos(a => ({ ...a, plano: f }))} />
 
-              <ArchivoUploader
-                label="📄 Nota Simple (PDF)"
-                accept=".pdf"
-                archivo={archivos.notaSimple}
-                inputRef={refNotaSimple}
-                onChange={f => setArchivos(a => ({ ...a, notaSimple: f }))}
-              />
-              <ArchivoUploader
-                label="🟢 Certificado Energético (PDF)"
-                accept=".pdf"
-                archivo={archivos.certificadoEnergetico}
-                inputRef={refCertificado}
-                onChange={f => setArchivos(a => ({ ...a, certificadoEnergetico: f }))}
-              />
-              <ArchivoUploader
-                label="📐 Plano del Inmueble (PDF / imagen)"
-                accept=".pdf,image/*"
-                archivo={archivos.plano}
-                inputRef={refPlano}
-                onChange={f => setArchivos(a => ({ ...a, plano: f }))}
-              />
-
-              <p className="section-title" style={{ marginTop: '1.5rem' }}>🖼️ Imágenes del Inmueble</p>
-              <div
-                className="dropzone"
-                onClick={() => refImagenes.current?.click()}
+              <p className="section-title" style={{ marginTop: '1.5rem' }}>Imágenes del Inmueble</p>
+              <div className="dropzone" onClick={() => refImagenes.current?.click()}
                 onDragOver={e => e.preventDefault()}
                 onDrop={e => {
                   e.preventDefault();
                   const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
                   setArchivos(a => ({ ...a, imagenes: [...a.imagenes, ...files] }));
                   setPreviews(p => [...p, ...files.map(f => URL.createObjectURL(f))]);
-                }}
-              >
-                <span>📂 Arrastra imágenes aquí o haz clic para seleccionar</span>
-                <input ref={refImagenes} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={handleImagenesChange} />
+                }}>
+                <span>Arrastra imágenes aquí o haz clic para seleccionar</span>
+                <input ref={refImagenes} type="file" accept="image/*" multiple
+                  style={{ display: 'none' }} onChange={handleImagenesChange} />
               </div>
 
               {previews.length > 0 && (
@@ -442,7 +349,7 @@ export const FormInmuebleModal = ({ onCrear, onCancelar, error: externalError }:
         <div className="form-modal__footer">
           <button type="button" onClick={onCancelar} className="btn" disabled={guardando}>Cancelar</button>
           <button type="submit" disabled={guardando || !!successMessage} className="btn btn-primary">
-            {guardando ? '⏳ Subiendo archivos y guardando...' : successMessage ? '✓ Guardado' : '+ Dar de Alta'}
+            {guardando ? '⏳ Guardando...' : successMessage ? '✓ Guardado' : '+ Dar de Alta'}
           </button>
         </div>
       </form>

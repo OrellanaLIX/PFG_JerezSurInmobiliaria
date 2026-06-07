@@ -58,6 +58,19 @@ public class UsuarioController {
         }
     }
 
+    // Creación de usuario desde el panel de administración: sin contraseña → se genera OTP
+    @PostMapping("/admin/crear")
+    public ResponseEntity<?> crearPorAdmin(@RequestBody RegistroRequest request) {
+        try {
+            return ResponseEntity.ok(usuarioService.crearPorAdmin(request));
+        } catch (BusinessValidationException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            log.error("Error al crear usuario por admin", e);
+            return ResponseEntity.status(500).body(Map.of("error", "Error al crear el usuario."));
+        }
+    }
+
     // Endpoint de login tradicional con email/teléfono y contraseña
     // Devuelve un JWT que el frontend guarda en localStorage para las siguientes peticiones
     @PostMapping("/login")

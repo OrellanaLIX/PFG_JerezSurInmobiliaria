@@ -82,8 +82,6 @@ type InmuebleBackend = {
 // CONFIG
 // ==========================================
 const API_BASE = '/api';
-const DEFAULT_IMAGE =
-  'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80';
 
 // ==========================================
 // HELPERS DE MAPEO
@@ -186,6 +184,8 @@ const Inmuebles = () => {
   const [sortBy, setSortBy] = useState<SortOption>('recent');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showFilters, setShowFilters] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0);
+  const ITEMS_PER_PAGE = 12;
 
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -259,7 +259,7 @@ const Inmuebles = () => {
         // Zona — filtra por el campo `zona` del inmueble (Chapín, Centro, MOPU…)
         if (filters.zone) params.set('zona', filters.zone);
 
-        // Paginación — 200 resultados para una inmobiliaria local es más que suficiente
+        // Paginación — 12 resultados por página para mejor UX
         params.set('page', '0');
         params.set('size', '200');
 
@@ -349,6 +349,7 @@ const Inmuebles = () => {
     }
 
     setFilteredProperties(result);
+    setCurrentPage(0); // Resetear a primera página cuando cambian filtros
   }, [properties, filters]);
 
   // Sincroniza los filtros activos en la URL para que los enlaces sean compartibles
@@ -518,11 +519,61 @@ const Inmuebles = () => {
                 </button>
               </div>
             ) : filteredProperties.length > 0 ? (
-              <div className={`inmuebles-grid inmuebles-grid--${viewMode}`}>
-                {filteredProperties.map((property) => (
-                  <PropertyCard key={property.id} property={property} viewMode={viewMode} />
-                ))}
-              </div>
+              <>
+                <div className={`inmuebles-grid inmuebles-grid--${viewMode}`}>
+                  {filteredProperties
+                    .slice(currentPage * ITEMS_PER_PAGE, (currentPage + 1) * ITEMS_PER_PAGE)
+                    .map((property) => (
+                      <PropertyCard key={property.id} property={property} viewMode={viewMode} />
+                    ))}
+                </div>
+                {Math.ceil(filteredProperties.length / ITEMS_PER_PAGE) > 1 && (
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    gap: '1rem',
+                    marginTop: '2rem',
+                    paddingBottom: '1rem'
+                  }}>
+                    <button
+                      className="btn"
+                      onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
+                      disabled={currentPage === 0}
+                    >
+                      ← Anterior
+                    </button>
+                    <span style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                      {Array.from({ length: Math.ceil(filteredProperties.length / ITEMS_PER_PAGE) }).map((_, i) => (
+                        <button
+                          key={i}
+                          className={`btn ${i === currentPage ? 'btn-primary' : ''}`}
+                          onClick={() => setCurrentPage(i)}
+                          style={{
+                            minWidth: '36px',
+                            padding: i === currentPage ? '0.5rem 0.75rem' : '0.5rem 0.75rem',
+                            backgroundColor: i === currentPage ? '#007bff' : 'transparent',
+                            color: i === currentPage ? 'white' : '#007bff',
+                            border: `1px solid ${i === currentPage ? '#007bff' : '#007bff'}`,
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            fontSize: '0.875rem',
+                          }}
+                        >
+                          {i + 1}
+                        </button>
+                      ))}
+                    </span>
+                    <button
+                      className="btn"
+                      onClick={() => setCurrentPage(p => Math.min(Math.ceil(filteredProperties.length / ITEMS_PER_PAGE) - 1, p + 1))}
+                      disabled={currentPage >= Math.ceil(filteredProperties.length / ITEMS_PER_PAGE) - 1}
+                    >
+                      Siguiente →
+                    </button>
+                  </div>
+                )}
+              </>
             ) : (
               <div className="inmuebles-empty">
                 <div className="inmuebles-empty__icon-wrapper">

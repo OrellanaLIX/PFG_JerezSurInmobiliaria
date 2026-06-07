@@ -6,20 +6,21 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.jerezsur.inmobiliaria.models.enums.EstadoInmueble;
 import com.jerezsur.inmobiliaria.models.enums.TipoInmueble;
 import com.jerezsur.inmobiliaria.models.enums.TipoOperacion;
 
 import jakarta.persistence.CascadeType;
-import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -27,9 +28,6 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.MapKeyColumn;
-import jakarta.persistence.MapKeyJoinColumn;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.DecimalMin;
@@ -88,12 +86,12 @@ public class Inmueble {
     private TipoInmueble tipo;
 
     // --- CARACTERÍSTICAS DINÁMICAS ---
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "inmueble_extras", joinColumns = @JoinColumn(name = "inmueble_id"))
-    @MapKeyColumn(name = "clave")
-    @Column(name = "valor")
+    @JsonIgnore
+    @OneToMany(mappedBy = "inmueble", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @Fetch(FetchMode.SELECT)
     @Default
-    private Map<String, String> caracteristicasExtra = new HashMap<>();
+    @ToString.Exclude
+    private List<InmuebleExtra> extras = new ArrayList<>();
 
     // --- CARACTERÍSTICAS TÉCNICAS ---
     @Positive
@@ -157,14 +155,50 @@ public class Inmueble {
     @JsonIgnore
     private List<Imagen> imagenes = new ArrayList<>();
 
-    // 🌟 NUEVO ENFOQUE: Diccionario directo de Vendedores con su Porcentaje 🌟
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "inmueble_propietario_porcentaje", joinColumns = @JoinColumn(name = "inmueble_id"))
-    @MapKeyJoinColumn(name = "vendedor_id") // Clave del Mapa: Entidad Vendedor
-    @Column(name = "porcentaje") // Valor del Mapa: Double o Integer
-    @JsonIgnoreProperties({ "contratosFirmados", "hibernateLazyInitializer", "handler" })
+    @JsonIgnore
+    @OneToMany(mappedBy = "inmueble", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @Fetch(FetchMode.SELECT)
     @Default
-    private Map<Vendedor, Double> propietariosPorcentaje = new HashMap<>();
+    @ToString.Exclude
+    private List<InmueblePropietario> propietarios = new ArrayList<>();
+
+    @JsonProperty("propietariosPorcentaje")
+    public Map<Long, Double> getPropietariosPorcentajeIds() {
+        if (propietarios == null) return new HashMap<>();
+        return propietarios.stream()
+                .collect(Collectors.toMap(
+                        p -> p.getVendedor().getId(),
+                        InmueblePropietario::getPorcentaje));
+    }
+
+    @JsonIgnore
+    public Map<Vendedor, Double> getPropietariosPorcentaje() {
+        if (propietarios == null) return new HashMap<>();
+        return propietarios.stream()
+                .collect(Collectors.toMap(
+                        InmueblePropietario::getVendedor,
+                        InmueblePropietario::getPorcentaje));
+    }
+
+    @JsonProperty("caracteristicasExtra")
+    public Map<String, String> getCaracteristicasExtra() {
+        if (extras == null) return new HashMap<>();
+        return extras.stream()
+                .collect(Collectors.toMap(InmuebleExtra::getClave, InmuebleExtra::getValor));
+    }
+
+    public void setCaracteristicasExtra(Map<String, String> map) {
+        if (this.extras == null) this.extras = new ArrayList<>();
+        this.extras.clear();
+        if (map == null) return;
+        map.forEach((clave, valor) -> {
+            InmuebleExtra e = new InmuebleExtra();
+            e.setId(new InmuebleExtraId(this.id, clave));
+            e.setInmueble(this);
+            e.setValor(valor);
+            this.extras.add(e);
+        });
+    }
 
     @OneToMany(mappedBy = "inmueble")
     @Default

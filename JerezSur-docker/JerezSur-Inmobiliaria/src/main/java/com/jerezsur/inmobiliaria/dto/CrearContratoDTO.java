@@ -6,11 +6,15 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 
-// DTO para crear un contrato: recibe los datos del formulario del panel admin.
+/**
+ * DTO de entrada para crear un contrato vinculado a una operación inmobiliaria.
+ *
+ * Un contrato es el documento legal que formaliza la operación (arras, compraventa,
+ * alquiler...). El trabajadorId indica qué agente firma el contrato en nombre de
+ * la inmobiliaria. La URL del PDF se añade después, cuando se sube el documento a Cloudinary.
+ */
 @Getter
-// DTO para crear un contrato: recibe los datos del formulario del panel admin.
 @Setter
-// DTO para crear un contrato: recibe los datos del formulario del panel admin.
 @NoArgsConstructor
 public class CrearContratoDTO {
     private String modelo;

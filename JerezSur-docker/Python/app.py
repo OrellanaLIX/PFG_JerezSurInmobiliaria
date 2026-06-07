@@ -85,54 +85,8 @@ def _b64(fig):
 # ═══════════════════════════════════════════════════════════════════════
 # FUNCIONES GENERADORAS DE GRÁFICOS
 # Separadas de las rutas Flask para poder llamarlas directamente desde /panel
-# y así generar los 4 gráficos sin hacer peticiones HTTP anidadas
+# y así generar los 2 gráficos sin hacer peticiones HTTP anidadas
 # ═══════════════════════════════════════════════════════════════════════
-
-def _gen_kpis(d):
-    kpis = [
-        ('Inmuebles activos', d.get('inmuebles', 0),  d.get('tendencia_inmuebles', []),  C['primary'], '🏠'),
-        ('Nuevos clientes',   d.get('clientes', 0),   d.get('tendencia_clientes', []),   C['green'],   '👥'),
-        ('Citas próximas',    d.get('visitas', 0),    d.get('tendencia_visitas', []),    C['amber'],   '📅'),
-        ('Contratos activos', d.get('contratos', 0),  d.get('tendencia_contratos', []), C['red'],     '📋'),
-    ]
-
-    fig, axes = plt.subplots(1, 4, figsize=(14, 3.4))
-    fig.patch.set_facecolor(C['bg'])
-
-    for ax, (label, valor, trend, color, icon) in zip(axes, kpis):
-        ax.set_facecolor(C['bg'])
-        ax.axis('off')
-
-        # Card outline
-        card = FancyBboxPatch((0.04, 0.06), 0.92, 0.88,
-                              boxstyle='round,pad=0.02',
-                              linewidth=1.1, edgecolor=C['border'],
-                              facecolor='white', transform=ax.transAxes, zorder=0)
-        ax.add_patch(card)
-        # Accent bar at top
-        acc = FancyBboxPatch((0.04, 0.88), 0.92, 0.055,
-                             boxstyle='round,pad=0.01',
-                             linewidth=0, facecolor=color,
-                             transform=ax.transAxes, zorder=1)
-        ax.add_patch(acc)
-
-        ax.text(0.14, 0.72, icon, ha='center', va='center',
-                fontsize=22, transform=ax.transAxes)
-        ax.text(0.62, 0.72, str(valor), ha='center', va='center',
-                fontsize=30, fontweight='bold', color=color,
-                transform=ax.transAxes)
-        ax.text(0.5, 0.40, label, ha='center', va='center',
-                fontsize=9.5, color=C['soft'], transform=ax.transAxes)
-
-        if len(trend) > 1:
-            ins = ax.inset_axes([0.08, 0.10, 0.84, 0.22])
-            xs = list(range(len(trend)))
-            ins.plot(xs, trend, color=color, linewidth=2, solid_capstyle='round')
-            ins.fill_between(xs, trend, alpha=0.12, color=color)
-            ins.axis('off')
-
-    plt.tight_layout(pad=0.5)
-    return _b64(fig)
 
 
 def _gen_barras(d):
@@ -182,9 +136,8 @@ def _gen_dona(d):
     total  = sum(vals) or 1
 
     # Layout horizontal: dona a la izquierda, leyenda a la derecha
-    # Menos alto que antes (3.2 vs 5) gracias a que la leyenda ya no ocupa espacio inferior
     fig, (ax, ax_leg) = plt.subplots(1, 2, figsize=(7, 3.2),
-                                      gridspec_kw={'width_ratios': [2, 1]})
+                                      gridspec_kw={'width_ratios': [3, 1]})
     ax_leg.axis('off')
 
     # Filter out 0-value slices
@@ -195,7 +148,7 @@ def _gen_dona(d):
 
     wedges, _, autotexts = ax.pie(
         fv, colors=fc, autopct='%1.0f%%',
-        pctdistance=0.82, startangle=90,
+        pctdistance=0.8, startangle=90,
         wedgeprops=dict(width=0.52, edgecolor='white', linewidth=2.5),
     )
     for at in autotexts:
@@ -223,49 +176,9 @@ def _gen_dona(d):
     return _b64(fig)
 
 
-def _gen_evolucion(d):
-    meses    = d.get('meses',     ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'])
-    registros = d.get('registros', [5, 9, 12, 8, 15, 20])
-
-    fig, ax = plt.subplots(figsize=(11, 3.8))
-
-    xs = list(range(len(meses)))
-    ax.plot(xs, registros, color=C['primary'], linewidth=2.5,
-            marker='o', markersize=7,
-            markerfacecolor='white', markeredgewidth=2.5,
-            markeredgecolor=C['primary'],
-            solid_capstyle='round', zorder=4)
-    ax.fill_between(xs, registros, alpha=0.08, color=C['primary'])
-
-    if registros:
-        mx_i = registros.index(max(registros))
-        ax.annotate(f'Máx: {max(registros)}',
-                    xy=(mx_i, max(registros)),
-                    xytext=(mx_i + 0.3, max(registros) + max(1, max(registros)*0.08)),
-                    fontsize=8.5, color=C['primary'], fontweight='bold',
-                    arrowprops=dict(arrowstyle='->', color=C['primary'], lw=1.2))
-
-    ax.set_xticks(xs)
-    ax.set_xticklabels(meses, fontsize=10)
-    ax.set_ylabel('Registros', fontsize=10, color=C['soft'])
-    ax.yaxis.set_tick_params(labelsize=9)
-    ax.spines['left'].set_visible(False)
-    ax.tick_params(left=False)
-    ax.set_axisbelow(True)
-    ax.set_title('Evolución de registros', fontsize=12, fontweight='bold',
-                 color=C['text'], pad=12, loc='left')
-
-    plt.tight_layout()
-    return _b64(fig)
-
-
 # ═══════════════════════════════════════════════════════════════════════
 # RUTAS FLASK
 # ═══════════════════════════════════════════════════════════════════════
-
-@app.route('/grafico/kpis', methods=['POST'])
-def route_kpis():
-    return jsonify({'imagen': _gen_kpis(request.json or {}), 'tipo': 'kpis'})
 
 @app.route('/grafico/barras-mensuales', methods=['POST'])
 def route_barras():
@@ -275,19 +188,13 @@ def route_barras():
 def route_dona():
     return jsonify({'imagen': _gen_dona(request.json or {}), 'tipo': 'dona'})
 
-@app.route('/grafico/evolucion', methods=['POST'])
-def route_evolucion():
-    return jsonify({'imagen': _gen_evolucion(request.json or {}), 'tipo': 'evolucion'})
-
 @app.route('/grafico/panel', methods=['POST'])
 def route_panel():
-    """Devuelve los 4 gráficos de una sola llamada."""
+    """Devuelve los 2 gráficos de una sola llamada."""
     d = request.json or {}
     return jsonify({
-        'kpis':      _gen_kpis(d),
         'barras':    _gen_barras(d),
         'dona':      _gen_dona(d),
-        'evolucion': _gen_evolucion(d),
     })
 
 @app.route('/health', methods=['GET'])

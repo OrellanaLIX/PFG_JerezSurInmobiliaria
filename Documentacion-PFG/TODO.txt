@@ -1,18 +1,11 @@
-MINIMEJORAS POSTENTREGA:
-Mejorar paddings y margenes en los heros
-Cambiar textos
-
 FIXES:
-Repaso general
-Comprobar funcionamiento de las apis
-Crear presentacion
-Revisar Comentarios
-Crear data cleanup
-Apartado de tareas, mejora estetica
-Crear mas correos y mensajes de te hemos borrado la cuenta, etc, etc
-Apartado de contrseña temporal
-Onboarding como mensaje de contacto
+El apartado de tareas debe ser mas alto y tener un scroll para que no se vean como en la imagen
+La lista de propietarios asignada a un inmueble da error 500
+Da error 500 al entrar al apartado de citas y no carga nada
+Al ver los detalles de citas debes poder asignar un trabajador a la cita, entonces la cita pasara a estar confirmada y aparecera el apartado de gestion
+Todas las citas se crean a nombre de hola, en vez de al nombre que pones cuando se crean desde el front de admin
 
+Lighthouse y seguridad
 
 HECHO:
 Al crear un usuario lo crea pero visualmente no esta del todo bien
@@ -32,5 +25,7 @@ Auth de apple y facebook
 Seguir mejorando lighthouse
 Revisar filtros de busqueda del panel de admin
 
-Prompt:
-para el data clean up, borra los mensajes de contacto leidos que tengan mas de 6 meses, y los usuario que lleven 3meses y no tengan ningun perfil como trabajador, vendedor o interesado asignado, y todos los que creas necesarios
+Presentacion:
+Allow all - Allow ip
+Estudiar codigo, saber como funciona/se conecta todo
+Preparar guion

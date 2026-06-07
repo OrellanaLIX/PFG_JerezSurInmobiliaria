@@ -3,27 +3,52 @@
 @use '../globals/__Variables' as *;
 
 /* =================================================
-   HERO DE CONTACTO
+   HERO DE CONTACTO — compact (no hereda .hero)
 ================================================= */
 .contact-hero {
+  min-height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 3rem 1rem 5rem;
+  color: $color-white;
   background:
     linear-gradient(
       160deg,
-      rgba(0, 18, 48, 0.80) 0%,
-      rgba(0, 40, 100, 0.50) 55%,
-      rgba(0, 18, 48, 0.75) 100%
+      rgba(0, 18, 48, 0.88) 0%,
+      rgba(0, 40, 100, 0.62) 55%,
+      rgba(0, 18, 48, 0.84) 100%
     ),
     url('https://images.unsplash.com/photo-1521791136064-7986c2920216?w=1920&q=80&fm=webp')
     center center / cover no-repeat;
+
+  .hero__content {
+    width: min(720px, 100%);
+
+    h1 {
+      color: $color-white;
+      font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+      font-weight: 800;
+      margin-bottom: 0.75rem;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+
+    p {
+      font-size: clamp(0.95rem, 1.5vw, 1.1rem);
+      color: rgba(255,255,255,0.88);
+      margin: 0 auto;
+      max-width: 560px;
+      line-height: 1.6;
+    }
+  }
 }
 
 /* =================================================
    TARJETAS DE CONTACTO DIRECTO
 ================================================= */
 .contact-cards {
-  background: $color-bg;
-  padding: 0;
-  margin-top: -4rem;
+  padding: 4rem 0 0;
   position: relative;
   z-index: 2;
 
@@ -43,6 +68,11 @@
     }
 
     @media (max-width: $tablet) {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+    }
+
+    @media (max-width: 480px) {
       grid-template-columns: 1fr;
     }
   }
@@ -50,7 +80,7 @@
 
 .contact-card {
   background: $color-white;
-  border-radius: $radius-lg;
+  border-radius: $radius-xl;
   box-shadow: $shadow-md;
   border: 1px solid $color-border;
   padding: 2rem 1.5rem;
@@ -249,9 +279,9 @@
   /* ── Label ── */
   &__label {
     font-size: $font-size-sm;
-    font-weight: 600;
+    font-weight: 700;
     color: $color-text;
-    letter-spacing: 0.01em;
+    letter-spacing: 0.3px;
 
     span[aria-hidden] {
       color: $color-error;
@@ -348,6 +378,7 @@
   &__submit {
     width: 100%;
     padding: 1.1rem 2rem;
+    min-height: 52px;
     font-size: $font-size-lg;
     display: inline-flex;
     align-items: center;

@@ -5,7 +5,14 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 
-// DTO de registro de nuevos usuarios: contiene los campos del formulario de alta.
+/**
+ * DTO de entrada para el registro de nuevos usuarios desde la web pública.
+ *
+ * El @Pattern de la contraseña impone los mismos requisitos que muestra el formulario
+ * de React: mínimo 8 caracteres, con mayúscula, minúscula, número y carácter especial.
+ * Esto garantiza que aunque alguien llame al endpoint directamente (sin el formulario)
+ * no pueda registrar contraseñas débiles.
+ */
 @Data
 public class RegistroRequest {
     

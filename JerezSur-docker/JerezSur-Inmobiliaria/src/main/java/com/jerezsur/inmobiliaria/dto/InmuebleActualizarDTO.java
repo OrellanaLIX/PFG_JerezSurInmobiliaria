@@ -10,8 +10,12 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * DTO para actualizar un inmueble existente
- * Soporta actualización parcial de campos
+ * DTO para actualizar un inmueble existente desde el panel de administración.
+ *
+ * Todos los campos son opcionales (sin @NotNull/@NotBlank) para permitir
+ * actualizaciones parciales: el servicio solo sobrescribe los campos no nulos.
+ * Esto evita que el trabajador tenga que rellenar todo el formulario si solo
+ * quiere cambiar el precio o el estado del inmueble.
  */
 @Data
 public class InmuebleActualizarDTO {
@@ -55,4 +59,7 @@ public class InmuebleActualizarDTO {
 
     // Propietarios
     private Map<Long, Double> propietariosPorcentaje;
+
+    // Características adicionales clave-valor
+    private Map<String, String> caracteristicasExtra;
 }
